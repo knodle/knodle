@@ -3,4 +3,3 @@ pytest
 pytest-cov
 -e .
 wheel
-bdist_wheel
