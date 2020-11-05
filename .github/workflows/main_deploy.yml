@@ -1,0 +1,20 @@
+name: Build and Deploy on Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build and deploy
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install -r requirements_dev.txt
+          python setup.py sdist bdist_wheel
+          # twine upload dist/* FOR UPLOADING PURPOSES
