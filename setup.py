@@ -20,7 +20,7 @@ setup(
     license='TBC',
 
     author="knodle",
-    author_email="alessandro.volpicella@gmail.com",
+    author_email="knodle@cs.univie.ac.at",
 
     description="Knowledge infused deep learning framework",
     long_description=read("README.md"),
