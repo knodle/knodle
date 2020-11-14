@@ -3,3 +3,8 @@ pytest
 pytest-cov
 -e .
 wheel
+torch
+joblib
+pandas
+scikit-learn
+snorkel
