@@ -13,7 +13,7 @@ def create_optimizer(model, optimizer: str, learning_rate: float = 0.1, epsilon:
     elif optimizer == 'SGD':
         optimizer = SGD(model.parameters(), lr=learning_rate)
     else:
-        raise NotImplemented("Just AdamW or SGD available")
+        raise NotImplementedError("Just AdamW or SGD available")
     return optimizer
 
 
@@ -29,6 +29,6 @@ def create_criterion(criterion: str):
     elif criterion == 'cross_entropy':
         criterion = CrossEntropyLoss()
     else:
-        raise (NotImplemented("You have chosen a loss function which is not implemented."))
+        raise NotImplementedError("You have chosen a loss function which is not implemented.")
 
     return criterion
