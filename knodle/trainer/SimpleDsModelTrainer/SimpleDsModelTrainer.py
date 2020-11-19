@@ -4,28 +4,25 @@ import numpy as np
 
 from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_probabilities
 from knodle.model import LogisticRegressionModel
+from knodle.trainer.model_config.ModelConfig import ModelConfig
 from knodle.trainer.utils.utils import create_criterion, create_optimizer
 
 
 class SimpleDsModelTrainer:
-    def __init__(
-        self,
-        model: Module,
-        criterion: str = "cross_entropy_with_probs",
-        optimizer="SGD",
-        output_classes: int = 2,
-    ):
+    def __init__(self, model: Module, model_config: ModelConfig = None):
         self.model = model
-        self.criterion = create_criterion(criterion)
-        self.optimizer = create_optimizer(self.model, optimizer)
-        self.output_classes = output_classes
+        if model_config is None:
+            self.model_config = ModelConfig(self.model)
+        else:
+            self.model_config = model_config
 
     def train(
         self, inputs: Tensor, applied_labeling_functions: np.ndarray, epochs: int
     ):
         self.model.train()
         labels = get_majority_vote_probabilities(
-            applied_lfs=applied_labeling_functions, output_classes=self.output_classes
+            applied_lfs=applied_labeling_functions,
+            output_classes=self.model_config.output_classes,
         )
 
         labels = Tensor(labels)
@@ -34,10 +31,10 @@ class SimpleDsModelTrainer:
             print("Epoch: ", current_epoch)
             self.model.zero_grad()
             predictions = self.model(inputs)
-            loss = self.criterion(predictions, labels)
+            loss = self.model_config.criterion(predictions, labels)
             print("Loss is: ", loss.float())
             loss.backward()
-            self.optimizer.step()
+            self.model_config.optimizer.step()
 
 
 if __name__ == "__main__":
