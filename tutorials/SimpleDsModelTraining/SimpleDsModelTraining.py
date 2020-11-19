@@ -5,7 +5,9 @@ from joblib import load
 import pandas as pd
 from torch import Tensor
 
-from knodle.trainer.SimpleDsModelTrainer.SimpleDsModelTrainer import SimpleDsModelTrainer
+from knodle.trainer.SimpleDsModelTrainer.SimpleDsModelTrainer import (
+    SimpleDsModelTrainer,
+)
 
 
 def train_simple_ds_model():
@@ -19,8 +21,8 @@ def train_simple_ds_model():
 
 
 def read_evaluation_data():
-    imdb_dataset = pd.read_csv('tutorials/ImdbDataset/imdb_data_pp.csv')
-    applied_lfs = load('tutorials/ImdbDataset/lfs.joblib')
+    imdb_dataset = pd.read_csv("tutorials/ImdbDataset/imdb_data_pp.csv")
+    applied_lfs = load("tutorials/ImdbDataset/lfs.joblib")
     return imdb_dataset, applied_lfs
 
 
@@ -30,5 +32,5 @@ def create_tfidf_values(text_data: [str]):
     return transformed_data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     train_simple_ds_model()
