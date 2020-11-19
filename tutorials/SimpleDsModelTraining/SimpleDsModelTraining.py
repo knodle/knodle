@@ -8,21 +8,24 @@ from joblib import load, dump
 import pandas as pd
 from torch import Tensor
 
-from knodle.trainer.SimpleDsModelTrainer.SimpleDsModelTrainer import (
-    SimpleDsModelTrainer,
-)
+from knodle.trainer import SimpleDsModelTrainer
 from knodle.trainer.model_config.ModelConfig import ModelConfig
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def train_simple_ds_model():
-    print("Train simple ds model")
+    logger.info("Train simple ds model")
     imdb_dataset, applied_lfs = read_evaluation_data()
     tfidf_values = create_tfidf_values(imdb_dataset.reviews_preprocessed.values)
 
     tfidf_tensor = Tensor(tfidf_values.toarray())
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = ModelConfig(model=model, optimizer_=AdamW)
+    custom_model_config = ModelConfig(
+        model=model, optimizer_=AdamW(model.parameters(), lr=0.01)
+    )
 
     trainer = SimpleDsModelTrainer(model, model_config=custom_model_config)
     trainer.train(inputs=tfidf_tensor, applied_labeling_functions=applied_lfs, epochs=2)
