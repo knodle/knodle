@@ -5,7 +5,6 @@ import numpy as np
 from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_probabilities
 from knodle.model import LogisticRegressionModel
 from knodle.trainer.model_config.ModelConfig import ModelConfig
-from knodle.trainer.utils.utils import create_criterion, create_optimizer
 
 
 class SimpleDsModelTrainer:
