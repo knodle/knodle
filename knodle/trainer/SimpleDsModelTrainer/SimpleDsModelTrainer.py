@@ -7,19 +7,26 @@ from knodle.model import LogisticRegressionModel
 from knodle.trainer.utils.utils import create_criterion, create_optimizer
 
 
-class SimpleDsModelTrainer():
-
-    def __init__(self, model: Module, criterion: str = 'cross_entropy_with_probs', optimizer='SGD',
-                 output_classes: int = 2):
+class SimpleDsModelTrainer:
+    def __init__(
+        self,
+        model: Module,
+        criterion: str = "cross_entropy_with_probs",
+        optimizer="SGD",
+        output_classes: int = 2,
+    ):
         self.model = model
         self.criterion = create_criterion(criterion)
         self.optimizer = create_optimizer(self.model, optimizer)
         self.output_classes = output_classes
 
-    def train(self, inputs: Tensor, applied_labeling_functions: np.ndarray, epochs: int):
+    def train(
+        self, inputs: Tensor, applied_labeling_functions: np.ndarray, epochs: int
+    ):
         self.model.train()
-        labels = get_majority_vote_probabilities(applied_lfs=applied_labeling_functions,
-                                                 output_classes=self.output_classes)
+        labels = get_majority_vote_probabilities(
+            applied_lfs=applied_labeling_functions, output_classes=self.output_classes
+        )
 
         labels = Tensor(labels)
 
@@ -33,6 +40,6 @@ class SimpleDsModelTrainer():
             self.optimizer.step()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logistic_regression = LogisticRegressionModel(10, 2)
     obj = SimpleDsModelTrainer(logistic_regression)

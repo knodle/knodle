@@ -8,3 +8,4 @@ joblib
 pandas
 scikit-learn
 snorkel
+black
