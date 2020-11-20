@@ -36,7 +36,3 @@ nosetests.xml
 .pydevproject
 
 /venv
-.DS_Store
-*.csv
-*.python-version
-*.lib

@@ -29,7 +29,7 @@ Please add all requirements manually. If it isn't needed to have an explicit ver
 
 ## Compatibility
 
-Currently the package will be tested on Python 3.7. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
+Currently the package will be tested on Python 3.8. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
 
 ## Licence
 
