@@ -27,8 +27,8 @@ def train_simple_ds_model():
         model=model, optimizer_=AdamW(model.parameters(), lr=0.01)
     )
 
-    trainer = SimpleDsModelTrainer(model, model_config=custom_model_config)
-    trainer.train(inputs=tfidf_tensor, applied_labeling_functions=applied_lfs, epochs=2)
+    trainer = SimpleDsModelTrainer(model, trainer_config=custom_model_config)
+    trainer.train(inputs=tfidf_tensor, rule_matches=applied_lfs, epochs=2)
 
 
 def read_evaluation_data():

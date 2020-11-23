@@ -7,7 +7,7 @@ from torch.optim import SGD, optimizer
 DEFAULT_LEARNING_RATE = 0.01
 
 
-class ModelConfig:
+class TrainerConfig:
     def __init__(
         self,
         model: Module,

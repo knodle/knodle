@@ -12,21 +12,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+OUTPUT_CLASSES = 2
+
 
 def train_knn_model():
     logger.info("Train knn model")
     imdb_dataset, applied_lfs = read_evaluation_data()
-    tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values
-    ).toarray()
+    train_imdb = imdb_dataset[:10]
+    train_lfs = applied_lfs[:10]
+
+    tfidf_values = create_tfidf_values(train_imdb.reviews_preprocessed.values).toarray()
 
     tfidf_tensor = Tensor(tfidf_values)
-    model = LogisticRegressionModel(tfidf_values.shape[1], 2)
+    model = LogisticRegressionModel(tfidf_values.shape[1], OUTPUT_CLASSES)
 
     trainer = KnnDenoising(model)
     trainer.train(
         inputs=tfidf_tensor,
-        applied_labeling_functions=applied_lfs,
+        rule_matches=train_lfs,
         tfidf_values=tfidf_values,
         epochs=2,
         k=2,
@@ -41,12 +44,14 @@ def read_evaluation_data():
 
 def create_tfidf_values(text_data: [str]):
     if os.path.exists("tutorials/ImdbDataset/tfidf.lib"):
-        return load("tutorials/ImdbDataset/tfidf.lib")
-    else:
-        vectorizer = TfidfVectorizer()
-        transformed_data = vectorizer.fit_transform(text_data)
-        dump(transformed_data, "tutorials/ImdbDataset/tfidf.lib")
-        return transformed_data
+        cached_data = load("tutorials/ImdbDataset/tfidf.lib")
+        if cached_data.shape == text_data.shape:
+            return cached_data
+
+    vectorizer = TfidfVectorizer()
+    transformed_data = vectorizer.fit_transform(text_data)
+    dump(transformed_data, "tutorials/ImdbDataset/tfidf.lib")
+    return transformed_data
 
 
 if __name__ == "__main__":
