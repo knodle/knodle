@@ -1,7 +1,6 @@
 import logging
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-from typing import Union
 
 from torch import Tensor
 from torch.nn import Module
@@ -9,34 +8,20 @@ import numpy as np
 from tqdm import tqdm
 from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_probabilities
 from knodle.trainer.config.TrainerConfig import TrainerConfig
+from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.utils.utils import print_section
 
 logger = logging.getLogger(__name__)
 
+TFIDF_VALUES_PARAMETER_NAME = "tfidf_values"
+K_PARAMETER_NAME = "k"
 
-class KnnDenoising:
+
+class KnnDenoising(DsModelTrainer):
     def __init__(self, model: Module, trainer_config: TrainerConfig = None):
-        """
-        This trainer trains the model `model` with the denoising method `KnnDenoising`.
-        Args:
-            model: Pytorch model.
-            trainer_config: Optional trainer config to set parameter like loss function, optimizer, batch_size
-        """
-        self.model = model
-        if trainer_config is None:
-            self.trainer_config = TrainerConfig(self.model)
-            logger.info("Default Model Config is used: {}".format(self.trainer_config))
-        else:
-            self.trainer_config = trainer_config
-            logger.info("Initalized trainer with custom model config: {}")
+        super().__init__(model, trainer_config)
 
-    def train(
-        self,
-        inputs: Tensor,
-        rule_matches: np.ndarray,
-        tfidf_values: Union[csr_matrix, np.ndarray],
-        epochs: int,
-        k: int,
-    ):
+    def train(self, inputs: Tensor, rule_matches: np.ndarray, epochs, **kwargs):
         """
         This function first denoises the labeling functions with kNN, gets final labels with majoriyt vote and trains
         finally the model.
@@ -47,6 +32,9 @@ class KnnDenoising:
             epochs: Epochs to train
             k: Number of neighbors to consider in kNN approach.
         """
+        self.check_if_kwargs_provided(kwargs)
+        k, tfidf_values = self.extract_arguments_from_kwargs(kwargs)
+
         assert (
             inputs.shape == tfidf_values.shape
         ), "Shapes of inputs and tfidf values have to be the same"
@@ -57,7 +45,9 @@ class KnnDenoising:
         assert epochs > 0, "Epochs has to be set with a positive number"
         assert k > 0, "k has to be set with a positive number"
 
-        denoised_applied_lfs = self.denoise_applied_lfs(rule_matches, tfidf_values, k=k)
+        denoised_applied_lfs = self.denoise_rule_matches(
+            rule_matches, tfidf_values=tfidf_values, k=k
+        )
         labels = get_majority_vote_probabilities(
             rule_matches=denoised_applied_lfs,
             output_classes=self.trainer_config.output_classes,
@@ -65,6 +55,8 @@ class KnnDenoising:
         labels = Tensor(labels)
 
         self.model.train()
+
+        print_section("Training starts", logger)
 
         for current_epoch in range(epochs):
             logger.info("Epoch: {}".format(current_epoch))
@@ -75,12 +67,9 @@ class KnnDenoising:
             loss.backward()
             self.trainer_config.optimizer.step()
 
-    def denoise_applied_lfs(
-        self,
-        rule_matches: np.ndarray,
-        tfidf_values: csr_matrix,
-        k: int,
-    ) -> np.ndarray:
+        print_section("Training done", logger)
+
+    def denoise_rule_matches(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
         Args:
@@ -91,7 +80,9 @@ class KnnDenoising:
         Returns: Denoised / Improved applied labeling function matrix. Shape: (Instances x Rules)
 
         """
+        k, tfidf_values = self.extract_arguments_from_kwargs(kwargs)
         logger.info("Start denoising labeling functions with k: {}.".format(k))
+
         if k == 1:
             return rule_matches
 
@@ -135,3 +126,14 @@ class KnnDenoising:
                 pass
 
         return new_lfs_array
+
+    def check_if_kwargs_provided(self, kwargs) -> None:
+        assert TFIDF_VALUES_PARAMETER_NAME in kwargs.keys(), (
+            "tfidf_values are needed. Please provide them when " "calling train"
+        )
+        assert (
+            K_PARAMETER_NAME in kwargs.keys()
+        ), "k is needed. Please provide it when calling train"
+
+    def extract_arguments_from_kwargs(self, kwargs) -> (int, csr_matrix):
+        return kwargs[K_PARAMETER_NAME], kwargs[TFIDF_VALUES_PARAMETER_NAME]
