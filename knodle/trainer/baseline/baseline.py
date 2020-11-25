@@ -8,7 +8,7 @@ import logging
 
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
-from knodle.trainer.utils.utils import print_section
+from knodle.trainer.utils import log_section
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +30,14 @@ class SimpleDsModelTrainer(DsModelTrainer):
             rule_matches: All rule matches (instances x rules)
             epochs: Epochs to train
         """
+        if len(inputs) != len(rule_matches):
+            # TODO: This can vary if inputs is a more dimensional tensor (see BERT)
+            raise ValueError(
+                "inputs, rule_matches and tfidf_values need to have the same length"
+            )
 
-        assert len(inputs) == len(rule_matches), (
-            "Length of inputs and rule matches have to be the same but they are: inputs: {} | "
-            "rule_matches: {}".format(len(inputs), len(rule_matches))
-        )
-
-        assert epochs > 0, "Epochs has to be set with a positive number"
+        if epochs <= 0:
+            raise ValueError("Epochs needs to be positive")
 
         self.model.train()
         labels = get_majority_vote_probabilities(
@@ -45,7 +46,7 @@ class SimpleDsModelTrainer(DsModelTrainer):
         )
 
         labels = Tensor(labels)
-        print_section("Training starts", logger)
+        log_section("Training starts", logger)
 
         for current_epoch in range(epochs):
             logger.info("Epoch: {}".format(current_epoch))
@@ -56,7 +57,7 @@ class SimpleDsModelTrainer(DsModelTrainer):
             loss.backward()
             self.trainer_config.optimizer.step()
 
-        print_section("Training done", logger)
+        log_section("Training done", logger)
 
     def denoise_rule_matches(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
         """
