@@ -1,6 +1,4 @@
-from abc import ABC, abstractmethod
-import numpy as np
-from torch import Tensor
+from abc import ABC
 from torch.nn import Module
 
 from knodle.trainer.config.TrainerConfig import TrainerConfig
@@ -30,11 +28,3 @@ class DsModelTrainer(ABC):
                     self.trainer_config.__dict__
                 )
             )
-
-    @abstractmethod
-    def train(self, inputs: Tensor, rule_matches: np.ndarray, epochs: int, **kwargs):
-        pass
-
-    @abstractmethod
-    def denoise_rule_matches(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
-        pass

@@ -10,6 +10,8 @@ from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_proba
 from knodle.trainer.config.TrainerConfig import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
+from knodle.trainer.utils.utils import accuracy_of_probs
+from knodle.utils.caching import cache_data
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,8 @@ class KnnDenoising(DsModelTrainer):
         epochs,
         tfidf_values: csr_matrix,
         k: int,
+        cache_knn: bool = False,
+        cache_path: str = None,
     ):
         """
         This function first denoises the labeling functions with kNN, gets final labels with majoriyt vote and trains
@@ -35,6 +39,8 @@ class KnnDenoising(DsModelTrainer):
             tfidf_values: Array, shape (n_instances x n_tfidf_features)
             epochs: Epochs to train
             k: Number of neighbors to consider in kNN approach.
+            cache_knn: Should the indices and be cached?
+            cache_path: If it should be cached, path to cache
         """
 
         if len(inputs) != len(rule_matches) != len(tfidf_values):
@@ -48,6 +54,11 @@ class KnnDenoising(DsModelTrainer):
 
         if k <= 0:
             raise ValueError("k needs to be positive")
+
+        if cache_knn and cache_path is None:
+            raise AttributeError(
+                "If the data should be cached the argument cache_path is required"
+            )
 
         denoised_applied_lfs = self.denoise_rule_matches(
             rule_matches, tfidf_values=tfidf_values, k=k
@@ -74,7 +85,12 @@ class KnnDenoising(DsModelTrainer):
         log_section("Training done", logger)
 
     def denoise_rule_matches(
-        self, rule_matches: np.ndarray, tfidf_values: csr_matrix, k: int
+        self,
+        rule_matches: np.ndarray,
+        tfidf_values: csr_matrix,
+        k: int,
+        cache_knn: bool = False,
+        cache_path: str = None,
     ) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
@@ -82,6 +98,8 @@ class KnnDenoising(DsModelTrainer):
             rule_matches: Matrix with all applied weak supervision sources. Shape: (Instances x Rules)
             tfidf_values: Text in tfidf values. Shape: (Instances x Features)
             k: How many neighbors to consider. Hyperparameter
+            cache_knn: Should the indices and be cached?
+            cache_path: If it should be cached, path to cache
 
         Returns: Denoised / Improved applied labeling function matrix. Shape: (Instances x Rules)
 
@@ -95,6 +113,15 @@ class KnnDenoising(DsModelTrainer):
 
         neighbors = NearestNeighbors(n_neighbors=k, n_jobs=-1).fit(tfidf_values)
         distances, indices = neighbors.kneighbors(tfidf_values)
+
+        if cache_knn:
+            try:
+                cache_data(indices, cache_path)
+            except Exception as err:
+                logger.warning(
+                    "Couldn't cache data because of following error: {}".format(err)
+                )
+
         new_lfs = self.activate_all_neighbors(rule_matches, indices)
         return new_lfs
 
@@ -131,3 +158,12 @@ class KnnDenoising(DsModelTrainer):
                 pass
 
         return new_lfs_array
+
+    def test(self, test_features: Tensor, test_labels: Tensor):
+        self.model.eval()
+
+        predictions = self.model(test_features)
+
+        acc = accuracy_of_probs(predictions, test_labels)
+        logger.info("Accuracy is {}".format(acc.detach()))
+        return acc
