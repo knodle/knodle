@@ -35,8 +35,11 @@ nosetests.xml
 .project
 .pydevproject
 
+.ipynb_checkpoints
+
 /venv
-.DS_Store
+tutorials/ImdbDataset/IMDB Dataset.csv
+
 *.csv
-*.python-version
-*.lib
+.python-version
+.DS_Store
