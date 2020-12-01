@@ -31,11 +31,6 @@ class SimpleDsModelTrainer(DsModelTrainer):
             rule_matches: All rule matches (instances x rules)
             epochs: Epochs to train
         """
-        if len(inputs) != len(rule_matches):
-            # TODO: This can vary if inputs is a more dimensional tensor (see BERT)
-            raise ValueError(
-                "inputs, rule_matches and tfidf_values need to have the same length"
-            )
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
