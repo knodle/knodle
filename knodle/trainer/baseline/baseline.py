@@ -3,7 +3,6 @@ from torch import Tensor
 import numpy as np
 
 from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_probabilities
-from knodle.model import LogisticRegressionModel
 import logging
 
 from knodle.trainer import TrainerConfig
@@ -23,7 +22,13 @@ class SimpleDsModelTrainer(DsModelTrainer):
     def __init__(self, model: Module, trainer_config: TrainerConfig = None):
         super().__init__(model, trainer_config)
 
-    def train(self, inputs: Tensor, rule_matches: np.ndarray, epochs: int, **kwargs):
+    def train(
+        self,
+        inputs: Tensor,
+        rule_matches: np.ndarray,
+        mapping_rules_labels: np.ndarray,
+        epochs: int,
+    ):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         Args:
@@ -55,7 +60,7 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         log_section("Training done", logger)
 
-    def denoise_rule_matches(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
+    def denoise_rule_matches(self, rule_matches: np.ndarray) -> np.ndarray:
         """
         The baseline model trainer doesn't denoise the rule_matches. Therefore, the same array is returned
         Returns:
