@@ -2,6 +2,7 @@ import os
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch.optim import AdamW
+from torch.utils.data import TensorDataset
 
 from knodle.model import LogisticRegressionModel
 from joblib import load, dump
@@ -31,9 +32,11 @@ def train_simple_ds_model():
     tfidf_values = create_tfidf_values(imdb_dataset.reviews_preprocessed.values)
 
     train_rule_matches = rule_matches[X_train.index]
-    train = Tensor(tfidf_values[X_train.index].toarray())
-    test = Tensor(tfidf_values[X_test.index].toarray())
+    train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
+    test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
     y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+
+    train_dataset = TensorDataset(train_tfidf)
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
@@ -43,13 +46,13 @@ def train_simple_ds_model():
 
     trainer = SimpleDsModelTrainer(model, trainer_config=custom_model_config)
     trainer.train(
-        inputs=train,
+        model_input=train_dataset,
         rule_matches=train_rule_matches,
         mapping_rules_labels=mapping_rules_labels,
         epochs=2,
     )
 
-    trainer.test(test_features=test, test_labels=Tensor(y_test))
+    trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
 
 
 def read_evaluation_data():

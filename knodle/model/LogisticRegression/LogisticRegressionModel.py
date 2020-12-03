@@ -7,6 +7,7 @@ class LogisticRegressionModel(nn.Module):
         super(LogisticRegressionModel, self).__init__()
         self.linear = torch.nn.Linear(input_dim, output_classes)
 
-    def forward(self, x):
+    def forward(self, batch):
+        x = batch[0]
         outputs = self.linear(x)
         return outputs
