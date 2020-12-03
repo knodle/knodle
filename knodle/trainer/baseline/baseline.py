@@ -2,7 +2,6 @@ from torch.nn import Module
 from torch import Tensor
 import numpy as np
 
-from knodle.final_label_decider.FinalLabelDecider import get_majority_vote_probabilities
 import logging
 
 from knodle.trainer import TrainerConfig
@@ -32,8 +31,9 @@ class SimpleDsModelTrainer(DsModelTrainer):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         Args:
-            inputs: Input tensors. These tensors will be fed to the provided model (instaces x features)
-            rule_matches: All rule matches (instances x rules)
+            inputs: Input tensors. These tensors will be fed to the provided model (instances x features)
+            rule_matches: Binary encoded array of which rules matched. Shape: instances x rules
+            mapping_rules_labels: Mapping of rules to labels, binary encoded. Shape: rules x classes
             epochs: Epochs to train
         """
 
@@ -41,10 +41,7 @@ class SimpleDsModelTrainer(DsModelTrainer):
             raise ValueError("Epochs needs to be positive")
 
         self.model.train()
-        labels = get_majority_vote_probabilities(
-            rule_matches=rule_matches,
-            output_classes=self.trainer_config.output_classes,
-        )
+        labels = self.get_majority_vote_probs(rule_matches, mapping_rules_labels)
 
         labels = Tensor(labels)
         log_section("Training starts", logger)
@@ -60,13 +57,25 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         log_section("Training done", logger)
 
-    def denoise_rule_matches(self, rule_matches: np.ndarray) -> np.ndarray:
+    def get_majority_vote_probs(
+        self, rule_matches: np.ndarray, mapping_rules_labels: np.ndarray
+    ):
         """
-        The baseline model trainer doesn't denoise the rule_matches. Therefore, the same array is returned
+        This function calculates a majority vote probability for all rule_matches. First rule counts will be calculated,
+        then a probability will be calculated by dividing the values row-wise with the sum. To counteract zero division
+        all nan values are set to zero.
+        Args:
+            rule_matches: Binary encoded array of which rules matched. Shape: instances x rules
+            mapping_rules_labels: Mapping of rules to labels, binary encoded. Shape: rules x classes
+
         Returns:
 
         """
-        return rule_matches
+        rule_counts = np.matmul(rule_matches, mapping_rules_labels)
+        rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+
+        rule_counts_probs[np.isnan(rule_counts_probs)] = 0
+        return rule_counts_probs
 
     def test(self, test_features: Tensor, test_labels: Tensor):
         self.model.eval()
