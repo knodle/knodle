@@ -3,12 +3,16 @@ import numpy as np
 from torch import Tensor
 from torch.nn import Module
 
+from knodle.trainer.config.CrossWeightDenoisingConfig import CrossWeightDenoisingConfig
 from knodle.trainer.config.TrainerConfig import TrainerConfig
 import logging
 
 
 class DsModelTrainer(ABC):
-    def __init__(self, model: Module, trainer_config: TrainerConfig = None):
+    def __init__(self,
+                 model: Module,
+                 trainer_config: TrainerConfig = None,
+                 denoising_config: CrossWeightDenoisingConfig = None):
         """
         Constructor for each DsModelTrainer.
             Args:
@@ -31,10 +35,23 @@ class DsModelTrainer(ABC):
                 )
             )
 
+        if denoising_config is None:
+            self.denoising_config = CrossWeightDenoisingConfig(self.model)
+            self.logger.info(
+                "Default denoising Config is used: {}".format(self.denoising_config)
+            )
+        else:
+            self.denoising_config = denoising_config
+            self.logger.info(
+                "Initalized denoising with custom model config: {}".format(
+                    self.denoising_config.__dict__
+                )
+            )
+
     @abstractmethod
     def train(self, inputs: Tensor, rule_matches: np.ndarray, epochs: int, **kwargs):
         pass
 
     @abstractmethod
-    def denoise_rule_matches(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
+    def denoise(self, rule_matches: np.ndarray, **kwargs) -> np.ndarray:
         pass
