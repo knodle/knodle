@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def train_simple_ds_model():
     logger.info("Train simple ds model")
-    imdb_dataset, rule_matches, mapping_rules_labels = read_evaluation_data()
+    imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
 
     review_series = imdb_dataset.reviews_preprocessed
     label_ids = imdb_dataset.label_id
@@ -31,7 +31,7 @@ def train_simple_ds_model():
 
     tfidf_values = create_tfidf_values(imdb_dataset.reviews_preprocessed.values)
 
-    train_rule_matches = rule_matches[X_train.index]
+    train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
     test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
     y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
@@ -44,11 +44,14 @@ def train_simple_ds_model():
         model=model, optimizer_=AdamW(model.parameters(), lr=0.01)
     )
 
-    trainer = SimpleDsModelTrainer(model, trainer_config=custom_model_config)
+    trainer = SimpleDsModelTrainer(
+        model,
+        mapping_rules_labels_t=mapping_rules_labels_t,
+        trainer_config=custom_model_config,
+    )
     trainer.train(
-        model_input=train_dataset,
-        rule_matches=train_rule_matches,
-        mapping_rules_labels=mapping_rules_labels,
+        model_input_x=train_dataset,
+        rule_matches_z=train_rule_matches_z,
         epochs=2,
     )
 
@@ -57,9 +60,9 @@ def train_simple_ds_model():
 
 def read_evaluation_data():
     imdb_dataset = pd.read_csv("tutorials/ImdbDataset/imdb_data_preprocessed.csv")
-    rule_matches = load("tutorials/ImdbDataset/rule_matches.lib")
-    mapping_rules_labels = load("tutorials/ImdbDataset/mapping_rules_labels.lib")
-    return imdb_dataset, rule_matches, mapping_rules_labels
+    rule_matches_z = load("tutorials/ImdbDataset/rule_matches.lib")
+    mapping_rules_labels_t = load("tutorials/ImdbDataset/mapping_rules_labels.lib")
+    return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 
 
 def create_tfidf_values(text_data: [str]):

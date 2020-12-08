@@ -20,33 +20,36 @@ class SimpleDsModelTrainer(DsModelTrainer):
         A simple majority vote is used for this purpose.
     """
 
-    def __init__(self, model: Module, trainer_config: TrainerConfig = None):
-        super().__init__(model, trainer_config)
+    def __init__(
+        self,
+        model: Module,
+        mapping_rules_labels_t: np.ndarray,
+        trainer_config: TrainerConfig = None,
+    ):
+        super().__init__(model, mapping_rules_labels_t, trainer_config)
 
     def train(
         self,
-        model_input: TensorDataset,
-        rule_matches: np.ndarray,
-        mapping_rules_labels: np.ndarray,
+        model_input_x: TensorDataset,
+        rule_matches_z: np.ndarray,
         epochs: int,
     ):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         Args:
-            model_input: Input tensors. These tensors will be fed to the provided model.
-            rule_matches: Binary encoded array of which rules matched. Shape: instances x rules
-            mapping_rules_labels: Mapping of rules to labels, binary encoded. Shape: rules x classes
+            model_input_x: Input tensors. These tensors will be fed to the provided model.
+            rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
             epochs: Epochs to train
         """
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
 
-        labels = self.get_majority_vote_probs(rule_matches, mapping_rules_labels)
+        labels = self.get_majority_vote_probs(rule_matches_z)
 
         label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self.make_dataloader(model_input)
+        feature_dataloader = self.make_dataloader(model_input_x)
         label_dataloader = self.make_dataloader(label_dataset)
         log_section("Training starts", logger)
 
@@ -81,21 +84,19 @@ class SimpleDsModelTrainer(DsModelTrainer):
         )
         return dataloader
 
-    def get_majority_vote_probs(
-        self, rule_matches: np.ndarray, mapping_rules_labels: np.ndarray
-    ):
+    def get_majority_vote_probs(self, rule_matches_z: np.ndarray):
         """
-        This function calculates a majority vote probability for all rule_matches. First rule counts will be calculated,
-        then a probability will be calculated by dividing the values row-wise with the sum. To counteract zero division
+        This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
+        calculated,
+        then a probability will be calculated by dividing the values row-wise with the sum. To counteract zero
+        division
         all nan values are set to zero.
         Args:
-            rule_matches: Binary encoded array of which rules matched. Shape: instances x rules
-            mapping_rules_labels: Mapping of rules to labels, binary encoded. Shape: rules x classes
-
+            rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         Returns:
 
         """
-        rule_counts = np.matmul(rule_matches, mapping_rules_labels)
+        rule_counts = np.matmul(rule_matches_z, self.mapping_rules_labels_t)
         rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
 
         rule_counts_probs[np.isnan(rule_counts_probs)] = 0
