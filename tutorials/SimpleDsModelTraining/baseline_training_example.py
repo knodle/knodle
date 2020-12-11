@@ -1,17 +1,15 @@
-import os
+import logging
 
+import os
+import pandas as pd
+from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from torch import Tensor
 from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
 from knodle.model import LogisticRegressionModel
-from joblib import load, dump
-import pandas as pd
-from torch import Tensor
-from sklearn.model_selection import train_test_split
-
-import logging
-
 from knodle.trainer import TrainerConfig
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
 
@@ -52,7 +50,7 @@ def train_simple_ds_model():
     trainer.train(
         model_input_x=train_dataset,
         rule_matches_z=train_rule_matches_z,
-        epochs=2,
+        epochs=1,
     )
 
     trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))

@@ -1,10 +1,10 @@
-from torch.nn import Module
-from torch import Tensor
-from torch.utils.data import TensorDataset, DataLoader
-import numpy as np
-from tqdm import tqdm
-
 import logging
+
+import numpy as np
+from torch import Tensor
+from torch.nn import Module
+from torch.utils.data import TensorDataset, DataLoader
+from tqdm import tqdm
 
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
@@ -45,12 +45,12 @@ class SimpleDsModelTrainer(DsModelTrainer):
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
 
-        labels = self.get_majority_vote_probs(rule_matches_z)
+        labels = self._get_majority_vote_probs(rule_matches_z)
 
         label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self.make_dataloader(model_input_x)
-        label_dataloader = self.make_dataloader(label_dataset)
+        feature_dataloader = self._make_dataloader(model_input_x)
+        label_dataloader = self._make_dataloader(label_dataset)
         log_section("Training starts", logger)
 
         self.model.train()
@@ -78,13 +78,13 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         log_section("Training done", logger)
 
-    def make_dataloader(self, dataset: TensorDataset) -> DataLoader:
+    def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
         dataloader = DataLoader(
             dataset, batch_size=self.trainer_config.batch_size, drop_last=True
         )
         return dataloader
 
-    def get_majority_vote_probs(self, rule_matches_z: np.ndarray):
+    def _get_majority_vote_probs(self, rule_matches_z: np.ndarray):
         """
         This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
         calculated,
