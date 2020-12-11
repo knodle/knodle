@@ -1,0 +1,4 @@
+spacy
+pandas
+jupyter
+tqdm
