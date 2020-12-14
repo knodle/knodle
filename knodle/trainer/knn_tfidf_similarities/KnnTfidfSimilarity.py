@@ -45,14 +45,14 @@ class KnnTfidfSimilarity(DsModelTrainer):
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
 
-        denoised_rule_matches_z = self.denoise_rule_matches(rule_matches_z)
+        denoised_rule_matches_z = self._denoise_rule_matches(rule_matches_z)
 
-        labels = self.get_majority_vote_probs(denoised_rule_matches_z)
+        labels = self._get_majority_vote_probs(denoised_rule_matches_z)
 
         label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self.make_dataloader(model_input_x)
-        label_dataloader = self.make_dataloader(label_dataset)
+        feature_dataloader = self._make_dataloader(model_input_x)
+        label_dataloader = self._make_dataloader(label_dataset)
         log_section("Training starts", logger)
 
         self.model.train()
@@ -80,13 +80,13 @@ class KnnTfidfSimilarity(DsModelTrainer):
 
         log_section("Training done", logger)
 
-    def make_dataloader(self, dataset: TensorDataset) -> DataLoader:
+    def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
         dataloader = DataLoader(
             dataset, batch_size=self.trainer_config.batch_size, drop_last=True
         )
         return dataloader
 
-    def get_majority_vote_probs(self, rule_matches_z: np.ndarray):
+    def _get_majority_vote_probs(self, rule_matches_z: np.ndarray):
         """
         This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
         calculated,
@@ -104,7 +104,7 @@ class KnnTfidfSimilarity(DsModelTrainer):
         rule_counts_probs[np.isnan(rule_counts_probs)] = 0
         return rule_counts_probs
 
-    def denoise_rule_matches(self, rule_matches_z: np.ndarray) -> np.ndarray:
+    def _denoise_rule_matches(self, rule_matches_z: np.ndarray) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
         Args:
@@ -122,10 +122,10 @@ class KnnTfidfSimilarity(DsModelTrainer):
             self.tfidf_values
         )
         distances, indices = neighbors.kneighbors(self.tfidf_values)
-        new_lfs = self.activate_all_neighbors(rule_matches_z, indices)
+        new_lfs = self._activate_all_neighbors(rule_matches_z, indices)
         return new_lfs
 
-    def activate_all_neighbors(
+    def _activate_all_neighbors(
         self, lfs: np.ndarray, indices: np.ndarray
     ) -> np.ndarray:
         """
