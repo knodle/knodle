@@ -2,18 +2,30 @@ import numpy as np
 import re
 import itertools
 from typing import Union
-
+import torch
 from torch import nn
+import os
+from torch.utils.data import DataLoader
+from torch.nn import Module
 
 ARG1 = "$ARG1"
 ARG2 = "$ARG2"
+
+disable_cuda = True
+device = None
+if not disable_cuda and torch.cuda.is_available():
+    print("Using GPU")
+    device = torch.device('cuda')
+else:
+    print("Using CPU")
+    device = torch.device('cpu')
 
 
 def vocab_and_vectors(filename: str, special_tokens: list) -> (dict, dict, np.ndarray):
     """special tokens have all-zero word vectors"""
     with open(filename, encoding="UTF-8") as in_file:
         parts = in_file.readline().strip().split(" ")
-        num_vecs = int(parts[0]) + len(special_tokens)      # + 1
+        num_vecs = int(parts[0]) + len(special_tokens)  # + 1
         dim = int(parts[1])
 
         matrix = np.zeros((num_vecs, dim))
@@ -92,8 +104,8 @@ def get_extracted_sample(sample: str) -> list:
             else (ARG2 + sample["text"][ent2["end"]:ent1["start"]] + ARG1)
             for ent1, ent2 in itertools.permutations(sample["ents"], 2)]
 
-def initialize_weights(model):
-    # torch.manual_seed(12345)
+
+def initialize_weights(model: Module) -> None:
     if type(model) in [nn.Linear]:
         nn.init.xavier_uniform_(model.weight)
         nn.init.zeros_(model.bias)
@@ -103,3 +115,35 @@ def initialize_weights(model):
         nn.init.zeros_(model.bias_hh_l0)
         nn.init.zeros_(model.bias_ih_l0)
 
+
+def convert2tensor(samples: np.ndarray,
+                   labels: np.ndarray,
+                   idx: np.ndarray,
+                   batch_size: int,
+                   shuffle: bool = True
+                   ) -> DataLoader:
+
+    tensor_words = torch.LongTensor(samples).to(device=device)
+    tensor_target = torch.LongTensor(labels).to(device=device)
+    tensor_idx = torch.LongTensor(idx).to(device=device)
+    dataset = torch.utils.data.TensorDataset(tensor_words, tensor_target, tensor_idx)
+
+    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+
+
+def save_sample_weights(sample_weights, path_to_weights_dir):
+    try:
+        os.mkdir(path_to_weights_dir)
+        print("Directory ", path_to_weights_dir, " Created ")
+    except FileExistsError:
+        print("Directory ", path_to_weights_dir, " already exists")
+    np.save(os.path.join(path_to_weights_dir, "sample_weight.npy"), sample_weights)
+
+
+def get_shuffled_idx(matrix: np.ndarray) -> np.ndarray:
+    """
+    Get shuffled row indices of dataset
+    :param matrix: numpy array where we want to shuffle rows
+    :return: numpy array of shuffled indices
+    """
+    return np.random.rand(matrix.shape[0]).argsort()
