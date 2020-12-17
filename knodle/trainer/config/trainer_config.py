@@ -14,9 +14,14 @@ class TrainerConfig:
         optimizer_: optimizer = None,
         output_classes: int = 2,
         lr: float = 0.01,
+        epochs: int = 1,
     ):
         self.criterion = criterion
         self.batch_size = batch_size
+
+        if epochs <= 0:
+            raise ValueError("Epochs needs to be positive")
+        self.epochs = epochs
 
         if optimizer_ is None:
             self.optimizer = SGD(model.parameters(), lr=lr)

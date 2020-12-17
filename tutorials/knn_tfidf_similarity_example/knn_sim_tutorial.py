@@ -1,22 +1,26 @@
-import logging
-
 import os
-import pandas as pd
-from joblib import load, dump
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-from torch import Tensor
-from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
 from knodle.model import LogisticRegressionModel
-from knodle.trainer import TrainerConfig
-from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
+from joblib import load, dump
+import pandas as pd
+from torch import Tensor
+
+import logging
+
+from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
+    KnnTfidfSimilarity,
+)
 
 logger = logging.getLogger(__name__)
 
+OUTPUT_CLASSES = 2
 
-def train_simple_ds_model():
+
+def train_knn_model():
     logger.info("Train simple ds model")
     imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
 
@@ -30,6 +34,7 @@ def train_simple_ds_model():
     tfidf_values = create_tfidf_values(imdb_dataset.reviews_preprocessed.values)
 
     train_rule_matches_z = rule_matches_z[X_train.index]
+    train_tfidf_sparse = tfidf_values[X_train.index]
     train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
     test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
     y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
@@ -38,20 +43,16 @@ def train_simple_ds_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = TrainerConfig(
-        model=model, optimizer_=AdamW(model.parameters(), lr=0.01)
-    )
-
-    trainer = SimpleDsModelTrainer(
+    trainer = KnnTfidfSimilarity(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
-        trainer_config=custom_model_config,
-    )
-    trainer.train(
+        tfidf_values=train_tfidf_sparse,
         model_input_x=train_dataset,
         rule_matches_z=train_rule_matches_z,
-        epochs=1,
+        k=2,
     )
+
+    trainer.train()
 
     trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
 
@@ -76,4 +77,4 @@ def create_tfidf_values(text_data: [str]):
 
 
 if __name__ == "__main__":
-    train_simple_ds_model()
+    train_knn_model()

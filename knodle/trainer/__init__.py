@@ -1,1 +1,1 @@
-from knodle.trainer.config.TrainerConfig import TrainerConfig
+from knodle.trainer.config.trainer_config import TrainerConfig
