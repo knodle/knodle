@@ -42,5 +42,3 @@ tutorials/ImdbDataset/IMDB Dataset.csv
 
 *.csv
 .python-version
-.DS_Store
-/knodle/trainer/crossweight_denoising/glove.840B.300d.txt.filtered
