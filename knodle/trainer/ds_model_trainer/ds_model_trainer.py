@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from torch import Tensor
+import torch
 from torch.nn import Module
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
 import logging
@@ -53,7 +54,18 @@ class DsModelTrainer(ABC):
     def train(self):
         pass
 
-    def test(self, test_features: Tensor, test_labels: Tensor):
+    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
+        """
+        Runs evaluation and returns a dict with different evaluation metrics.
+        Args:
+            test_features: Test feature set
+            test_labels: Gold label set.
+
+        Returns:
+
+        """
+        test_dataloader = self._make_dataloader(test_features)
+        predictions = self._prediction_loop(test_dataloader, True)
         self.model.eval()
 
         predictions = self.model(test_features)
@@ -61,3 +73,32 @@ class DsModelTrainer(ABC):
         acc = accuracy_of_probs(predictions, test_labels)
         logger.info("Accuracy is {}".format(acc.detach()))
         return acc
+
+    def _prediction_loop(self, feature_dataloader, evaluate: bool):
+        """
+        This method returns all predictions of the model
+        Args:
+            dataloader:
+
+        Returns:
+
+        """
+
+        if evaluate:
+            self.model.eval()
+        else:
+            self.model.train()
+
+        predictions_list = Tensor()
+
+        for feature_batch in feature_dataloader:
+            predictions = self.model(feature_batch)
+            torch.cat([predictions_list, predictions])
+
+        return predictions_list
+
+    def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
+        dataloader = DataLoader(
+            dataset, batch_size=self.trainer_config.batch_size, drop_last=True
+        )
+        return dataloader

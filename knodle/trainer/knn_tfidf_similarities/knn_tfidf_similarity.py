@@ -71,12 +71,6 @@ class KnnTfidfSimilarity(DsModelTrainer):
 
         log_section("Training done", logger)
 
-    def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
-        dataloader = DataLoader(
-            dataset, batch_size=self.trainer_config.batch_size, drop_last=True
-        )
-        return dataloader
-
     def _get_majority_vote_probs(self, rule_matches_z: np.ndarray):
         """
         This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
