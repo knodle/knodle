@@ -19,7 +19,7 @@ OUTPUT_CLASSES = 2
 
 
 def train_knn_model():
-    logger.info("Train simple ds model")
+    logger.info("Train knn tfidf similarity model")
     imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
 
     review_series = imdb_dataset.reviews_preprocessed
