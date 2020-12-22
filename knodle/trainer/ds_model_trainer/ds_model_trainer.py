@@ -66,9 +66,9 @@ class DsModelTrainer(ABC):
         """
         test_dataloader = self._make_dataloader(test_features)
         predictions = self._prediction_loop(test_dataloader, True)
-        self.model.eval()
+        # self.model.eval()
 
-        predictions = self.model(test_features)
+        # predictions = self.model(test_features)
 
         acc = accuracy_of_probs(predictions, test_labels)
         logger.info("Accuracy is {}".format(acc.detach()))
@@ -89,11 +89,13 @@ class DsModelTrainer(ABC):
         else:
             self.model.train()
 
-        predictions_list = Tensor()
+        predictions_list = torch.zeros(
+            (self.trainer_config.output_classes), len(feature_dataloader)
+        )
 
-        for feature_batch in feature_dataloader:
+        for feature_counter, feature_batch in enumerate(feature_dataloader):
             predictions = self.model(feature_batch)
-            torch.cat([predictions_list, predictions])
+            predictions_list[feature_counter] = predictions
 
         return predictions_list
 
