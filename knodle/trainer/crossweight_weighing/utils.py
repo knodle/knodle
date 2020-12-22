@@ -64,12 +64,14 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
 
 
 def set_seed(seed: int):
+    """ Fix seed for all shuffle processes in order to get the reproducible result """
     np.random.seed(np.array(seed, dtype="int64"))
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
 
 def set_device(enable_cuda: bool):
+    """ Set where the calculations will be done (cpu or cuda) depending on whether the cuda is available and chosen """
     if enable_cuda and torch.cuda.is_available():
         logger.info("Using GPU")
         return torch.device('cuda')
