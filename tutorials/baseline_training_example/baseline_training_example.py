@@ -45,13 +45,11 @@ def train_simple_ds_model():
     trainer = SimpleDsModelTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
-        trainer_config=custom_model_config,
-    )
-    trainer.train(
         model_input_x=train_dataset,
         rule_matches_z=train_rule_matches_z,
-        epochs=1,
+        trainer_config=custom_model_config,
     )
+    trainer.train()
 
     trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
 

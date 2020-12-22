@@ -20,43 +20,34 @@ class KnnTfidfSimilarity(DsModelTrainer):
         self,
         model: Module,
         mapping_rules_labels_t: np.ndarray,
+        model_input_x: TensorDataset,
+        rule_matches_z: np.ndarray,
         tfidf_values: csr_matrix,
         k: int,
         trainer_config: TrainerConfig = None,
     ):
-        super().__init__(model, mapping_rules_labels_t, trainer_config)
+        super().__init__(
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
+        )
         self.tfidf_values = tfidf_values
         self.k = k
 
-    def train(
-        self,
-        model_input_x: TensorDataset,
-        rule_matches_z: np.ndarray,
-        epochs: int,
-    ):
+    def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
-        Args:
-            model_input_x: Input tensors. These tensors will be fed to the provided model.
-            rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
-            epochs: Epochs to train
         """
 
-        if epochs <= 0:
-            raise ValueError("Epochs needs to be positive")
-
-        denoised_rule_matches_z = self._denoise_rule_matches(rule_matches_z)
+        denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
 
         labels = self._get_majority_vote_probs(denoised_rule_matches_z)
-
         label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self._make_dataloader(model_input_x)
+        feature_dataloader = self._make_dataloader(self.model_input_x)
         label_dataloader = self._make_dataloader(label_dataset)
         log_section("Training starts", logger)
 
         self.model.train()
-        for current_epoch in tqdm(range(epochs)):
+        for current_epoch in tqdm(range(self.trainer_config.epochs)):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
@@ -152,16 +143,6 @@ class KnnTfidfSimilarity(DsModelTrainer):
                 ).transpose()
                 new_lfs_array[neighbors, matched_lfs] = tiled_labels
             except IndexError:
-                # IndexError can occur in some special cases
                 pass
 
         return new_lfs_array
-
-    def test(self, test_features: Tensor, test_labels: Tensor):
-        self.model.eval()
-
-        predictions = self.model(test_features)
-
-        acc = accuracy_of_probs(predictions, test_labels)
-        logger.info("Accuracy is {}".format(acc.detach()))
-        return acc

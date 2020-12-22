@@ -24,37 +24,29 @@ class SimpleDsModelTrainer(DsModelTrainer):
         self,
         model: Module,
         mapping_rules_labels_t: np.ndarray,
-        trainer_config: TrainerConfig = None,
-    ):
-        super().__init__(model, mapping_rules_labels_t, trainer_config)
-
-    def train(
-        self,
         model_input_x: TensorDataset,
         rule_matches_z: np.ndarray,
-        epochs: int,
+        trainer_config: TrainerConfig = None,
     ):
+        super().__init__(
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
+        )
+
+    def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
-        Args:
-            model_input_x: Input tensors. These tensors will be fed to the provided model.
-            rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
-            epochs: Epochs to train
         """
 
-        if epochs <= 0:
-            raise ValueError("Epochs needs to be positive")
-
-        labels = self._get_majority_vote_probs(rule_matches_z)
+        labels = self._get_majority_vote_probs(self.rule_matches_z)
 
         label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self._make_dataloader(model_input_x)
+        feature_dataloader = self._make_dataloader(self.model_input_x)
         label_dataloader = self._make_dataloader(label_dataset)
         log_section("Training starts", logger)
 
         self.model.train()
-        for current_epoch in tqdm(range(epochs)):
+        for current_epoch in tqdm(range(self.trainer_config.epochs)):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
@@ -101,12 +93,3 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         rule_counts_probs[np.isnan(rule_counts_probs)] = 0
         return rule_counts_probs
-
-    def test(self, test_features: Tensor, test_labels: Tensor):
-        self.model.eval()
-
-        predictions = self.model(test_features)
-
-        acc = accuracy_of_probs(predictions, test_labels)
-        logger.info("Accuracy is {}".format(acc.detach()))
-        return acc

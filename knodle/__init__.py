@@ -5,7 +5,7 @@ __author__ = "knodle <knodle@cs.univie.ac.at>"
 __all__ = []
 
 import logging
-from knodle.model.LogisticRegression.LogisticRegressionModel import (
+from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
 

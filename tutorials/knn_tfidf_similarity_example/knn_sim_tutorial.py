@@ -11,7 +11,9 @@ from torch import Tensor
 
 import logging
 
-from knodle.trainer.knn_tfidf_similarities.KnnTfidfSimilarity import KnnTfidfSimilarity
+from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
+    KnnTfidfSimilarity,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +43,16 @@ def train_knn_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    trainer = KnnTfidfSimilarity(model, mapping_rules_labels_t, train_tfidf_sparse, 2)
-
-    trainer.train(
+    trainer = KnnTfidfSimilarity(
+        model,
+        mapping_rules_labels_t=mapping_rules_labels_t,
+        tfidf_values=train_tfidf_sparse,
         model_input_x=train_dataset,
         rule_matches_z=train_rule_matches_z,
-        epochs=2,
+        k=2,
     )
+
+    trainer.train()
 
     trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
 
