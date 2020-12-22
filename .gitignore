@@ -35,7 +35,7 @@ nosetests.xml
 .project
 .pydevproject
 
-.ipynb_checkpoints
+*.ipynb_checkpoints
 
 /venv
 
@@ -43,5 +43,5 @@ nosetests.xml
 .DS_Store
 
 # Large datasets
-.lib
-.csv
+*.lib
+*.csv
