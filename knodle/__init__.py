@@ -5,10 +5,12 @@ __author__ = "knodle <knodle@cs.univie.ac.at>"
 __all__ = []
 
 import logging
-import sys
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 
 logger = logging.getLogger()
-handler = logging.StreamHandler(stream=sys.stdout)
+handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)

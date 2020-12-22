@@ -1,6 +1,7 @@
 import logging
-
 import numpy as np
+from scipy.sparse import csr_matrix
+from sklearn.neighbors import NearestNeighbors
 from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
@@ -14,31 +15,31 @@ from knodle.trainer.utils.utils import accuracy_of_probs
 logger = logging.getLogger(__name__)
 
 
-class SimpleDsModelTrainer(DsModelTrainer):
-    """
-    The baseline class implements a baseline model for labeling data with weak supervision.
-        A simple majority vote is used for this purpose.
-    """
-
+class KnnTfidfSimilarity(DsModelTrainer):
     def __init__(
         self,
         model: Module,
         mapping_rules_labels_t: np.ndarray,
         model_input_x: TensorDataset,
         rule_matches_z: np.ndarray,
+        tfidf_values: csr_matrix,
+        k: int,
         trainer_config: TrainerConfig = None,
     ):
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
         )
+        self.tfidf_values = tfidf_values
+        self.k = k
 
     def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        labels = self._get_majority_vote_probs(self.rule_matches_z)
+        denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
 
+        labels = self._get_majority_vote_probs(denoised_rule_matches_z)
         label_dataset = TensorDataset(Tensor(labels))
 
         feature_dataloader = self._make_dataloader(self.model_input_x)
@@ -93,3 +94,55 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         rule_counts_probs[np.isnan(rule_counts_probs)] = 0
         return rule_counts_probs
+
+    def _denoise_rule_matches(self, rule_matches_z: np.ndarray) -> np.ndarray:
+        """
+        Denoises the applied weak supervision source.
+        Args:
+            rule_matches_z: Matrix with all applied weak supervision sources. Shape: (Instances x Rules)
+        Returns: Denoised / Improved applied labeling function matrix. Shape: (Instances x Rules)
+        """
+        logger.info("Start denoising labeling functions with k: {}.".format(self.k))
+
+        if self.k == 1:
+            return rule_matches_z
+
+        logger.info("This can take a while ...")
+
+        neighbors = NearestNeighbors(n_neighbors=self.k, n_jobs=-1).fit(
+            self.tfidf_values
+        )
+        distances, indices = neighbors.kneighbors(self.tfidf_values)
+        new_lfs = self._activate_all_neighbors(rule_matches_z, indices)
+        return new_lfs
+
+    def _activate_all_neighbors(
+        self, lfs: np.ndarray, indices: np.ndarray
+    ) -> np.ndarray:
+        """
+        Find all closest neighbors and take the same label ids
+        Args:
+            lfs:
+            indices:
+        Returns:
+        """
+        new_lfs_array = np.full(lfs.shape, fill_value=-1)
+
+        for index, lf in tqdm(enumerate(lfs)):
+
+            try:
+                matched_lfs = np.where(lf != 0)[0]
+                if len(matched_lfs) == 0:
+                    continue
+                matched_lfs = matched_lfs[:, np.newaxis]
+                neighbors = indices[index]
+                to_replace = new_lfs_array[neighbors, matched_lfs]
+                label_matched_lfs = lf[matched_lfs][:, 0]
+                tiled_labels = np.tile(
+                    np.array(label_matched_lfs), (to_replace.shape[1], 1)
+                ).transpose()
+                new_lfs_array[neighbors, matched_lfs] = tiled_labels
+            except IndexError:
+                pass
+
+        return new_lfs_array
