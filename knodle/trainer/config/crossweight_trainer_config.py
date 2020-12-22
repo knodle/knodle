@@ -17,9 +17,13 @@ class TrainerConfig:
                  output_classes: int = 2,
                  epochs: int = 2,
                  class_weights: Tensor = None,
+                 seed: int = 12345,      # set seed for reproducibility
+                 enable_cuda: bool = False
                  ):
         self.criterion = criterion
         self.batch_size = batch_size
+        self.seed = seed
+        self.enable_cuda = enable_cuda
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

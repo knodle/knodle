@@ -8,12 +8,13 @@ import pandas as pd
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.crossweight_denoising import utils
-from knodle.trainer.crossweight_denoising.crossweight_trainer import CrossWeightTrainer
-from knodle.model.BidirectionalLSTM.BidirectionalLSTM import BidirectionalLSTM
+from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 
 from knodle.trainer.config.crossweight_trainer_config import TrainerConfig
 from knodle.trainer.config.crossweight_denoising_config import CrossWeightDenoisingConfig
+
+from knodle.trainer.crossweight_weighing import utils
+from knodle.trainer.crossweight_weighing.crossweight import CrossWeight
 
 logger = logging.getLogger(__name__)
 
@@ -49,16 +50,16 @@ def train_crossweight(
                               word_embedding_matrix,
                               NUM_CLASSES)
 
-    trainer = CrossWeightTrainer(model=model,
-                                 rule_assignments_t=rule_assignments_t,
-                                 inputs_x=train_input_x,
-                                 rule_matches_z=rule_matches_z,
-                                 dev_inputs=dev_samples,
-                                 dev_labels=dv_labels,
-                                 trainer_config=TrainerConfig(model=model,
+    trainer = CrossWeight(model=model,
+                          rule_assignments_t=rule_assignments_t,
+                          inputs_x=train_input_x,
+                          rule_matches_z=rule_matches_z,
+                          dev_inputs=dev_samples,
+                          dev_labels=dv_labels,
+                          trainer_config=TrainerConfig(model=model,
                                                               class_weights=CLASS_WEIGHTS,
                                                               output_classes=NUM_CLASSES),
-                                 denoising_config=CrossWeightDenoisingConfig(model=model,
+                          denoising_config=CrossWeightDenoisingConfig(model=model,
                                                                              class_weights=CLASS_WEIGHTS,
                                                                              output_classes=NUM_CLASSES))
     trainer.train()

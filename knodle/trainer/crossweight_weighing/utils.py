@@ -1,4 +1,8 @@
+import logging
 import numpy as np
+import torch
+
+logger = logging.getLogger(__name__)
 
 
 def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
@@ -57,3 +61,18 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
         emb_matrix = np.array(embeddings)
         assert emb_matrix.shape[0] == int(emb_matrix_size[0]) and emb_matrix.shape[1] == int(emb_matrix_size[1])
     return emb_matrix
+
+
+def set_seed(seed: int):
+    np.random.seed(np.array(seed, dtype="int64"))
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
+
+def set_device(enable_cuda: bool):
+    if enable_cuda and torch.cuda.is_available():
+        logger.info("Using GPU")
+        return torch.device('cuda')
+    else:
+        logger.info("Using CPU")
+        return torch.device('cpu')

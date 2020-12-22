@@ -5,8 +5,8 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.crossweight_denoising.preprocessing import utils
-from knodle.trainer.crossweight_denoising.preprocessing.commons import LABELS
+from tutorials.conll_relation_extraction_dataset import utils
+from tutorials.conll_relation_extraction_dataset.commons import LABELS
 
 NUM_CLASSES = 39
 

@@ -23,7 +23,9 @@ class CrossWeightDenoisingConfig:
                  class_weights: Tensor = None,
                  optimizer_: optimizer = None,
                  criterion: Callable[[Tensor, Tensor], float] = None,
-                 path_to_weights: str = "data/weights"
+                 path_to_weights: str = "data/weights",
+                 seed: int = "12345",
+                 enable_cuda: bool = False
                  ):
 
         self.cw_partitions = crossweight_partitions
@@ -37,6 +39,8 @@ class CrossWeightDenoisingConfig:
         self.output_classes = output_classes
         self.criterion = criterion
         self.path_to_weights = path_to_weights
+        self.seed = seed
+        self.enable_cuda = enable_cuda
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
@@ -54,5 +58,3 @@ class CrossWeightDenoisingConfig:
             self.criterion = nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.criterion = criterion
-
-
