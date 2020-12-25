@@ -10,4 +10,5 @@ jobs:
       - name: LFS-warning
         uses: ActionsDesk/lfs-warning@v2.0
         with:
+          token: ${{ secrets.GITHUB_TOKEN }} # since there is a private repo
           filesizelimit: '10485760' # 10 MB is 10485760 Bytes
