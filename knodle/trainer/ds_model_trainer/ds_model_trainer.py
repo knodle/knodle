@@ -9,6 +9,8 @@ import logging
 import numpy as np
 
 from knodle.trainer.utils.utils import accuracy_of_probs
+from sklearn.metrics import classification_report
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +58,7 @@ class DsModelTrainer(ABC):
 
     def test(self, test_features: TensorDataset, test_labels: TensorDataset):
         """
-        Runs evaluation and returns a dict with different evaluation metrics.
+        Runs evaluation and returns a classification report with different evaluation metrics.
         Args:
             test_features: Test feature set
             test_labels: Gold label set.
@@ -64,17 +66,21 @@ class DsModelTrainer(ABC):
         Returns:
 
         """
-        test_dataloader = self._make_dataloader(test_features)
-        predictions = self._prediction_loop(test_dataloader, True)
-        # self.model.eval()
+        predictions = self._prediction_loop(test_features, True)
+        # acc = accuracy_of_probs(predictions, test_labels)
+        predictions, test_labels = (
+            predictions.detach().numpy(),
+            test_labels.detach().numpy(),
+        )
+        if predictions.shape[1] > 1:
+            predictions = np.argmax(predictions, axis=1)
+        clf_report = classification_report(
+            y_true=test_labels, y_pred=predictions, output_dict=True
+        )
+        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        return clf_report
 
-        # predictions = self.model(test_features)
-
-        acc = accuracy_of_probs(predictions, test_labels)
-        logger.info("Accuracy is {}".format(acc.detach()))
-        return acc
-
-    def _prediction_loop(self, feature_dataloader, evaluate: bool):
+    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
         """
         This method returns all predictions of the model
         Args:
@@ -83,6 +89,7 @@ class DsModelTrainer(ABC):
         Returns:
 
         """
+        feature_dataloader = self._make_dataloader(features)
 
         if evaluate:
             self.model.eval()
@@ -90,7 +97,7 @@ class DsModelTrainer(ABC):
             self.model.train()
 
         predictions_list = torch.zeros(
-            (self.trainer_config.output_classes), len(feature_dataloader)
+            len(features), (self.trainer_config.output_classes)
         )
 
         for feature_counter, feature_batch in enumerate(feature_dataloader):
