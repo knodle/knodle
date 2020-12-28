@@ -67,7 +67,6 @@ class DsModelTrainer(ABC):
 
         """
         predictions = self._prediction_loop(test_features, True)
-        # acc = accuracy_of_probs(predictions, test_labels)
         predictions, test_labels = (
             predictions.detach().numpy(),
             test_labels.detach().numpy(),
