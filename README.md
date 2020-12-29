@@ -81,7 +81,7 @@ TBC
 
 ## Authors
 
-- Benjamin Roth
-- Anastassia Sedova
+- [Benjamin Roth](https://www.benjaminroth.net/)
+- [Anastassia Sedova](https://github.com/agsedova)
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - Andreas Stephan
