@@ -16,7 +16,7 @@ knodle offers various methods for denoising weak supervision sources and improve
 
 There are four mandatory inputs for knodle:
 
-1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances $\times$ 1
+1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances $\times$ features
 2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules $\times$ n_classes
 3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances $\times$ n_rules
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
@@ -27,7 +27,7 @@ Example for training the baseline classifier:
 from knodle.model import LogisticRegressionModel
 from knodle.trainer import TrainerConfig
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
-from knodle.data import get_imdb_dataset()
+from knodle.data import get_imdb_dataset
 
 OUTPUT_CLASSES = 2
 
@@ -47,6 +47,8 @@ trainer.train()
 trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
 ```
 
+For seeing how the imdb dataset was created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset).
+
 ## Denoising Methods
 
 There are several denoising methods available.
@@ -57,7 +59,18 @@ There are several denoising methods available.
 | kNN TFIDF Similarity | `knodle.trainer.knn_tfidf_similarities` | This method looks at the similarities in tfidf values of the sentences. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
 | Crossweight          | `knodle.trainer.crossweight`            |                                                                                                                                                                                                               |
 
+## Tutorials
+
+The folder [tutorials](https://github.com/knodle/knodle/tree/develop/tutorials/) has different tutorials:
+
+1. [IMDB Dataset Creation](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset): Shows how to create a weakly supervised dataset by incorporating keywords as weak sources.
+2. [Relation Extraction Dataset](https://github.com/knodle/knodle/tree/develop/tutorials/RelationExtractionDataset): Shows the process of creating a dataset with the CONLL dataset.
+3. [Baseline Training](https://github.com/knodle/knodle/tree/develop/tutorials/baseline_training_example): Shows the example process of training a baseline classifier.
+4. [KNN Similarity Trainer](https://github.com/knodle/knodle/tree/develop/tutorials/knn_tfidf_similarity_example): Shows an example of how to use the denoising method of knn for training a weak classifier.
+
 ## Development
+
+### Git Flow
 
 We follow the [git flow](https://gist.github.com/digitaljhelms/4287848) approach while developing this application. Basically we have three environments:
 
@@ -66,6 +79,132 @@ We follow the [git flow](https://gist.github.com/digitaljhelms/4287848) approach
 3. Main: This is the stage which automatically deploys to the the end-users.
 
 Every new feature will be implemented with a feature branch wchih follows normally the naming convention of `feature/<ISSUE-NUMBER>`. All feature branches will be merged via a Pull Request after a code review. All default branches are locked for direct pushes.
+
+### Style Guide
+
+We propose to follow all a same style guide within the code to ensure reasdability. The style guide follows heavily the [Pep 8 Style Guide](https://www.python.org/dev/peps/pep-0008/?). Google has a good example of a its [styleguide](https://google.github.io/styleguide/pyguide.html)
+
+#### 1. Lint
+
+We use `flake8` as a linter.
+
+### 2. Docstring
+
+- Write docstrings.
+- We need them to automatically create an API documentation.
+- If it is completly obvious what is happening the docstring can be one-line. If the method is also private you can consider not writing docstrings.
+- Use Google's docstring format. You can change it in your IDE (e.g. PyCharm, VsCode) to automatically insert the docstring.
+- Contains:
+  - Short description: What is the function doing
+  - Arguments: All arguments provided
+  - Raises: All exceptions
+- Classes should have a docstring after the class declaration
+
+### 3. Imports
+
+- Import from most generic (e.g. `os`, `sys`) to least generic (e.g. `knodle.trainer`)
+
+### 4. Naming
+
+- Please use descriptive names. No 1 letter names and no abbrevations. If mathematical expression is needed for exaplanation append it to a descriptive name, e.g. `mapping_rules_labels_t`.
+- Private functions start with an underscore:
+
+```python
+def _private_function(...):
+    pass
+```
+
+#### File Names
+
+Guidelines derived from [Guido](https://en.wikipedia.org/wiki/Guido_van_Rossum)'s Recommendations
+
+<table rules="all" border="1" summary="Guidelines from Guido's Recommendations"
+       cellspacing="2" cellpadding="2">
+
+  <tr>
+    <th>Type</th>
+    <th>Public</th>
+    <th>Internal</th>
+  </tr>
+
+  <tr>
+    <td>Packages</td>
+    <td><code>lower_with_under</code></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>Modules</td>
+    <td><code>lower_with_under</code></td>
+    <td><code>_lower_with_under</code></td>
+  </tr>
+
+  <tr>
+    <td>Classes</td>
+    <td><code>CapWords</code></td>
+    <td><code>_CapWords</code></td>
+  </tr>
+
+  <tr>
+    <td>Exceptions</td>
+    <td><code>CapWords</code></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>Functions</td>
+    <td><code>lower_with_under()</code></td>
+    <td><code>_lower_with_under()</code></td>
+  </tr>
+
+  <tr>
+    <td>Global/Class Constants</td>
+    <td><code>CAPS_WITH_UNDER</code></td>
+    <td><code>_CAPS_WITH_UNDER</code></td>
+  </tr>
+
+  <tr>
+    <td>Global/Class Variables</td>
+    <td><code>lower_with_under</code></td>
+    <td><code>_lower_with_under</code></td>
+  </tr>
+
+  <tr>
+    <td>Instance Variables</td>
+    <td><code>lower_with_under</code></td>
+    <td><code>_lower_with_under</code> (protected)</td>
+  </tr>
+
+  <tr>
+    <td>Method Names</td>
+    <td><code>lower_with_under()</code></td>
+    <td><code>_lower_with_under()</code> (protected)</td>
+  </tr>
+
+  <tr>
+    <td>Function/Method Parameters</td>
+    <td><code>lower_with_under</code></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td>Local Variables</td>
+    <td><code>lower_with_under</code></td>
+    <td></td>
+  </tr>
+
+</table>
+
+### 5. Function Length
+
+- Use short and focused functions which should just do one thing
+- Google's recommendation lies at about 40 LOC to think about breaking it apart into more functions
+
+### 6. Type Annotations
+
+- Use [type annotations](https://www.python.org/dev/peps/pep-0484/) in every function
+
+**BE CONSISTENT**. Review your code before submitting a PR and check if it consists with all other code. It'll be easier in the future for everybody to maintain :slightly_smiling_face:
 
 ### Add new requirements
 
