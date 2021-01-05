@@ -88,7 +88,7 @@ We propose to follow all a same style guide within the code to ensure reasdabili
 
 We use `flake8` as a linter.
 
-### 2. Docstring
+#### 2. Docstring
 
 - Write docstrings.
 - We need them to automatically create an API documentation.
@@ -100,11 +100,11 @@ We use `flake8` as a linter.
   - Raises: All exceptions
 - Classes should have a docstring after the class declaration
 
-### 3. Imports
+#### 3. Imports
 
 - Import from most generic (e.g. `os`, `sys`) to least generic (e.g. `knodle.trainer`)
 
-### 4. Naming
+#### 4. Naming
 
 - Please use descriptive names. No 1 letter names and no abbrevations. If mathematical expression is needed for exaplanation append it to a descriptive name, e.g. `mapping_rules_labels_t`.
 - Private functions start with an underscore:
@@ -114,7 +114,7 @@ def _private_function(...):
     pass
 ```
 
-#### File Names
+##### File Names
 
 Guidelines derived from [Guido](https://en.wikipedia.org/wiki/Guido_van_Rossum)'s Recommendations
 
@@ -195,12 +195,12 @@ Guidelines derived from [Guido](https://en.wikipedia.org/wiki/Guido_van_Rossum)'
 
 </table>
 
-### 5. Function Length
+#### 5. Function Length
 
 - Use short and focused functions which should just do one thing
 - Google's recommendation lies at about 40 LOC to think about breaking it apart into more functions
 
-### 6. Type Annotations
+#### 6. Type Annotations
 
 - Use [type annotations](https://www.python.org/dev/peps/pep-0484/) in every function
 
