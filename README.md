@@ -16,9 +16,9 @@ knodle offers various methods for denoising weak supervision sources and improve
 
 There are four mandatory inputs for knodle:
 
-1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances $\times$ features
-2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules $\times$ n_classes
-3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances $\times$ n_rules
+1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances x features
+2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules x n_classes
+3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances x n_rules
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
 
 Example for training the baseline classifier:
