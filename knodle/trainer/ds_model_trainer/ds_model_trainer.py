@@ -69,7 +69,7 @@ class DsModelTrainer(ABC):
         predictions = self._prediction_loop(test_features, True)
         predictions, test_labels = (
             predictions.detach().numpy(),
-            test_labels.detach().numpy(),
+            test_labels.tensors[0].detach().numpy(),
         )
         if predictions.shape[1] > 1:
             predictions = np.argmax(predictions, axis=1)
@@ -95,18 +95,16 @@ class DsModelTrainer(ABC):
         else:
             self.model.train()
 
-        predictions_list = torch.zeros(
-            len(features), (self.trainer_config.output_classes)
-        )
+        predictions_list = torch.Tensor()
 
         for feature_counter, feature_batch in enumerate(feature_dataloader):
             predictions = self.model(feature_batch)
-            predictions_list[feature_counter] = predictions
+            predictions_list = torch.cat([predictions_list, predictions])
 
         return predictions_list
 
     def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
         dataloader = DataLoader(
-            dataset, batch_size=self.trainer_config.batch_size, drop_last=True
+            dataset, batch_size=self.trainer_config.batch_size, drop_last=False
         )
         return dataloader
