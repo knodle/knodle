@@ -31,8 +31,8 @@ def train_simple_ds_model():
 
     train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
-    test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
-    y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+    test_tfidf = TensorDataset(Tensor(tfidf_values[X_test.index].toarray()))
+    y_test = TensorDataset(Tensor(imdb_dataset.loc[X_test.index, "label_id"].values))
 
     train_dataset = TensorDataset(train_tfidf)
 
@@ -51,7 +51,7 @@ def train_simple_ds_model():
     )
     trainer.train()
 
-    trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
+    trainer.test(test_features=test_tfidf, test_labels=y_test)
 
 
 def read_evaluation_data():
