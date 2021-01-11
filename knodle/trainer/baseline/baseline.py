@@ -9,7 +9,11 @@ from tqdm import tqdm
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
-from knodle.trainer.utils.utils import accuracy_of_probs, get_majority_vote_probs
+from knodle.trainer.utils.utils import (
+    accuracy_of_probs,
+    get_majority_vote_probs,
+    extract_tensor_from_dataset,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +45,7 @@ class SimpleDsModelTrainer(DsModelTrainer):
             self.rule_matches_z, self.mapping_rules_labels_t
         )
 
-        model_input_x_tensor = self._extract_tensor_from_dataset(self.model_input_x, 0)
+        model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
         feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(labels))
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
@@ -70,17 +74,3 @@ class SimpleDsModelTrainer(DsModelTrainer):
             logger.info("Epoch Accuracy: {}".format(avg_acc))
 
         log_section("Training done", logger)
-
-    def _extract_tensor_from_dataset(
-        self, dataset: TensorDataset, tensor_index: int
-    ) -> Tensor:
-        """
-        Extracts a tensor from a dataset.
-        Args:
-            dataset: Dataset to extract tensor from
-            tensor_index: Which tensor to extract
-
-        Returns: Tensor
-
-        """
-        return dataset.tensors[tensor_index]

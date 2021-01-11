@@ -10,7 +10,11 @@ from tqdm import tqdm
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
-from knodle.trainer.utils.utils import accuracy_of_probs
+from knodle.trainer.utils.utils import (
+    accuracy_of_probs,
+    get_majority_vote_probs,
+    extract_tensor_from_dataset,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +43,14 @@ class KnnTfidfSimilarity(DsModelTrainer):
 
         denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
 
-        labels = self._get_majority_vote_probs(denoised_rule_matches_z)
-        label_dataset = TensorDataset(Tensor(labels))
+        labels = get_majority_vote_probs(
+            denoised_rule_matches_z, self.mapping_rules_labels_t
+        )
 
-        feature_dataloader = self._make_dataloader(self.model_input_x)
-        label_dataloader = self._make_dataloader(label_dataset)
+        model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
+        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(labels))
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
+
         log_section("Training starts", logger)
 
         self.model.train()
@@ -51,20 +58,19 @@ class KnnTfidfSimilarity(DsModelTrainer):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
-            for feature_batch, label_batch in zip(feature_dataloader, label_dataloader):
-                labels = label_batch[0]
+            for feature_batch, label_batch in feature_label_dataloader:
                 self.model.zero_grad()
-                predictions = self.model(feature_batch)
-                loss = self.trainer_config.criterion(predictions, labels)
+                predictions = self.model([feature_batch])
+                loss = self.trainer_config.criterion(predictions, label_batch)
                 loss.backward()
                 self.trainer_config.optimizer.step()
-                acc = accuracy_of_probs(predictions, labels)
+                acc = accuracy_of_probs(predictions, label_batch)
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
 
-            avg_loss = epoch_loss / len(feature_dataloader)
-            avg_acc = epoch_acc / len(feature_dataloader)
+            avg_loss = epoch_loss / len(feature_label_dataloader)
+            avg_acc = epoch_acc / len(feature_label_dataloader)
 
             logger.info("Epoch loss: {}".format(avg_loss))
             logger.info("Epoch Accuracy: {}".format(avg_acc))

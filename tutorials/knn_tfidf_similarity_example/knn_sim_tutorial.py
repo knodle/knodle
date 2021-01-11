@@ -36,8 +36,8 @@ def train_knn_model():
     train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf_sparse = tfidf_values[X_train.index]
     train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
-    test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
-    y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+    test_tfidf = TensorDataset(Tensor(tfidf_values[X_test.index].toarray()))
+    y_test = TensorDataset(Tensor(imdb_dataset.loc[X_test.index, "label_id"].values))
 
     train_dataset = TensorDataset(train_tfidf)
 

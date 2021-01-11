@@ -2,6 +2,7 @@ import logging
 
 from torch import Tensor, argmax
 import numpy as np
+from torch.utils.data import TensorDataset
 
 
 def log_section(text: str, logger: logging) -> None:
@@ -57,3 +58,16 @@ def get_majority_vote_probs(
 
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
+
+
+def extract_tensor_from_dataset(dataset: TensorDataset, tensor_index: int) -> Tensor:
+    """
+    Extracts a tensor from a dataset.
+    Args:
+        dataset: Dataset to extract tensor from
+        tensor_index: Which tensor to extract
+
+    Returns: Tensor
+
+    """
+    return dataset.tensors[tensor_index]
