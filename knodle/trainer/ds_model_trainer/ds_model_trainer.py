@@ -11,7 +11,6 @@ import numpy as np
 from knodle.trainer.utils.utils import accuracy_of_probs
 from sklearn.metrics import classification_report
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -81,9 +80,10 @@ class DsModelTrainer(ABC):
 
     def _prediction_loop(self, features: TensorDataset, evaluate: bool):
         """
-        This method returns all predictions of the model
+        This method returns all predictions of the model. Currently this function aims just for the test function.
         Args:
-            dataloader:
+            features: DataSet with features to get predictions from
+            evaluate: Boolean if model in evaluation mode or not.
 
         Returns:
 
