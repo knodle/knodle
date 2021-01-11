@@ -9,10 +9,8 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-
-from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
-
+from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
 from knodle.trainer.crossweigh_weighing import utils
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 

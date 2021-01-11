@@ -1,4 +1,0 @@
-spacy
-pandas
-jupyter
-tqdm
