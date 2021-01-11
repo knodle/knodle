@@ -9,7 +9,7 @@ from tqdm import tqdm
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
-from knodle.trainer.utils.utils import accuracy_of_probs
+from knodle.trainer.utils.utils import accuracy_of_probs, get_majority_vote_probs
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,9 @@ class SimpleDsModelTrainer(DsModelTrainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        labels = self._get_majority_vote_probs(self.rule_matches_z)
+        labels = get_majority_vote_probs(
+            self.rule_matches_z, self.mapping_rules_labels_t
+        )
 
         model_input_x_tensor = self._extract_tensor_from_dataset(self.model_input_x, 0)
         feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(labels))
@@ -82,21 +84,3 @@ class SimpleDsModelTrainer(DsModelTrainer):
 
         """
         return dataset.tensors[tensor_index]
-
-    def _get_majority_vote_probs(self, rule_matches_z: np.ndarray):
-        """
-        This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
-        calculated,
-        then a probability will be calculated by dividing the values row-wise with the sum. To counteract zero
-        division
-        all nan values are set to zero.
-        Args:
-            rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
-        Returns:
-
-        """
-        rule_counts = np.matmul(rule_matches_z, self.mapping_rules_labels_t)
-        rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
-
-        rule_counts_probs[np.isnan(rule_counts_probs)] = 0
-        return rule_counts_probs
