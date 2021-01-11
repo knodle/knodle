@@ -1,21 +1,22 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.functional import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
-from knodle.trainer.crossweight_weighing import utils
-from knodle.trainer.crossweight_weighing.crossweight_weights_calculator import CrossWeightWeightsCalculator
+from knodle.trainer.crossweigh_weighing import utils
+from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 
-from knodle.trainer.config.crossweight_trainer_config import TrainerConfig
-from knodle.trainer.config.crossweight_denoising_config import CrossWeightDenoisingConfig
+from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
+from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 
 GRADIENT_CLIPPING = 5
 PRINT_EVERY = 10
 
 
-class CrossWeight(DsModelTrainer):
+class CrossWeigh(DsModelTrainer):
 
     def __init__(self,
                  model: Module,
@@ -25,7 +26,7 @@ class CrossWeight(DsModelTrainer):
                  dev_inputs: TensorDataset,
                  dev_labels: np.ndarray,
                  trainer_config: TrainerConfig = None,
-                 denoising_config: CrossWeightDenoisingConfig = None):
+                 denoising_config: CrossWeighDenoisingConfig = None):
         """
         :param model: a pre-defined classifier model that is to be trained
         :param rule_assignments_t: binary matrix that contains info about which rule correspond to which label
@@ -33,8 +34,8 @@ class CrossWeight(DsModelTrainer):
         :param rule_matches_z: binary matrix that contains info about rules matched in samples (samples x rules)
         :param dev_inputs: development samples using for model evaluation
         :param dev_labels: development labels using for model evaluation
-        :param denoising_config: config used for CrossWeight denoising
         :param trainer_config: config used for main training
+        :param denoising_config: config used for CrossWeigh denoising
         """
         super().__init__(
             model, rule_assignments_t, inputs_x, rule_matches_z, trainer_config
@@ -48,8 +49,8 @@ class CrossWeight(DsModelTrainer):
         self.dev_labels = dev_labels
 
         if denoising_config is None:
-            self.denoising_config = CrossWeightDenoisingConfig(self.model)
-            self.logger.info("Default CrossWeight Config is used: {}".format(self.denoising_config.__dict__))
+            self.denoising_config = CrossWeighDenoisingConfig(self.model)
+            self.logger.info("Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__))
         else:
             self.denoising_config = denoising_config
             self.logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
@@ -58,12 +59,12 @@ class CrossWeight(DsModelTrainer):
 
     def train(self):
         """
-        This function weights the samples with CrossWeight method and train the model
+        This function weights the samples with CrossWeigh method and train the model
         """
         utils.set_seed(self.trainer_config.seed)       # set seed for reproducibility
 
         # calculate sample weights
-        sample_weights = CrossWeightWeightsCalculator(
+        sample_weights = CrossWeighWeightsCalculator(
             self.model, self.rule_assignments_t, self.inputs_x, self.rule_matches_z, self.denoising_config
         ).calculate_weights()
 
@@ -92,14 +93,11 @@ class CrossWeight(DsModelTrainer):
                 nn.utils.clip_grad_norm_(self.model.parameters(), GRADIENT_CLIPPING)
                 self.trainer_config.optimizer.step()
 
-                if steps_counter % PRINT_EVERY == 0:
-                    dev_loss = self._evaluate(dev_loader)
-                    self.logger.info("Epoch: {}/{}...   Step: {}...   Loss: {:.6f}   Val Loss: {:.6f}".format(
-                        curr_epoch + 1, self.trainer_config.epochs, steps_counter, loss.item(), dev_loss))
-                    self.model.train()
+                self._print_intermediate_result(steps_counter, curr_epoch, loss, dev_loader)
 
     def _evaluate(self, dev_loader):
-        """ Model evaluation on dev set"""
+        """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss value
+        is returned """
         self.model.eval()
         with torch.no_grad():
             val_losses = []
@@ -130,3 +128,11 @@ class CrossWeight(DsModelTrainer):
     def _get_train_loss(self, output, labels, weights):
         return (self.trainer_config.criterion(output, labels) * weights).sum() / \
                self.trainer_config.class_weights[labels].sum()
+
+    def _print_intermediate_result(
+            self, curr_step: int, curr_epoch: int, curr_loss: Tensor, dev_loader: DataLoader
+    ) -> None:
+        if curr_step % PRINT_EVERY == 0:
+            dev_loss = self._evaluate(dev_loader)
+            self.logger.info("Epoch: {}/{}...   Step: {}...   Loss: {:.6f}   Val Loss: {:.6f}".format(
+                curr_epoch + 1, self.trainer_config.epochs, curr_step, curr_loss.item(), dev_loss))

@@ -10,11 +10,11 @@ from torch.utils.data import TensorDataset
 
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 
-from knodle.trainer.config.crossweight_trainer_config import TrainerConfig
-from knodle.trainer.config.crossweight_denoising_config import CrossWeightDenoisingConfig
+from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
+from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 
-from knodle.trainer.crossweight_weighing import utils
-from knodle.trainer.crossweight_weighing.crossweight import CrossWeight
+from knodle.trainer.crossweigh_weighing import utils
+from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +24,11 @@ CLASS_WEIGHTS = torch.FloatTensor([1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 
                                    2.0, 2.0, 2.0, 2.0, 2.0])
 
 
-def train_crossweight(
+def train_crossweigh(
         path_t: str, path_z: str, path_train_data: str, path_dev_samples: str, path_dev_labels: str,
         path_word_emb_file: str) -> None:
     """
-    Training the model with CrossWeight model denoising
+    Training the model with CrossWeigh model denoising
     :param path_train_data: path to matrix with training data (DataFrame with row samples or Numpy array with encoded)
     :param path_z: path to binary matrix that contains info about rules matched in samples (samples x rules)
     :param path_t: path to binary matrix that contains info about which rule correspond to which label
@@ -50,18 +50,18 @@ def train_crossweight(
                               word_embedding_matrix,
                               NUM_CLASSES)
 
-    trainer = CrossWeight(model=model,
-                          rule_assignments_t=rule_assignments_t,
-                          inputs_x=train_input_x,
-                          rule_matches_z=rule_matches_z,
-                          dev_inputs=dev_samples,
-                          dev_labels=dv_labels,
-                          trainer_config=TrainerConfig(model=model,
-                                                              class_weights=CLASS_WEIGHTS,
-                                                              output_classes=NUM_CLASSES),
-                          denoising_config=CrossWeightDenoisingConfig(model=model,
-                                                                             class_weights=CLASS_WEIGHTS,
-                                                                             output_classes=NUM_CLASSES))
+    trainer = CrossWeigh(model=model,
+                         rule_assignments_t=rule_assignments_t,
+                         inputs_x=train_input_x,
+                         rule_matches_z=rule_matches_z,
+                         dev_inputs=dev_samples,
+                         dev_labels=dv_labels,
+                         trainer_config=TrainerConfig(model=model,
+                                                      class_weights=CLASS_WEIGHTS,
+                                                      output_classes=NUM_CLASSES),
+                         denoising_config=CrossWeighDenoisingConfig(model=model,
+                                                                    class_weights=CLASS_WEIGHTS,
+                                                                    output_classes=NUM_CLASSES))
     trainer.train()
 
 
@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    train_crossweight(args.rule_assignments_t,
-                      args.rule_matches_z,
-                      args.path_train_data,
-                      args.dev_samples,
-                      args.dev_labels,
-                      args.word_embeddings)
+    train_crossweigh(args.rule_assignments_t,
+                     args.rule_matches_z,
+                     args.path_train_data,
+                     args.dev_samples,
+                     args.dev_labels,
+                     args.word_embeddings)

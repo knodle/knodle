@@ -8,12 +8,12 @@ from torch.optim import optimizer
 LEARNING_RATE = 0.01
 
 
-class CrossWeightDenoisingConfig:
+class CrossWeighDenoisingConfig:
     def __init__(self,
                  model: nn.Module,
-                 crossweight_partitions: int = 2,
-                 crossweight_folds: int = 3,
-                 crossweight_epochs: int = 1,
+                 crossweigh_partitions: int = 2,
+                 crossweigh_folds: int = 3,
+                 crossweigh_epochs: int = 1,
                  weight_reducing_rate: int = 0.7,
                  samples_start_weights: int = 4.0,
                  no_relation_weights: int = 0.5,
@@ -28,9 +28,9 @@ class CrossWeightDenoisingConfig:
                  enable_cuda: bool = False
                  ):
 
-        self.cw_partitions = crossweight_partitions
-        self.cw_folds = crossweight_folds
-        self.cw_epochs = crossweight_epochs
+        self.cw_partitions = crossweigh_partitions
+        self.cw_folds = crossweigh_folds
+        self.cw_epochs = crossweigh_epochs
         self.weight_reducing_rate = weight_reducing_rate
         self.samples_start_weights = samples_start_weights
         self.no_relation_weights = no_relation_weights

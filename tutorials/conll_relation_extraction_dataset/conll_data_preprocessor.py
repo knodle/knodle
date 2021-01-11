@@ -35,8 +35,6 @@ class DataProcessor:
 
     def collect_data(self) -> (np.ndarray, TensorDataset, np.ndarray, TensorDataset, np.ndarray, np.ndarray):
 
-        # word2id, word_embedding_matrix = utils.vocab_and_vectors(self.word_emb_file, ['<PAD>', '<UNK>'])
-
         rule_assignments_t, inputs_x, rule_matches_z = self.process_train_data()
         dev_samples, dv_labels = self.process_dev_data()
 

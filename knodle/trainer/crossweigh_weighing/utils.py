@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,8 @@ def vocab_and_vectors(filename: str, special_tokens: list) -> (dict, dict, np.nd
 def add_padding(tokens: list, maxlen: int) -> list:
     """ Provide padding of the encoded tokens to the maxlen; if length of tokens > maxlen, reduce it to maxlen """
     padded_tokens = [0] * maxlen
-    for i in range(0, min(len(tokens), maxlen)):
-        padded_tokens[i] = tokens[i]
+    for token in range(0, min(len(tokens), maxlen)):
+        padded_tokens[token] = tokens[token]
     return padded_tokens
 
 
@@ -78,3 +79,8 @@ def set_device(enable_cuda: bool):
     else:
         logger.info("Using CPU")
         return torch.device('cpu')
+
+
+
+
+
