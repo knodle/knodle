@@ -1,16 +1,16 @@
-import os
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from torch.utils.data import TensorDataset
-
-from knodle.model import LogisticRegressionModel
-from joblib import load, dump
-import pandas as pd
-from torch import Tensor
-
 import logging
 
+import os
+import pandas as pd
+from joblib import load, dump
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from torch import Tensor
+from torch.utils.data import TensorDataset
+
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )

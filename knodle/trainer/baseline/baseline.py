@@ -56,7 +56,6 @@ class SimpleDsModelTrainer(DsModelTrainer):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
-            # DISCUSS: Problem: When more features in batch I have to extract them either in the model or before.
             for feature_batch, label_batch in feature_label_dataloader:
                 self.model.zero_grad()
                 predictions = self.model(feature_batch)
