@@ -54,7 +54,7 @@ def train_knn_model():
 
     trainer.train()
 
-    trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
+    trainer.test(test_features=test_tfidf, test_labels=y_test)
 
 
 def read_evaluation_data():
