@@ -1,10 +1,6 @@
-<a href="https://www.github.com/knodle/knodle">
-    <img src="./knodle_logo.png" alt="knodle logo" title="Knodle" align="right" height="100" />
-</a>
+<img src="./knodle_logo.png" height="100"/>
 
-# knodle
-
-Knowledge infused deep learning framework
+### Knowledge infused deep learning framework
 
 [![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)

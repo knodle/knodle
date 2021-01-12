@@ -11,3 +11,6 @@ snorkel
 black
 tqdm
 numpy
+scipy
+spacy
+setuptools
