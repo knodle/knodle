@@ -70,6 +70,7 @@ class DsModelTrainer(ABC):
         )
         if predictions.shape[1] > 1:
             predictions = np.argmax(predictions, axis=1)
+
         clf_report = classification_report(
             y_true=test_labels, y_pred=predictions, output_dict=True
         )
