@@ -1,0 +1,4 @@
+pandas==0.25.2
+spacy==2.3.4
+numpy==1.18.5
+torch==1.7.0
