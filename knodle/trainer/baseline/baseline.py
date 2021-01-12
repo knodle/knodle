@@ -3,15 +3,15 @@ import logging
 import numpy as np
 from torch import Tensor
 from torch.nn import Module
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
+from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import (
     accuracy_of_probs,
-    get_majority_vote_probs,
     extract_tensor_from_dataset,
 )
 
@@ -56,9 +56,10 @@ class SimpleDsModelTrainer(DsModelTrainer):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
+            # DISCUSS: Problem: When more features in batch I have to extract them either in the model or before.
             for feature_batch, label_batch in feature_label_dataloader:
                 self.model.zero_grad()
-                predictions = self.model([feature_batch])
+                predictions = self.model(feature_batch)
                 loss = self.trainer_config.criterion(predictions, label_batch)
                 loss.backward()
                 self.trainer_config.optimizer.step()

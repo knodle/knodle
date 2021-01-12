@@ -1,15 +1,13 @@
-from abc import ABC, abstractmethod
-from torch import Tensor
+import logging
+
+import numpy as np
 import torch
+from abc import ABC, abstractmethod
+from sklearn.metrics import classification_report
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
-import logging
-import numpy as np
-
-from knodle.trainer.utils.utils import accuracy_of_probs
-from sklearn.metrics import classification_report
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +96,9 @@ class DsModelTrainer(ABC):
         predictions_list = torch.Tensor()
 
         for feature_counter, feature_batch in enumerate(feature_dataloader):
-            predictions = self.model(feature_batch)
+            # DISCUSS
+            features = feature_batch[0]
+            predictions = self.model(features)
             predictions_list = torch.cat([predictions_list, predictions])
 
         return predictions_list

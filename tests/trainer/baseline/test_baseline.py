@@ -1,10 +1,10 @@
-import pytest
-
 import numpy as np
 import torch
 
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
-from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
 
 
 def test_train():
@@ -28,10 +28,7 @@ def test_train():
     t[:, 0] = 1
 
     trainer = SimpleDsModelTrainer(
-        model = model,
-        mapping_rules_labels_t = t,
-        model_input_x = x,
-        rule_matches_z = z
+        model=model, mapping_rules_labels_t=t, model_input_x=x, rule_matches_z=z
     )
 
     trainer.train()

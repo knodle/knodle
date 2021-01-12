@@ -9,7 +9,9 @@ from torch import Tensor
 from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
-from knodle.model import LogisticRegressionModel
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 from knodle.trainer import TrainerConfig
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
 
