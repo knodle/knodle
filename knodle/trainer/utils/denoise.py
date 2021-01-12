@@ -3,7 +3,7 @@ import numpy as np
 
 def get_majority_vote_probs(
     rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray
-):
+) -> np.ndarray:
     """
     This function calculates a majority vote probability for all rule_matches_z. First rule counts will be
     calculated,
@@ -12,7 +12,8 @@ def get_majority_vote_probs(
     all nan values are set to zero.
     Args:
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
-    Returns:
+        mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
+    Returns: Array with majority vote decision. Shape: instances x classes
 
     """
     rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)

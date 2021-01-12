@@ -104,8 +104,13 @@ class DsModelTrainer(ABC):
 
         return predictions_list
 
-    def _make_dataloader(self, dataset: TensorDataset) -> DataLoader:
+    def _make_dataloader(
+        self, dataset: TensorDataset, shuffle: bool = False
+    ) -> DataLoader:
         dataloader = DataLoader(
-            dataset, batch_size=self.trainer_config.batch_size, drop_last=False
+            dataset,
+            batch_size=self.trainer_config.batch_size,
+            drop_last=False,
+            shuffle=shuffle,
         )
         return dataloader
