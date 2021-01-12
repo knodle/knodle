@@ -10,3 +10,4 @@ scikit-learn
 snorkel
 black
 tqdm
+numpy
