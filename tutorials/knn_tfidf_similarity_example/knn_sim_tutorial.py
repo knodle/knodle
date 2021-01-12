@@ -1,16 +1,16 @@
-import os
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from torch.utils.data import TensorDataset
-
-from knodle.model import LogisticRegressionModel
-from joblib import load, dump
-import pandas as pd
-from torch import Tensor
-
 import logging
 
+import os
+import pandas as pd
+from joblib import load, dump
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from torch import Tensor
+from torch.utils.data import TensorDataset
+
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )
@@ -36,8 +36,8 @@ def train_knn_model():
     train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf_sparse = tfidf_values[X_train.index]
     train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
-    test_tfidf = Tensor(tfidf_values[X_test.index].toarray())
-    y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+    test_tfidf = TensorDataset(Tensor(tfidf_values[X_test.index].toarray()))
+    y_test = TensorDataset(Tensor(imdb_dataset.loc[X_test.index, "label_id"].values))
 
     train_dataset = TensorDataset(train_tfidf)
 

@@ -1,6 +1,7 @@
 import logging
 
 from torch import Tensor, argmax
+from torch.utils.data import TensorDataset
 
 
 def log_section(text: str, logger: logging) -> None:
@@ -35,3 +36,16 @@ def accuracy_of_probs(predictions: Tensor, ground_truth: Tensor):
     correct_pred = (y_pred_max == ground_truth).float()
     acc = correct_pred.sum() / len(correct_pred)
     return acc
+
+
+def extract_tensor_from_dataset(dataset: TensorDataset, tensor_index: int) -> Tensor:
+    """
+    Extracts a tensor from a dataset.
+    Args:
+        dataset: Dataset to extract tensor from
+        tensor_index: Which tensor to extract
+
+    Returns: Tensor
+
+    """
+    return dataset.tensors[tensor_index]

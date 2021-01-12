@@ -1,10 +1,9 @@
-<a href="https://www.github.com/knodle/knodle">
-    <img src="./knodle_logo.png" alt="knodle logo" title="Knodle" align="right" height="100" />
-</a>
+<img src="./knodle_logo.png" height="100"/>
 
-# knodle
+### Knowledge infused deep learning framework
 
-Knowledge infused deep learning framework
+[![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)
+[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Installation
 
@@ -57,7 +56,7 @@ There are several denoising methods available.
 | -------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Baseline             | `knodle.trainer.baseline`               | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | kNN TFIDF Similarity | `knodle.trainer.knn_tfidf_similarities` | This method looks at the similarities in tfidf values of the sentences. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
-| Crossweight          | `knodle.trainer.crossweight`            |                                                                                                                                                                                                               |
+| DSCrossWeigh         | `knodle.trainer.crossweigh`             | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 
 ## Tutorials
 
@@ -78,11 +77,11 @@ We follow the [git flow](https://gist.github.com/digitaljhelms/4287848) approach
 2. Staging: After the develop environment was tested and the requested features were implemented a staging / release environment is prepared. On that environment all features should be tested by several end-users.
 3. Main: This is the stage which automatically deploys to the the end-users.
 
-Every new feature will be implemented with a feature branch wchih follows normally the naming convention of `feature/<ISSUE-NUMBER>`. All feature branches will be merged via a Pull Request after a code review. All default branches are locked for direct pushes.
+Every new feature will be implemented with a feature branch which follows normally the naming convention of `feature/<ISSUE-NUMBER>`. All feature branches will be merged via a Pull Request after a code review. All default branches are locked for direct pushes.
 
 ### Style Guide
 
-We propose to follow all a same style guide within the code to ensure reasdability. The style guide follows heavily the [Pep 8 Style Guide](https://www.python.org/dev/peps/pep-0008/?). Google has a good example of a its [styleguide](https://google.github.io/styleguide/pyguide.html)
+We propose to follow all a same style guide within the code to ensure readability. The style guide follows heavily the [Pep 8 Style Guide](https://www.python.org/dev/peps/pep-0008/?). Google has a good example of a its [styleguide](https://google.github.io/styleguide/pyguide.html)
 
 #### 1. Lint
 
@@ -92,7 +91,7 @@ We use `flake8` as a linter.
 
 - Write docstrings.
 - We need them to automatically create an API documentation.
-- If it is completly obvious what is happening the docstring can be one-line. If the method is also private you can consider not writing docstrings.
+- If it is completely obvious what is happening the docstring can be one-line. If the method is also private you can consider not writing docstrings.
 - Use Google's docstring format. You can change it in your IDE (e.g. PyCharm, VsCode) to automatically insert the docstring.
 - Contains:
   - Short description: What is the function doing
@@ -106,7 +105,7 @@ We use `flake8` as a linter.
 
 #### 4. Naming
 
-- Please use descriptive names. No 1 letter names and no abbrevations. If mathematical expression is needed for exaplanation append it to a descriptive name, e.g. `mapping_rules_labels_t`.
+- Please use descriptive names. No 1 letter names and no abbreviations. If mathematical expression is needed for explanation append it to a descriptive name, e.g. `mapping_rules_labels_t`.
 - Private functions start with an underscore:
 
 ```python
@@ -214,13 +213,13 @@ Please add all requirements manually. If it isn't needed to have an explicit ver
 
 Currently the package will be tested on Python 3.7. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
 
-## Licence
+## License
 
-TBC
+Licensed under the [Apache 2.0 License](LICENSE).
 
 ## Authors
 
 - [Benjamin Roth](https://www.benjaminroth.net/)
-- [Anastassia Sedova](https://github.com/agsedova)
+- [Anastasiia Sedova](https://github.com/agsedova)
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - Andreas Stephan
