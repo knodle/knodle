@@ -38,10 +38,9 @@ def test_train():
 
     trainer.train()
 
-    y_np = np.zeros((num_samples, num_classes))
-    y_np[:, 0] = 1
-    y_labels = torch.from_numpy(y_np)
-    test_pred = trainer.test(x_tensor, y_labels)
+    y_np = np.zeros((num_samples, ))
+    y_labels = TensorDataset(torch.from_numpy(y_np))
+    metrics = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%
-    assert test_pred.numpy() == 1
+    assert metrics.get("accuracy") == 1
