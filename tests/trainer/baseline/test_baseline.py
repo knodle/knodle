@@ -30,30 +30,17 @@ def test_train():
     mapping_rules_labels_t[:, 0] = 1
 
     trainer = SimpleDsModelTrainer(
-<<<<<<< HEAD
         model = model,
         mapping_rules_labels_t = mapping_rules_labels_t,
         model_input_x = model_input_x,
         rule_matches_z = rule_matches_z
-=======
-        model=model, mapping_rules_labels_t=t, model_input_x=x, rule_matches_z=z
->>>>>>> develop
     )
 
     trainer.train()
 
-<<<<<<< HEAD
     y_np = np.zeros((num_samples, ))
     y_labels = TensorDataset(torch.from_numpy(y_np))
     metrics = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%
     assert metrics.get("accuracy") == 1
-=======
-    y_np = np.ones((num_samples, 1))
-    y_tensor = torch.from_numpy(y_np)
-    a = trainer.test(x, torch.utils.data.TensorDataset(y_tensor))
-
-    # We train 100% on 1 class, thus test accuracy should be 100%
-    assert a["accuracy"] == 1
->>>>>>> develop
