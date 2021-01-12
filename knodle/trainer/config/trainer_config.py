@@ -1,4 +1,5 @@
 from typing import Callable
+
 from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.nn import Module
