@@ -12,7 +12,6 @@ from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 
-GRADIENT_CLIPPING = 5
 PRINT_EVERY = 10
 
 
@@ -71,8 +70,9 @@ class CrossWeigh(DsModelTrainer):
         self.logger.info("Classifier training is started")
 
         labels = utils.get_labels(self.rule_matches_z, self.rule_assignments_t)
-        train_loader = self._convert2tensor(self.inputs_x, labels, sample_weights)
-        dev_loader = self._convert2tensor(self.dev_inputs, self.dev_labels)
+
+        train_loader = self._get_feature_label_dataloader(self.inputs_x, labels, sample_weights)
+        dev_loader = self._get_feature_label_dataloader(self.dev_inputs, self.dev_labels)
 
         self.model.train()
         steps_counter = 0
@@ -90,7 +90,10 @@ class CrossWeigh(DsModelTrainer):
                 output = self.model(tokens)
                 loss = self._get_train_loss(output, labels, weights)
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), GRADIENT_CLIPPING)
+
+                if self.trainer_config.use_grad_clipping:
+                    nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
+
                 self.trainer_config.optimizer.step()
 
                 self._print_intermediate_result(steps_counter, curr_epoch, loss, dev_loader)
@@ -109,7 +112,7 @@ class CrossWeigh(DsModelTrainer):
                 val_losses.append(val_loss.item())
         return np.mean(val_losses)
 
-    def _convert2tensor(
+    def _get_feature_label_dataloader(
             self, samples: TensorDataset, labels: np.ndarray, sample_weights: np.ndarray = None, shuffle: bool = True
     ) -> DataLoader:
         """ Converts encoded samples and labels to dataloader. Optionally: sample weights (in train dataloader) """
@@ -123,7 +126,8 @@ class CrossWeigh(DsModelTrainer):
         else:
             dataset = torch.utils.data.TensorDataset(tensor_samples, tensor_target)
 
-        return torch.utils.data.DataLoader(dataset, batch_size=self.trainer_config.batch_size, shuffle=shuffle)
+        dataloader = self._make_dataloader(dataset, shuffle=shuffle)
+        return dataloader
 
     def _get_train_loss(self, output, labels, weights):
         return (self.trainer_config.criterion(output, labels) * weights).sum() / \

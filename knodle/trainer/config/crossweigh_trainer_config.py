@@ -18,12 +18,16 @@ class TrainerConfig:
                  epochs: int = 2,
                  class_weights: Tensor = None,
                  seed: int = 12345,      # set seed for reproducibility
-                 enable_cuda: bool = False
+                 enable_cuda: bool = False,
+                 use_grad_clipping: bool = True,
+                 grad_clipping: int = 5
                  ):
         self.criterion = criterion
         self.batch_size = batch_size
         self.seed = seed
         self.enable_cuda = enable_cuda
+        self.use_grad_clipping = use_grad_clipping
+        self.grad_clipping = grad_clipping
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
