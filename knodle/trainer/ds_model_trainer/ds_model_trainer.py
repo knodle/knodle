@@ -1,13 +1,13 @@
+import logging
+
+import numpy as np
+import torch
 from abc import ABC, abstractmethod
-from torch import Tensor
+from sklearn.metrics import classification_report
 from torch.nn import Module
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
-import logging
-import numpy as np
-
-from knodle.trainer.utils.utils import accuracy_of_probs
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +53,64 @@ class DsModelTrainer(ABC):
     def train(self):
         pass
 
-    def test(self, test_features: Tensor, test_labels: Tensor):
-        self.model.eval()
+    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
+        """
+        Runs evaluation and returns a classification report with different evaluation metrics.
+        Args:
+            test_features: Test feature set
+            test_labels: Gold label set.
 
-        predictions = self.model(test_features)
+        Returns:
 
-        acc = accuracy_of_probs(predictions, test_labels)
-        logger.info("Accuracy is {}".format(acc.detach()))
-        return acc
+        """
+        predictions = self._prediction_loop(test_features, True)
+        predictions, test_labels = (
+            predictions.detach().numpy(),
+            test_labels.tensors[0].detach().numpy(),
+        )
+        if predictions.shape[1] > 1:
+            predictions = np.argmax(predictions, axis=1)
+
+        clf_report = classification_report(
+            y_true=test_labels, y_pred=predictions, output_dict=True
+        )
+        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        return clf_report
+
+    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
+        """
+        This method returns all predictions of the model. Currently this function aims just for the test function.
+        Args:
+            features: DataSet with features to get predictions from
+            evaluate: Boolean if model in evaluation mode or not.
+
+        Returns:
+
+        """
+        feature_dataloader = self._make_dataloader(features)
+
+        if evaluate:
+            self.model.eval()
+        else:
+            self.model.train()
+
+        predictions_list = torch.Tensor()
+
+        for feature_counter, feature_batch in enumerate(feature_dataloader):
+            # DISCUSS
+            features = feature_batch[0]
+            predictions = self.model(features)
+            predictions_list = torch.cat([predictions_list, predictions])
+
+        return predictions_list
+
+    def _make_dataloader(
+        self, dataset: TensorDataset, shuffle: bool = False
+    ) -> DataLoader:
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.trainer_config.batch_size,
+            drop_last=False,
+            shuffle=shuffle,
+        )
+        return dataloader
