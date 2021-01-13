@@ -2,6 +2,7 @@ import logging
 import os
 
 import pandas as pd
+import numpy as np
 from joblib import load, dump
 from tqdm.auto import tqdm
 
@@ -16,6 +17,7 @@ from torch.utils.data import TensorDataset
 from knodle.trainer import TrainerConfig
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
 from knodle.trainer.utils import log_section
+from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import accuracy_of_probs
 
 
@@ -45,7 +47,7 @@ class MajorityBertTrainer(SimpleDsModelTrainer):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model.to(device)
 
-        labels = self._get_majority_vote_probs(self.rule_matches_z)
+        labels = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
         label_dataset = TensorDataset(Tensor(labels))
 
         feature_dataloader = self._make_dataloader(self.model_input_x)
@@ -70,8 +72,6 @@ class MajorityBertTrainer(SimpleDsModelTrainer):
                 self.trainer_config.optimizer.zero_grad()
                 # TODO: possible device change
                 outputs = self.model(**inputs)
-                print(outputs[0].shape)
-                print(label_batch)
                 loss = self.trainer_config.criterion(outputs[0], labels)
 
                 # backward pass
@@ -84,20 +84,43 @@ class MajorityBertTrainer(SimpleDsModelTrainer):
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
 
-                i += 1
-                if i > 3:
-                    i = 0
-                    break
-
             avg_loss = epoch_loss / len(feature_dataloader)
             avg_acc = epoch_acc / len(feature_dataloader)
 
             logger.info("Epoch loss: {}".format(avg_loss))
             logger.info("Epoch Accuracy: {}".format(avg_acc))
 
+        del loss
         log_section("Training done", logger)
 
         self.model.eval()
 
-    def test():
-        self.bert_trainer.evaluate()
+    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
+        """
+        This method returns all predictions of the model. Currently this function aims just for the test function.
+        Args:
+            features: DataSet with features to get predictions from
+            evaluate: Boolean if model in evaluation mode or not.
+
+        Returns:
+
+        """
+        feature_dataloader = self._make_dataloader(features)
+
+        if evaluate:
+            self.model.eval()
+        else:
+            self.model.train()
+
+        predictions_list = []
+        with torch.no_grad():
+            for feature_counter, feature_batch in enumerate(feature_dataloader):
+                # DISCUSS
+                inputs = {
+                    "input_ids": feature_batch[0],
+                    "attention_mask": feature_batch[1],
+                }
+                predictions = self.model(**inputs)[0]
+                predictions_list.append(predictions.detach().numpy())
+
+        return torch.from_numpy(np.vstack(predictions_list))
