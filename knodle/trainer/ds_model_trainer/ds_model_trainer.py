@@ -9,8 +9,6 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
 
-logger = logging.getLogger(__name__)
-
 
 class DsModelTrainer(ABC):
     def __init__(
@@ -74,7 +72,7 @@ class DsModelTrainer(ABC):
         clf_report = classification_report(
             y_true=test_labels, y_pred=predictions, output_dict=True
         )
-        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        self.logger.info("Accuracy is {}".format(clf_report["accuracy"]))
         return clf_report
 
     def _prediction_loop(self, features: TensorDataset, evaluate: bool):
@@ -105,7 +103,7 @@ class DsModelTrainer(ABC):
         return predictions_list
 
     def _make_dataloader(
-        self, dataset: TensorDataset, shuffle: bool = False
+        self, dataset: TensorDataset, shuffle: bool = True
     ) -> DataLoader:
         dataloader = DataLoader(
             dataset,

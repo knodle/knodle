@@ -6,10 +6,10 @@ import torch.nn as nn
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
-from knodle.trainer.crossweigh_weighing import utils
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, get_labels
 
-GRADIENT_CLIPPING = 5
+logger = logging.getLogger(__name__)
 
 
 class CrossWeighWeightsCalculator:
@@ -26,22 +26,14 @@ class CrossWeighWeightsCalculator:
         self.rule_assignments_t = rule_assignments_t
         self.model = model
 
-        self.logger = logging.getLogger(__name__)
-
         if denoising_config is None:
             self.denoising_config = CrossWeighDenoisingConfig(self.model)
-            self.logger.info(
-                "Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__)
-            )
+            logger.info("Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__))
         else:
             self.denoising_config = denoising_config
-            self.logger.info(
-                "Initalized trainer with custom model config: {}".format(
-                    self.denoising_config.__dict__
-                )
-            )
+            logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
 
-        self.device = utils.set_device(self.denoising_config.enable_cuda)
+        self.device = set_device(self.denoising_config.enable_cuda, logger)
 
     def calculate_weights(self) -> np.ndarray:
         """
@@ -49,17 +41,16 @@ class CrossWeighWeightsCalculator:
         :return matrix of the sample weights
         """
 
-        utils.set_seed(self.denoising_config.seed)       # set seed for reproducibility
-        self.logger.info("======= Denoising with CrossWeigh is started =======")
+        set_seed(self.denoising_config.seed)       # set seed for reproducibility
+        logger.info("======= Denoising with CrossWeigh is started =======")
 
         os.makedirs(self.denoising_config.path_to_weights, exist_ok=True)
-        labels = utils.get_labels(self.rule_matches_z, self.rule_assignments_t)
+        labels = get_labels(self.rule_matches_z, self.rule_assignments_t)
         sample_weights = self.initialise_sample_weights()
 
         for partition in range(self.denoising_config.cw_partitions):
 
-            self.logger.info("CrossWeigh Partition {} out of {}:".format(
-                partition + 1, self.denoising_config.cw_partitions))
+            logger.info("CrossWeigh Partition {} out of {}:".format(partition + 1, self.denoising_config.cw_partitions))
 
             rules_shuffled_idx = self._get_shuffled_idx()        # shuffle anew for each cw round
 
@@ -68,10 +59,10 @@ class CrossWeighWeightsCalculator:
                 train_loader, test_loader = self.get_cw_data(rules_shuffled_idx, labels, fold)
                 self.cw_train(train_loader)
                 self.cw_test(test_loader, sample_weights)
-            self.logger.info("CrossWeigh Partition {} is done".format(partition + 1))
+            logger.info("CrossWeigh Partition {} is done".format(partition + 1))
 
         self._save_weights(sample_weights)
-        self.logger.info("======= Denoising with CrossWeigh is completed, weights are saved to {} =======".format(
+        logger.info("======= Denoising with CrossWeigh is completed, weights are saved to {} =======".format(
             self.denoising_config.path_to_weights))
 
         return sample_weights
@@ -97,7 +88,10 @@ class CrossWeighWeightsCalculator:
                 output = self.model(tokens)
                 loss = self.denoising_config.criterion(output, labels)
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), GRADIENT_CLIPPING)
+
+                if self.denoising_config.use_grad_clipping:
+                    nn.utils.clip_grad_norm_(self.model.parameters(), self.denoising_config.grad_clipping)
+
                 self.denoising_config.optimizer.step()
 
     def cw_test(self, test_loader: DataLoader, sample_weights: np.ndarray) -> None:
@@ -164,9 +158,9 @@ class CrossWeighWeightsCalculator:
         test_loader = self.cw_convert2tensor(test_samples, test_labels, test_idx)
         train_loader = self.cw_convert2tensor(train_samples, train_labels, train_idx)
 
-        self.logger.info("Fold {}       Rules in training set:{}, samples in training set:{}, rules in test set: {}, "
-                         "samples in test set: {}".format(fold, len(train_rules_idx), len(train_samples),
-                                                          len(test_rules_idx), len(test_samples)))
+        logger.info("Fold {}       Rules in training set:{}, samples in training set:{}, rules in test set: {}, "
+                    "samples in test set: {}".format(fold, len(train_rules_idx), len(train_samples),
+                                                     len(test_rules_idx), len(test_samples)))
 
         return train_loader, test_loader
 

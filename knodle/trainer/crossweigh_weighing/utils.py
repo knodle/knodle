@@ -3,8 +3,6 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-logger = logging.getLogger(__name__)
-
 
 def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
     """ Calculates sample labels basing on z and t matrices """
@@ -43,14 +41,6 @@ def vocab_and_vectors(filename: str, special_tokens: list) -> (dict, dict, np.nd
     return word_to_id, matrix
 
 
-def add_padding(tokens: list, maxlen: int) -> list:
-    """ Provide padding of the encoded tokens to the maxlen; if length of tokens > maxlen, reduce it to maxlen """
-    padded_tokens = [0] * maxlen
-    for token in range(0, min(len(tokens), maxlen)):
-        padded_tokens[token] = tokens[token]
-    return padded_tokens
-
-
 def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
     """ Return matrix with pretrained glove embeddings"""
     with open(pretrained_embedding_file, encoding="UTF-8") as in_file:
@@ -71,7 +61,7 @@ def set_seed(seed: int):
     torch.cuda.manual_seed(seed)
 
 
-def set_device(enable_cuda: bool):
+def set_device(enable_cuda: bool, logger: logging):
     """ Set where the calculations will be done (cpu or cuda) depending on whether the cuda is available and chosen """
     if enable_cuda and torch.cuda.is_available():
         logger.info("Using GPU")
