@@ -1,0 +1,19 @@
+# CI related
+black
+flake8
+
+wheel
+setuptools
+
+# General
+joblib
+tqdm
+
+# Computation
+numpy
+scipy
+pandas
+
+# ML frameworks
+scikit-learn
+torch
