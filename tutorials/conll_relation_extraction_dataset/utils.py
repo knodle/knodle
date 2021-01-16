@@ -45,8 +45,9 @@ def get_analysed_conll_data(
             if line.startswith("# id="):  # Instance starts
                 sample = ""
                 label = line.split(" ")[3][5:]
+                enc_label = encode_labels(label, labels2ids)
             elif line == "":  # Instance ends
-                if label == "no_relation":  # we skip samples that contain no relation in original dataset
+                if label == "no_relation" or enc_label == UNKNOWN_RELATIONS_ID: # skip no_relation samples or unknown rel
                     continue
                 sample_spacy = analyzer(sample).to_json()
                 sample_extractions = get_extracted_sample(sample_spacy)
@@ -57,17 +58,17 @@ def get_analysed_conll_data(
                     if encoded_pattern_retrieved:
                         samples.append(sample)
                         labels.append(label)
-                        enc_labels.append(encode_labels(label, labels2ids))
+                        enc_labels.append(enc_label)
                         patterns_retr.append(encoded_pattern_retrieved)
                         raw_patterns_retr.append(raw_pattern_retrieved)
                     else:  # if nothing is found, add this sample preserving its original label
                         neg_samples.append(sample)
                         neg_labels.append(label)
-                        neg_enc_labels.append(encode_labels(label, labels2ids))
+                        neg_enc_labels.append(enc_label)
                 else:
                     samples.append(sample)
                     labels.append(label)
-                    enc_labels.append(encode_labels(label, labels2ids))
+                    enc_labels.append(enc_label)
                     patterns_retr.append([])
                     raw_patterns_retr.append([])
 
@@ -89,14 +90,8 @@ def get_analysed_conll_data(
 
 
 def encode_labels(label: str, label2id: dict) -> int:
-    """ Encodes the labels with corresponding labels id"""
-    try:
-        return label2id[label]
-    except KeyError:
-        logging.error("Unknown relation is detected. The corresponding sample will be encoded with id {}".format(
-            UNKNOWN_RELATIONS_ID))
-        print(label)
-        return UNKNOWN_RELATIONS_ID
+    """ Encodes labels with corresponding labels id. If relation is unknown, returns special id for unknown relations"""
+    return label2id.get(label, UNKNOWN_RELATIONS_ID)
 
 
 def build_df(
@@ -189,12 +184,9 @@ def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Unio
 def count_file_lines(file_name: str) -> int:
     """ Count the number of line in a file """
     with open(file_name) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+        return len(f.readlines())
 
 
 def save_dict(dict_: dict, path: str) -> None:
-    """ Dump dictionary in json file"""
     with open(path, "w+") as f:
         json.dump(dict_, f)

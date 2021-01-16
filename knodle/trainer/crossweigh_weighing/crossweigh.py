@@ -50,7 +50,7 @@ class CrossWeigh(DsModelTrainer):
             self.denoising_config = denoising_config
             self.logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
 
-        self.device = utils.set_device(self.trainer_config.enable_cuda, self.logger)
+        self.device = utils.set_device(self.trainer_config.enable_cuda)
 
     def train(self):
         """

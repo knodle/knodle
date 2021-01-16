@@ -3,6 +3,8 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+logger = logging.getLogger(__name__)
+
 
 def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
     """ Calculates sample labels basing on z and t matrices """
@@ -61,7 +63,7 @@ def set_seed(seed: int):
     torch.cuda.manual_seed(seed)
 
 
-def set_device(enable_cuda: bool, logger: logging):
+def set_device(enable_cuda: bool):
     """ Set where the calculations will be done (cpu or cuda) depending on whether the cuda is available and chosen """
     if enable_cuda and torch.cuda.is_available():
         logger.info("Using GPU")
@@ -69,8 +71,4 @@ def set_device(enable_cuda: bool, logger: logging):
     else:
         logger.info("Using CPU")
         return torch.device('cpu')
-
-
-
-
 

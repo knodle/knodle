@@ -1,8 +1,8 @@
 import argparse
 import os
 import sys
-import numpy as np
 import torch
+from joblib import load
 
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
@@ -30,8 +30,8 @@ def train_crossweigh(
 
     word2id, word_embedding_matrix = utils.vocab_and_vectors(path_word_emb_file)
 
-    rule_matches_z = np.load(path_z)
-    rule_assignments_t = np.load(path_t)
+    rule_matches_z = load(path_z)
+    rule_assignments_t = load(path_t)
     train_input_x = utils.get_train_features(path_train_samples, word2id)
 
     dev_features_labels_dataset = utils.get_dev_data(path_dev_features_labels, word2id)

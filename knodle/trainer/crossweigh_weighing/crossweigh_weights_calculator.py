@@ -33,7 +33,7 @@ class CrossWeighWeightsCalculator:
             self.denoising_config = denoising_config
             logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
 
-        self.device = set_device(self.denoising_config.enable_cuda, logger)
+        self.device = set_device(self.denoising_config.enable_cuda)
 
     def calculate_weights(self) -> np.ndarray:
         """
