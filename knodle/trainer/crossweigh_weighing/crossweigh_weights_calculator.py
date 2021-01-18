@@ -49,16 +49,14 @@ class CrossWeighWeightsCalculator:
         sample_weights = self.initialise_sample_weights()
 
         for partition in range(self.denoising_config.cw_partitions):
-
-            logger.info("CrossWeigh Partition {} out of {}:".format(partition + 1, self.denoising_config.cw_partitions))
-
-            rules_shuffled_idx = self._get_shuffled_idx()        # shuffle anew for each cw round
+            logger.info("CrossWeigh Partition {}/{}:".format(partition + 1, self.denoising_config.cw_partitions))
+            rules_shuffled_idx = self._get_shuffled_rules_idx()        # shuffle anew for each cw round
 
             for fold in range(self.denoising_config.cw_folds):
-
                 train_loader, test_loader = self.get_cw_data(rules_shuffled_idx, labels, fold)
                 self.cw_train(train_loader)
                 self.cw_test(test_loader, sample_weights)
+
             logger.info("CrossWeigh Partition {} is done".format(partition + 1))
 
         self._save_weights(sample_weights)
@@ -67,7 +65,7 @@ class CrossWeighWeightsCalculator:
 
         return sample_weights
 
-    def _get_shuffled_idx(self) -> np.ndarray:
+    def _get_shuffled_rules_idx(self) -> np.ndarray:
         """ Get shuffled row indices of dataset """
         return np.random.rand(self.rule_assignments_t.shape[0]).argsort()
 
@@ -88,10 +86,8 @@ class CrossWeighWeightsCalculator:
                 output = self.model(tokens)
                 loss = self.denoising_config.criterion(output, labels)
                 loss.backward()
-
                 if self.denoising_config.use_grad_clipping:
                     nn.utils.clip_grad_norm_(self.model.parameters(), self.denoising_config.grad_clipping)
-
                 self.denoising_config.optimizer.step()
 
     def cw_test(self, test_loader: DataLoader, sample_weights: np.ndarray) -> None:
@@ -148,7 +144,6 @@ class CrossWeighWeightsCalculator:
         :param fold: number of a current hold-out fold
         :return: dataloaders for cw training and testing
         """
-
         train_rules_idx, test_rules_idx = self.calculate_rules_indices(rules_idx, fold)
 
         # select train and test samples and labels according to the selected rules idx
@@ -196,7 +191,6 @@ class CrossWeighWeightsCalculator:
         Turns the input data (encoded samples, encoded labels, indices in the original matrices) to a DataLoader
         which could be used for further model training or testing
         """
-
         tensor_words = torch.LongTensor(samples).to(device=self.device)
         tensor_target = torch.LongTensor(labels).to(device=self.device)
         tensor_idx = torch.LongTensor(idx).to(device=self.device)
