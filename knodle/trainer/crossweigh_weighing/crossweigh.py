@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.functional import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
+from tqdm import tqdm
 
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
@@ -53,9 +54,7 @@ class CrossWeigh(DsModelTrainer):
         self.device = utils.set_device(self.trainer_config.enable_cuda)
 
     def train(self):
-        """
-        This function weights the samples with CrossWeigh method and train the model
-        """
+        """ This function weights the samples with CrossWeigh method and train the model """
         utils.set_seed(self.trainer_config.seed)       # set seed for reproducibility
 
         # calculate sample weights
@@ -66,23 +65,21 @@ class CrossWeigh(DsModelTrainer):
         self.logger.info("Classifier training is started")
 
         labels = utils.get_labels(self.rule_matches_z, self.rule_assignments_t)
-
         train_loader = self._get_feature_label_dataloader(self.inputs_x, labels, sample_weights)
         dev_loader = self._make_dataloader(self.dev_features_labels, shuffle=True)
 
         self.model.train()
         steps_counter = 0
 
-        for curr_epoch in range(self.trainer_config.epochs):
+        for curr_epoch in tqdm(range(self.trainer_config.epochs)):
+            self.logger.info("Epoch: {}".format(curr_epoch))
             for tokens, labels, weights in train_loader:
                 tokens, labels, weights = tokens.to(device=self.device), labels.to(device=self.device), \
                                           weights.to(device=self.device)
                 steps_counter += 1
-                tokens, labels = tokens.to(device=self.device), labels.to(device=self.device)
 
                 self.trainer_config.criterion.reduction = 'none'
                 self.trainer_config.optimizer.zero_grad()
-
                 output = self.model(tokens)
                 loss = self._get_train_loss(output, labels, weights)
                 loss.backward()
@@ -91,7 +88,6 @@ class CrossWeigh(DsModelTrainer):
                     nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
 
                 self.trainer_config.optimizer.step()
-
                 self._print_intermediate_result(steps_counter, curr_epoch, loss, dev_loader)
 
     def _evaluate(self, dev_loader):

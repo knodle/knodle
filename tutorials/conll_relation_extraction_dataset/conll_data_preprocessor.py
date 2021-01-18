@@ -13,8 +13,8 @@ import pandas as pd
 from tutorials.conll_relation_extraction_dataset.utils import (get_analysed_conll_data, get_id, update_dict,
                                                                get_match_matrix_row, save_dict, convert_pattern_to_regex)
 
-Z_MATRIX_OUTPUT = "z_matrix.npy"
-T_MATRIX_OUTPUT = "t_matrix.npy"
+Z_MATRIX_OUTPUT = "z_matrix"
+T_MATRIX_OUTPUT = "t_matrix"
 TRAIN_SAMPLES_OUTPUT = "train_samples.csv"
 NO_PATTERN_TRAIN_SAMPLES_OUTPUT = "neg_train_samples.csv"
 DEV_SAMPLES_OUTPUT = "dev_samples.csv"
