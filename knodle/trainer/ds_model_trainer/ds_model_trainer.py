@@ -31,23 +31,16 @@ class DsModelTrainer(ABC):
                 trainer_config: Config for different parameters like loss function, optimizer, batch size.
         """
         self.model = model
-        self.logger = logging.getLogger(__name__)
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
 
         if trainer_config is None:
             self.trainer_config = TrainerConfig(self.model)
-            self.logger.info(
-                "Default trainer Config is used: {}".format(self.trainer_config)
-            )
+            logger.info("Default trainer Config is used: {}".format(self.trainer_config))
         else:
             self.trainer_config = trainer_config
-            self.logger.info(
-                "Initalized trainer with custom trainer config: {}".format(
-                    self.trainer_config.__dict__
-                )
-            )
+            logger.info("Initalized trainer with custom trainer config: {}".format(self.trainer_config.__dict__))
 
     @abstractmethod
     def train(self):
@@ -105,7 +98,7 @@ class DsModelTrainer(ABC):
         return predictions_list
 
     def _make_dataloader(
-        self, dataset: TensorDataset, shuffle: bool = False
+        self, dataset: TensorDataset, shuffle: bool = True
     ) -> DataLoader:
         dataloader = DataLoader(
             dataset,

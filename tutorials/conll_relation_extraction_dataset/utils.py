@@ -1,22 +1,113 @@
-import pandas as pd
-import numpy as np
-import re
 import itertools
-from typing import Union
-import torch
+import json
+import logging
+import re
+from typing import Union, Tuple
+
 import spacy
+import pandas as pd
+from pandas import DataFrame
 
 ARG1 = "$ARG1"
 ARG2 = "$ARG2"
+PRINT_EVERY = 10000
+UNKNOWN_RELATIONS_ID = 404  # id which will be assigned to unknown relations, i.e. relations that wasn't seen in KB
 
-disable_cuda = True
-device = None
-if not disable_cuda and torch.cuda.is_available():
-    print("Using GPU")
-    device = torch.device('cuda')
-else:
-    print("Using CPU")
-    device = torch.device('cpu')
+logger = logging.getLogger(__name__)
+
+
+def get_analysed_conll_data(
+        conll_data: str,
+        patterns2regex: Union[dict, None],
+        labels2ids: dict,
+        perform_search: bool = False
+) -> Tuple[DataFrame, DataFrame]:
+    """
+    Reads conll data, extract information about sentences and gold labels. The sample are analysed with SpaCy package
+    :param labels2ids: dictionary with labels and their ids
+    :param conll_data: path to data saved in conll format
+    :param patterns2regex: dictionary with pattern and their corresponding regexes
+    :param perform_search: boolean whether indicates whether also pattern search in sentences is to be performed
+    :return: DataFrame with fields "samples" (raw text samples), "gold_labels" (label that samples got in original
+    conll set}) and "retrieved patterns" (matched patterns in samples; empty if pattern search wasn't performed)
+    """
+    all_lines = count_file_lines(conll_data)
+    processed_lines = 0
+    analyzer = spacy.load("en_core_web_sm")
+
+    samples, labels, enc_labels, patterns_retr, raw_patterns_retr, neg_samples, neg_labels, neg_enc_labels = \
+        ([] for _ in range(8))
+
+    with open(conll_data, encoding='utf-8') as f:
+        for line in f:
+            processed_lines += 1
+            line = line.strip()
+            if line.startswith("# id="):  # Instance starts
+                sample = ""
+                label = line.split(" ")[3][5:]
+                enc_label = encode_labels(label, labels2ids)
+            elif line == "":  # Instance ends
+                if label == "no_relation" or enc_label == UNKNOWN_RELATIONS_ID: # skip no_relation samples or unknown rel
+                    continue
+                sample_spacy = analyzer(sample).to_json()
+                sample_extractions = get_extracted_sample(sample_spacy)
+
+                if perform_search:
+                    raw_pattern_retrieved, encoded_pattern_retrieved = retrieve_patterns_in_sample(sample_extractions,
+                                                                                                   patterns2regex)
+                    if encoded_pattern_retrieved:
+                        samples.append(sample)
+                        labels.append(label)
+                        enc_labels.append(enc_label)
+                        patterns_retr.append(encoded_pattern_retrieved)
+                        raw_patterns_retr.append(raw_pattern_retrieved)
+                    else:  # if nothing is found, add this sample preserving its original label
+                        neg_samples.append(sample)
+                        neg_labels.append(label)
+                        neg_enc_labels.append(enc_label)
+                else:
+                    samples.append(sample)
+                    labels.append(label)
+                    enc_labels.append(enc_label)
+                    patterns_retr.append([])
+                    raw_patterns_retr.append([])
+
+            elif line.startswith("#"):  # comment
+                continue
+            else:
+                parts = line.split("\t")
+                token = parts[1]
+                if token == "-LRB-":
+                    token = "("
+                elif token == "-RRB-":
+                    token = ")"
+                sample += " " + token
+            if processed_lines % PRINT_EVERY == 0:
+                logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / all_lines,
+                                                                   conll_data.split("/")[-1]))
+    return build_df(samples, patterns_retr, raw_patterns_retr, labels, enc_labels, neg_samples, neg_labels,
+                    neg_enc_labels)
+
+
+def encode_labels(label: str, label2id: dict) -> int:
+    """ Encodes labels with corresponding labels id. If relation is unknown, returns special id for unknown relations"""
+    return label2id.get(label, UNKNOWN_RELATIONS_ID)
+
+
+def build_df(
+        samples: list, retrieved_patterns: list, raw_patterns_retrieved: list, labels: list, enc_labels: list,
+        neg_samples: list, neg_labels: list, neg_enc_labels: list
+) -> (pd.DataFrame, pd.DataFrame):
+    """
+    This function builds two dataframes: one with samples where some rule matched (columns: sample, matches pattern,
+    original label) and the second with labels that got no rule matches (columns: sample, label=original label)
+    """
+    samples = pd.DataFrame.from_dict({"samples": samples, "retrieved_patterns": retrieved_patterns,
+                                      "raw_retrieved_patterns": raw_patterns_retrieved, "labels": labels,
+                                      "enc_labels": enc_labels})
+    no_pattern_samples = pd.DataFrame.from_dict({"samples": neg_samples, "enc_labels": neg_enc_labels,
+                                                 "labels": neg_labels})
+    return samples, no_pattern_samples
 
 
 def get_id(item: Union[int, str], dic: dict) -> Union[int, str]:
@@ -71,57 +162,7 @@ def get_extracted_sample(sample: dict) -> list:
             for ent1, ent2 in itertools.permutations(sample["ents"], 2)]
 
 
-def get_analysed_conll_data(
-        conll_data: str, patterns2regex: Union[dict, None], perform_search: bool = False) -> pd.DataFrame:
-    """
-    Reads conll data, extract information about sentences and gold labels. The sample are analysed with SpaCy package.
-    :param conll_data: path to data saved in conll format
-    :param patterns2regex: dictionary with pattern and their corresponding regexes
-    :param perform_search: boolean whether indicates whether also pattern search in sentences is to be performed
-    :return: DataFrame with fields "samples" (raw text samples), "gold_labels" (label that samples got in original
-    conll set}) and "retrieved patterns" (matched patterns in samples; empty if pattern search wasn't performed)
-    """
-    samples, enc_samples, relations, retrieved_patterns = [], [], [], []
-    analyzer = spacy.load("en_core_web_sm")
-    with open(conll_data, encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("# id="):  # Instance starts
-                sample = ""
-                label = line.split(" ")[3][5:]
-            elif line == "":  # Instance ends
-                if label == "no_relation":
-                    continue
-                sample_spacy = analyzer(sample).to_json()
-                sample_extractions = get_extracted_sample(sample_spacy)
-
-                if perform_search:
-                    sample_patterns_retrieved = retrieve_patterns_in_sample(sample_extractions, patterns2regex)
-                    if sample_patterns_retrieved:
-                        samples.append(sample)
-                        relations.append(label)
-                        retrieved_patterns.append(sample_patterns_retrieved)
-                else:
-                    samples.append(sample)
-                    relations.append(label)
-                    retrieved_patterns.append([])
-
-            elif line.startswith("#"):  # comment
-                continue
-            else:
-                parts = line.split("\t")
-                token = parts[1]
-                if token == "-LRB-":
-                    token = "("
-                elif token == "-RRB-":
-                    token = ")"
-                sample += " " + token
-    return pd.DataFrame.from_dict({"samples": samples,
-                                   "retrieved_patterns": retrieved_patterns,
-                                   "gold_labels": relations})
-
-
-def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Union[np.ndarray, None]:
+def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Union[Tuple[None, None], Tuple[list, list]]:
     """
     Looks for pattern in a sample and returns a list which would be turned into a row of a Z matrix.
     :param extr_samples: list of sample substrings in the form of "ARG1 <some words> ARG2", in which the patterns
@@ -136,5 +177,16 @@ def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Unio
         if re.search(pattern2regex[pattern], sample):
             matched_patterns.append(pattern)
     if len(matched_patterns) > 0:
-        return get_match_matrix_row(len(pattern2regex), list(set(matched_patterns)))
-    return None
+        return matched_patterns, get_match_matrix_row(len(pattern2regex), list(set(matched_patterns)))
+    return None, None
+
+
+def count_file_lines(file_name: str) -> int:
+    """ Count the number of line in a file """
+    with open(file_name) as f:
+        return len(f.readlines())
+
+
+def save_dict(dict_: dict, path: str) -> None:
+    with open(path, "w+") as f:
+        json.dump(dict_, f)

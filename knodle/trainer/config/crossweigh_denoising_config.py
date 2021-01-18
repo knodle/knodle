@@ -25,7 +25,9 @@ class CrossWeighDenoisingConfig:
                  criterion: Callable[[Tensor, Tensor], float] = None,
                  path_to_weights: str = "data/weights",
                  seed: int = "12345",
-                 enable_cuda: bool = False
+                 enable_cuda: bool = False,
+                 use_grad_clipping: bool = True,
+                 grad_clipping: int = 5,
                  ):
 
         self.cw_partitions = crossweigh_partitions
@@ -41,6 +43,8 @@ class CrossWeighDenoisingConfig:
         self.path_to_weights = path_to_weights
         self.seed = seed
         self.enable_cuda = enable_cuda
+        self.use_grad_clipping = use_grad_clipping
+        self.grad_clipping = grad_clipping
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
