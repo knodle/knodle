@@ -52,7 +52,7 @@ def _get_train_data(path_train_data: str, path_patterns: str, path_output: str, 
     logger.info("Processing of train data has started")
 
     rule_assignments_t = _get_t_matrix(path_patterns, labels)
-    train_samples, neg_train_samples = get_analysed_conll_data(path_train_data, pattern2regex, relation2id, logger,
+    train_samples, neg_train_samples = get_analysed_conll_data(path_train_data, pattern2regex, relation2id,
                                                                perform_search=True)
     rule_matches_z = np.array(list(train_samples["retrieved_patterns"]), dtype=np.int)
     _save_train_data(rule_assignments_t, rule_matches_z, train_samples, neg_train_samples, path_output)
@@ -120,7 +120,7 @@ def _get_dev_data(path_dev_data: str, path_output: str) -> None:
     """
     logger.info("Processing of dev data has started")
 
-    dev_data, _ = get_analysed_conll_data(path_dev_data, pattern2regex, relation2id, logger)
+    dev_data, _ = get_analysed_conll_data(path_dev_data, pattern2regex, relation2id)
     dev_data.to_csv(os.path.join(path_output, DEV_SAMPLES_OUTPUT), columns=["samples", "enc_labels", "labels"])
 
     logger.info("Processing of dev data has finished")

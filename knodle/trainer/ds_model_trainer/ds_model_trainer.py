@@ -9,6 +9,8 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
 
+logger = logging.getLogger(__name__)
+
 
 class DsModelTrainer(ABC):
     def __init__(
@@ -29,23 +31,16 @@ class DsModelTrainer(ABC):
                 trainer_config: Config for different parameters like loss function, optimizer, batch size.
         """
         self.model = model
-        self.logger = logging.getLogger(__name__)
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
 
         if trainer_config is None:
             self.trainer_config = TrainerConfig(self.model)
-            self.logger.info(
-                "Default trainer Config is used: {}".format(self.trainer_config)
-            )
+            logger.info("Default trainer Config is used: {}".format(self.trainer_config))
         else:
             self.trainer_config = trainer_config
-            self.logger.info(
-                "Initalized trainer with custom trainer config: {}".format(
-                    self.trainer_config.__dict__
-                )
-            )
+            logger.info("Initalized trainer with custom trainer config: {}".format(self.trainer_config.__dict__))
 
     @abstractmethod
     def train(self):
@@ -72,7 +67,7 @@ class DsModelTrainer(ABC):
         clf_report = classification_report(
             y_true=test_labels, y_pred=predictions, output_dict=True
         )
-        self.logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
         return clf_report
 
     def _prediction_loop(self, features: TensorDataset, evaluate: bool):

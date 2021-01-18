@@ -13,18 +13,18 @@ ARG2 = "$ARG2"
 PRINT_EVERY = 10000
 UNKNOWN_RELATIONS_ID = 404  # id which will be assigned to unknown relations, i.e. relations that wasn't seen in KB
 
+logger = logging.getLogger(__name__)
+
 
 def get_analysed_conll_data(
         conll_data: str,
         patterns2regex: Union[dict, None],
         labels2ids: dict,
-        logger: logging,
         perform_search: bool = False
 ) -> Tuple[DataFrame, DataFrame]:
     """
     Reads conll data, extract information about sentences and gold labels. The sample are analysed with SpaCy package
     :param labels2ids: dictionary with labels and their ids
-    :param logger: logger object
     :param conll_data: path to data saved in conll format
     :param patterns2regex: dictionary with pattern and their corresponding regexes
     :param perform_search: boolean whether indicates whether also pattern search in sentences is to be performed

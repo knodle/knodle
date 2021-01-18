@@ -7,13 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
-    """ Calculates sample labels basing on z and t matrices """
+    """ Calculates sample labels basing on z and t matrices. If several patterns matched, select one randomly """
 
-    assert rule_matches_z.shape[1] == rule_assignments_t.shape[0], "Check matrices dimensionality!"
+    if rule_matches_z.shape[1] != rule_assignments_t.shape[0]:
+        raise ValueError("Dimensions mismatch!")
 
-    one_hot_labels = rule_matches_z.dot(rule_assignments_t)  # calculate labels
+    one_hot_labels = rule_matches_z.dot(rule_assignments_t)
     one_hot_labels[one_hot_labels > 0] = 1
-    labels = [np.where(r == 1)[0][0] for r in one_hot_labels]
+    labels = [np.random.choice(np.where(r == 1)[0], 1)[0] for r in one_hot_labels]
     return np.stack(labels, axis=0)
 
 

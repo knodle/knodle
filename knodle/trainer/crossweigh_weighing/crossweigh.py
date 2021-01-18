@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,6 +14,7 @@ from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import Cro
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 
 PRINT_EVERY = 10
+logger = logging.getLogger(__name__)
 
 
 class CrossWeigh(DsModelTrainer):
@@ -46,10 +48,10 @@ class CrossWeigh(DsModelTrainer):
 
         if denoising_config is None:
             self.denoising_config = CrossWeighDenoisingConfig(self.model)
-            self.logger.info("Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__))
+            logger.info("Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__))
         else:
             self.denoising_config = denoising_config
-            self.logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
+            logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
 
         self.device = utils.set_device(self.trainer_config.enable_cuda)
 
@@ -62,7 +64,7 @@ class CrossWeigh(DsModelTrainer):
             self.model, self.rule_assignments_t, self.inputs_x, self.rule_matches_z, self.denoising_config
         ).calculate_weights()
 
-        self.logger.info("Classifier training is started")
+        logger.info("Classifier training is started")
 
         labels = utils.get_labels(self.rule_matches_z, self.rule_assignments_t)
         train_loader = self._get_feature_label_dataloader(self.inputs_x, labels, sample_weights)
@@ -72,7 +74,7 @@ class CrossWeigh(DsModelTrainer):
         steps_counter = 0
 
         for curr_epoch in tqdm(range(self.trainer_config.epochs)):
-            self.logger.info("Epoch: {}".format(curr_epoch))
+            logger.info("Epoch: {}".format(curr_epoch))
             for tokens, labels, weights in train_loader:
                 tokens, labels, weights = tokens.to(device=self.device), labels.to(device=self.device), \
                                           weights.to(device=self.device)
@@ -130,5 +132,5 @@ class CrossWeigh(DsModelTrainer):
     ) -> None:
         if curr_step % PRINT_EVERY == 0:
             dev_loss = self._evaluate(dev_loader)
-            self.logger.info("Epoch: {}/{}...   Step: {}...   Loss: {:.6f}   Val Loss: {:.6f}".format(
+            logger.info("Epoch: {}/{}...   Step: {}...   Loss: {:.6f}   Val Loss: {:.6f}".format(
                 curr_epoch + 1, self.trainer_config.epochs, curr_step, curr_loss.item(), dev_loss))
