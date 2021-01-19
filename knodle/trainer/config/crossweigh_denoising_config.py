@@ -12,9 +12,9 @@ LEARNING_RATE = 0.01
 class CrossWeighDenoisingConfig:
     def __init__(self,
                  model: nn.Module,
-                 crossweigh_partitions: int = 2,
-                 crossweigh_folds: int = 3,
-                 crossweigh_epochs: int = 1,
+                 crossweigh_partitions: int = 3,
+                 crossweigh_folds: int = 10,
+                 crossweigh_epochs: int = 2,
                  weight_reducing_rate: int = 0.7,
                  samples_start_weights: int = 4.0,
                  no_relation_weights: int = 0.5,
