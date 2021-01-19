@@ -5,7 +5,6 @@ import torch.nn as nn
 from torch.functional import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
-from tqdm import tqdm
 
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
@@ -73,7 +72,7 @@ class CrossWeigh(DsModelTrainer):
         self.model.train()
         steps_counter = 0
 
-        for curr_epoch in tqdm(range(self.trainer_config.epochs)):
+        for curr_epoch in range(self.trainer_config.epochs):
             logger.info("Epoch: {}".format(curr_epoch))
             for tokens, labels, weights in train_loader:
                 tokens, labels, weights = tokens.to(device=self.device), labels.to(device=self.device), \

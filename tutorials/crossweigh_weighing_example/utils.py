@@ -43,7 +43,7 @@ def get_train_features(path_train_data: str, word2id: dict) -> TensorDataset:
     """
     input_data = pd.read_csv(path_train_data)
     enc_input_samples = encode_samples(list(input_data.iloc[:, 1]), word2id)
-    inputs_x_tensor = torch.Tensor(enc_input_samples)
+    inputs_x_tensor = torch.LongTensor(enc_input_samples)
     inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
     return inputs_x_dataset
 

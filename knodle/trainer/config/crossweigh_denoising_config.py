@@ -2,6 +2,7 @@ from typing import Callable
 
 import torch
 import torch.nn as nn
+from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.optim import optimizer
 
@@ -59,6 +60,6 @@ class CrossWeighDenoisingConfig:
             self.optimizer = optimizer_
 
         if criterion is None:
-            self.criterion = nn.CrossEntropyLoss(weight=self.class_weights)
+            self.criterion = cross_entropy_with_probs
         else:
             self.criterion = criterion

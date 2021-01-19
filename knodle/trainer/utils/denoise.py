@@ -16,6 +16,9 @@ def get_majority_vote_probs(
     Returns: Array with majority vote decision. Shape: instances x classes
 
     """
+    if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
+        raise ValueError("Dimensions mismatch!")
+
     rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
 

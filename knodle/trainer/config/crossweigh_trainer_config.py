@@ -1,11 +1,10 @@
 from typing import Callable
 import torch
 import torch.nn as nn
+from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import SGD, optimizer
-
-DEFAULT_LEARNING_RATE = 0.01
 
 
 class TrainerConfig:
@@ -15,6 +14,7 @@ class TrainerConfig:
                  batch_size: int = 32,
                  optimizer_: optimizer = None,
                  output_classes: int = 2,
+                 lr: float = 0.01,
                  epochs: int = 2,
                  class_weights: Tensor = None,
                  seed: int = 12345,      # set seed for reproducibility
@@ -41,12 +41,13 @@ class TrainerConfig:
             self.class_weights = class_weights
 
         if optimizer_ is None:
-            self.optimizer = SGD(model.parameters(), lr=DEFAULT_LEARNING_RATE)
+            self.optimizer = SGD(model.parameters(), lr=lr)
         else:
             self.optimizer = optimizer_
         self.output_classes = output_classes
 
         if criterion is None:
-            self.criterion = nn.CrossEntropyLoss(weight=self.class_weights, reduction='mean')
+            self.criterion = nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.criterion = criterion
+
