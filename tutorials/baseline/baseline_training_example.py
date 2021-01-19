@@ -57,9 +57,10 @@ def train_simple_ds_model():
 
 
 def read_evaluation_data():
-    imdb_dataset = pd.read_csv("tutorials/ImdbDataset/imdb_data_preprocessed.csv")
-    rule_matches_z = load("tutorials/ImdbDataset/rule_matches.lib")
-    mapping_rules_labels_t = load("tutorials/ImdbDataset/mapping_rules_labels.lib")
+    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ImdbDataset")
+    imdb_dataset = pd.read_csv(os.path.join(data_path, "imdb_data_preprocessed.csv"))
+    rule_matches_z = load(os.path.join(data_path, "rule_matches.lib"))
+    mapping_rules_labels_t = load(os.path.join(data_path, "mapping_rules_labels.lib"))
     return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 
 
