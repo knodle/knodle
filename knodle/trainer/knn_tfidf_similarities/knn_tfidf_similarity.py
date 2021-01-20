@@ -31,10 +31,10 @@ class KnnTfidfSimilarity(DsModelTrainer):
         mapping_rules_labels_t: np.ndarray,
         model_input_x: TensorDataset,
         rule_matches_z: np.ndarray,
-        dev_rule_matches_z: np.ndarray,
-        dev_model_input_x: TensorDataset,
         tfidf_values: csr_matrix,
         k: int,
+        dev_rule_matches_z: np.ndarray = None,
+        dev_model_input_x: TensorDataset = None,
         trainer_config: TrainerConfig = None,
         cache_denoised_matches=False,
         caching_prefix="knn_cached",
@@ -75,22 +75,22 @@ class KnnTfidfSimilarity(DsModelTrainer):
         feature_label_dataset = TensorDataset(model_input_x_tensor, labels)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, True)
 
-        dev_labels = get_majority_vote_probs(
-            self.dev_rule_matches_z, self.mapping_rules_labels_t
-        )
+        if self.dev_rule_matches_z:
+            dev_labels = get_majority_vote_probs(
+                self.dev_rule_matches_z, self.mapping_rules_labels_t
+            )
 
-        dev_labels = Tensor(dev_labels)
-        dev_labels = dev_labels.to(self.trainer_config.device)
+            dev_labels = Tensor(dev_labels)
+            dev_labels = dev_labels.to(self.trainer_config.device)
 
-        dev_model_input_x_tensor = extract_tensor_from_dataset(self.dev_model_input_x, 0)
-        dev_model_input_x_tensor = dev_model_input_x_tensor.to(self.trainer_config.device)
+            dev_model_input_x_tensor = extract_tensor_from_dataset(self.dev_model_input_x, 0)
+            dev_model_input_x_tensor = dev_model_input_x_tensor.to(self.trainer_config.device)
 
-        dev_feature_label_dataset = TensorDataset(dev_model_input_x_tensor, dev_labels)
-        dev_feature_label_dataloader = self._make_dataloader(dev_feature_label_dataset, True)
+            dev_feature_label_dataset = TensorDataset(dev_model_input_x_tensor, dev_labels)
+            dev_feature_label_dataloader = self._make_dataloader(dev_feature_label_dataset, True)
+            early_stopping = EarlyStopping(patience=7, verbose=True, name="knn")
 
         log_section("Training starts", logger)
-
-        early_stopping = EarlyStopping(patience=7, verbose=True, name="knn")
 
         self.model.train()
         for current_epoch in range(self.trainer_config.epochs):
@@ -118,18 +118,20 @@ class KnnTfidfSimilarity(DsModelTrainer):
             writer.add_scalars("training_metrics", {"train_loss": float(
                 avg_loss.cpu().numpy()), "train_accuracy": avg_acc}, current_epoch)
 
-            val_loss, val_acc = self.validation(dev_feature_label_dataloader)
-            log_section("Validation Stats", logger, {
-                "Accuracy": val_acc, "Loss": val_loss})
+            if self.dev_rule_matches_z:
 
-            writer.add_scalars("validation_metrics", {"val_loss": float(
-                val_loss), "val_acc": val_acc}, current_epoch)
+                val_loss, val_acc = self.validation(dev_feature_label_dataloader)
+                log_section("Validation Stats", logger, {
+                    "Accuracy": val_acc, "Loss": val_loss})
 
-            early_stopping(-1 * val_acc, self.model)
+                writer.add_scalars("validation_metrics", {"val_loss": float(
+                    val_loss), "val_acc": val_acc}, current_epoch)
 
-            if early_stopping.early_stop:
-                self.logger.info("Early stopping")
-                break
+                early_stopping(-1 * val_acc, self.model)
+
+                if early_stopping.early_stop:
+                    self.logger.info("Early stopping")
+                    break
 
         log_section("Training done", logger)
 

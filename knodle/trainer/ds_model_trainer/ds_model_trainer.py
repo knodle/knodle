@@ -94,7 +94,7 @@ class DsModelTrainer(ABC):
 
         for feature_counter, feature_batch in enumerate(feature_dataloader):
             # DISCUSS
-            features = feature_batch[0]
+            features = feature_batch[0].to(self.trainer_config.device)
             predictions = self.model(features)
             predictions_list = torch.cat([predictions_list, predictions.to('cpu')])
 
