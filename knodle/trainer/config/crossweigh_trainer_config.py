@@ -9,19 +9,20 @@ DEFAULT_LEARNING_RATE = 0.01
 
 
 class TrainerConfig:
-    def __init__(self,
-                 model: Module,
-                 criterion: Callable[[Tensor, Tensor], float] = None,
-                 batch_size: int = 32,
-                 optimizer_: optimizer = None,
-                 output_classes: int = 2,
-                 epochs: int = 2,
-                 class_weights: Tensor = None,
-                 seed: int = 12345,      # set seed for reproducibility
-                 enable_cuda: bool = False,
-                 use_grad_clipping: bool = True,
-                 grad_clipping: int = 5
-                 ):
+    def __init__(
+        self,
+        model: Module,
+        criterion: Callable[[Tensor, Tensor], float] = None,
+        batch_size: int = 32,
+        optimizer_: optimizer = None,
+        output_classes: int = 2,
+        epochs: int = 2,
+        class_weights: Tensor = None,
+        seed: int = 12345,  # set seed for reproducibility
+        enable_cuda: bool = False,
+        use_grad_clipping: bool = True,
+        grad_clipping: int = 5,
+    ):
         self.criterion = criterion
         self.batch_size = batch_size
         self.seed = seed
@@ -47,6 +48,8 @@ class TrainerConfig:
         self.output_classes = output_classes
 
         if criterion is None:
-            self.criterion = nn.CrossEntropyLoss(weight=self.class_weights, reduction='mean')
+            self.criterion = nn.CrossEntropyLoss(
+                weight=self.class_weights, reduction="mean"
+            )
         else:
             self.criterion = criterion

@@ -9,7 +9,9 @@ from torch import Tensor
 from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
-from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
+from knodle.model.logistic_regression.logistic_regression_model import (
+    LogisticRegressionModel,
+)
 from knodle.trainer import TrainerConfig
 from torch.utils.tensorboard import SummaryWriter
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
@@ -31,10 +33,10 @@ def train_simple_ds_model():
     label_ids = imdb_dataset.label_id
 
     rest, dev = train_test_split(
-        imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE)
+        imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE
+    )
 
-    train, test = train_test_split(
-        rest, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+    train, test = train_test_split(rest, test_size=TEST_SIZE, random_state=RANDOM_STATE)
 
     X_train = train.reviews_preprocessed
     X_dev = dev.reviews_preprocessed
@@ -54,16 +56,13 @@ def train_simple_ds_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = TrainerConfig(
-        model=model, epochs=50
-    )
+    custom_model_config = TrainerConfig(model=model, epochs=50)
     trainer = SimpleDsModelTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=train_dataset,
         rule_matches_z=train_rule_matches_z,
         trainer_config=custom_model_config,
-
     )
     trainer.train()
 
@@ -78,9 +77,15 @@ def train_simple_ds_model():
 
     clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
 
-    writer.add_hparams({"type": "baseline", "epochs": trainer.trainer_config.epochs, "optimizer": str(trainer.trainer_config.optimizer),
-                        "learning_rate": trainer.trainer_config.optimizer.defaults['lr'], },
-                       {"test_accuracy": clf_report['accuracy']})
+    writer.add_hparams(
+        {
+            "type": "baseline",
+            "epochs": trainer.trainer_config.epochs,
+            "optimizer": str(trainer.trainer_config.optimizer),
+            "learning_rate": trainer.trainer_config.optimizer.defaults["lr"],
+        },
+        {"test_accuracy": clf_report["accuracy"]},
+    )
 
 
 def read_evaluation_data():

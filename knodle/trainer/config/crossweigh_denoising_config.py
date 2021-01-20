@@ -9,24 +9,25 @@ LEARNING_RATE = 0.01
 
 
 class CrossWeighDenoisingConfig:
-    def __init__(self,
-                 model: nn.Module,
-                 crossweigh_partitions: int = 2,
-                 crossweigh_folds: int = 3,
-                 crossweigh_epochs: int = 1,
-                 weight_reducing_rate: int = 0.7,
-                 samples_start_weights: int = 4.0,
-                 no_relation_weights: int = 0.5,
-                 size_factor: int = 200,
-                 batch_size: int = 64,
-                 output_classes: int = 0,
-                 class_weights: Tensor = None,
-                 optimizer_: optimizer = None,
-                 criterion: Callable[[Tensor, Tensor], float] = None,
-                 path_to_weights: str = "data/weights",
-                 seed: int = "12345",
-                 enable_cuda: bool = False
-                 ):
+    def __init__(
+        self,
+        model: nn.Module,
+        crossweigh_partitions: int = 2,
+        crossweigh_folds: int = 3,
+        crossweigh_epochs: int = 1,
+        weight_reducing_rate: int = 0.7,
+        samples_start_weights: int = 4.0,
+        no_relation_weights: int = 0.5,
+        size_factor: int = 200,
+        batch_size: int = 64,
+        output_classes: int = 0,
+        class_weights: Tensor = None,
+        optimizer_: optimizer = None,
+        criterion: Callable[[Tensor, Tensor], float] = None,
+        path_to_weights: str = "data/weights",
+        seed: int = "12345",
+        enable_cuda: bool = False,
+    ):
 
         self.cw_partitions = crossweigh_partitions
         self.cw_folds = crossweigh_folds

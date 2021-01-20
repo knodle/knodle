@@ -6,10 +6,14 @@ from torch.utils.data import DataLoader
 logger = logging.getLogger(__name__)
 
 
-def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
+def get_labels(
+    rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray
+) -> np.ndarray:
     """ Calculates sample labels basing on z and t matrices """
 
-    assert rule_matches_z.shape[1] == rule_assignments_t.shape[0], "Check matrices dimensionality!"
+    assert (
+        rule_matches_z.shape[1] == rule_assignments_t.shape[0]
+    ), "Check matrices dimensionality!"
 
     one_hot_labels = rule_matches_z.dot(rule_assignments_t)  # calculate labels
     one_hot_labels[one_hot_labels > 0] = 1
@@ -33,7 +37,7 @@ def vocab_and_vectors(filename: str, special_tokens: list) -> (dict, dict, np.nd
             nextword_id += 1
 
         for line in in_file:
-            parts = line.strip().split(' ')
+            parts = line.strip().split(" ")
             word = parts[0]
             if word not in word_to_id:
                 emb = [float(v) for v in parts[1:]]
@@ -57,10 +61,12 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
         emb_matrix_size = in_file.readline().strip().split(" ")
         embeddings = []
         for line in in_file:
-            parts = line.strip().split(' ')
+            parts = line.strip().split(" ")
             embeddings.append([float(v) for v in parts[1:]])
         emb_matrix = np.array(embeddings)
-        assert emb_matrix.shape[0] == int(emb_matrix_size[0]) and emb_matrix.shape[1] == int(emb_matrix_size[1])
+        assert emb_matrix.shape[0] == int(emb_matrix_size[0]) and emb_matrix.shape[
+            1
+        ] == int(emb_matrix_size[1])
     return emb_matrix
 
 
@@ -75,12 +81,7 @@ def set_device(enable_cuda: bool):
     """ Set where the calculations will be done (cpu or cuda) depending on whether the cuda is available and chosen """
     if enable_cuda and torch.cuda.is_available():
         logger.info("Using GPU")
-        return torch.device('cuda')
+        return torch.device("cuda")
     else:
         logger.info("Using CPU")
-        return torch.device('cpu')
-
-
-
-
-
+        return torch.device("cpu")

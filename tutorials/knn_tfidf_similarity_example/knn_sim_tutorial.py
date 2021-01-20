@@ -37,10 +37,10 @@ def train_knn_model():
     label_ids = imdb_dataset.label_id
 
     rest, dev = train_test_split(
-        imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE)
+        imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE
+    )
 
-    train, test = train_test_split(
-        rest, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+    train, test = train_test_split(rest, test_size=TEST_SIZE, random_state=RANDOM_STATE)
 
     X_train = train.reviews_preprocessed
     X_dev = dev.reviews_preprocessed
@@ -53,7 +53,8 @@ def train_knn_model():
     max_features = 40000
 
     tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, True, max_features)
+        imdb_dataset.reviews_preprocessed.values, True, max_features
+    )
 
     train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf_sparse = tfidf_values[X_train.index]
@@ -98,9 +99,17 @@ def train_knn_model():
 
     clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
 
-    writer.add_hparams({"type": "knn", "epochs": trainer.trainer_config.epochs, "optimizer": str(trainer.trainer_config.optimizer),
-                        "learning_rate": trainer.trainer_config.optimizer.defaults['lr'], "k": trainer.k, "max_features_tfidf": max_features},
-                       {"test_accuracy": clf_report['accuracy']})
+    writer.add_hparams(
+        {
+            "type": "knn",
+            "epochs": trainer.trainer_config.epochs,
+            "optimizer": str(trainer.trainer_config.optimizer),
+            "learning_rate": trainer.trainer_config.optimizer.defaults["lr"],
+            "k": trainer.k,
+            "max_features_tfidf": max_features,
+        },
+        {"test_accuracy": clf_report["accuracy"]},
+    )
 
 
 def read_evaluation_data():
@@ -110,7 +119,9 @@ def read_evaluation_data():
     return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 
 
-def create_tfidf_values(text_data: [str], force_create_new: bool = False, max_features: int = None):
+def create_tfidf_values(
+    text_data: [str], force_create_new: bool = False, max_features: int = None
+):
     if os.path.exists("tutorials/ImdbDataset/tfidf.lib") and not force_create_new:
         cached_data = load("tutorials/ImdbDataset/tfidf.lib")
         if cached_data.shape == text_data.shape:

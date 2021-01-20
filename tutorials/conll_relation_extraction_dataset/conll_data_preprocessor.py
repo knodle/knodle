@@ -12,13 +12,14 @@ NUM_CLASSES = 39
 
 
 class DataProcessor:
-
-    def __init__(self,
-                 path_word_emb_file: str,
-                 path_train_data: str,
-                 path_dev_data: str,
-                 path_patterns: str,
-                 maxlen: int = 50):
+    def __init__(
+        self,
+        path_word_emb_file: str,
+        path_train_data: str,
+        path_dev_data: str,
+        path_patterns: str,
+        maxlen: int = 50,
+    ):
 
         self.word_emb_file = path_word_emb_file
         self.path_to_train_data = path_train_data
@@ -33,7 +34,9 @@ class DataProcessor:
 
         self.maxlen = maxlen
 
-    def collect_data(self) -> (np.ndarray, TensorDataset, np.ndarray, TensorDataset, np.ndarray, np.ndarray):
+    def collect_data(
+        self,
+    ) -> (np.ndarray, TensorDataset, np.ndarray, TensorDataset, np.ndarray, np.ndarray):
 
         rule_assignments_t, inputs_x, rule_matches_z = self.process_train_data()
         dev_samples, dv_labels = self.process_dev_data()
@@ -44,9 +47,13 @@ class DataProcessor:
 
         rule_assignments_t = self.get_t_matrix()
 
-        train_samples = utils.get_analysed_conll_data(self.path_to_train_data, self.pattern2regex, perform_search=True)
+        train_samples = utils.get_analysed_conll_data(
+            self.path_to_train_data, self.pattern2regex, perform_search=True
+        )
 
-        rule_matches_z = np.array(list(train_samples["retrieved_patterns"]), dtype=np.int)
+        rule_matches_z = np.array(
+            list(train_samples["retrieved_patterns"]), dtype=np.int
+        )
 
         inputs_x = np.array(list(train_samples["encoded_samples"]), dtype=np.int)
         inputs_x_tensor = torch.Tensor(inputs_x)
@@ -84,7 +91,9 @@ class DataProcessor:
         :param pattern_line: string in pattern file
         :return: a row of future T matrix as a list
         """
-        if pattern_line.startswith("#") or pattern_line == "\n":  # take only meaningful strings
+        if (
+            pattern_line.startswith("#") or pattern_line == "\n"
+        ):  # take only meaningful strings
             return None
         relation, pattern = pattern_line.replace("\n", "").split(" ", 1)
         if pattern in self.pattern2id:
@@ -98,8 +107,10 @@ class DataProcessor:
         return utils.get_match_matrix_row(len(LABELS), [relation_id])
 
 
-if __name__ == '__main__':
-    DataProcessor("../data/glove.840B.300d.txt.filtered",
-                  "../data/train.conll",
-                  "../data/dev.conll",
-                  "../data/patterns.txt").collect_data()
+if __name__ == "__main__":
+    DataProcessor(
+        "../data/glove.840B.300d.txt.filtered",
+        "../data/train.conll",
+        "../data/dev.conll",
+        "../data/patterns.txt",
+    ).collect_data()

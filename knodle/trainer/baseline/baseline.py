@@ -15,6 +15,7 @@ from knodle.trainer.utils.utils import (
     extract_tensor_from_dataset,
 )
 import torch
+
 torch.manual_seed(123)
 
 logger = logging.getLogger(__name__)

@@ -13,15 +13,15 @@ disable_cuda = True
 device = None
 if not disable_cuda and torch.cuda.is_available():
     print("Using GPU")
-    device = torch.device('cuda')
+    device = torch.device("cuda")
 else:
     print("Using CPU")
-    device = torch.device('cpu')
+    device = torch.device("cpu")
 
 
 def get_id(item: Union[int, str], dic: dict) -> Union[int, str]:
-    """ This function checks if there is a key in a dict. If so, it returns a value of a dict.
-    Creates a dictionary pair {key : max(dict value) + 1} otherwise """
+    """This function checks if there is a key in a dict. If so, it returns a value of a dict.
+    Creates a dictionary pair {key : max(dict value) + 1} otherwise"""
     if item in dic:
         item_id = dic[item]
     else:
@@ -31,7 +31,7 @@ def get_id(item: Union[int, str], dic: dict) -> Union[int, str]:
 
 
 def update_dict(key: Union[int, str], value: Union[int, str], dic: dict) -> None:
-    """ This function checks if there is a key in a dict. If so, it added new value to the list of values for this key.
+    """This function checks if there is a key in a dict. If so, it added new value to the list of values for this key.
     Create a {key: {value}} pair otherwise."""
     if key in dic:
         dic[key].append(value)
@@ -66,13 +66,17 @@ def get_extracted_sample(sample: dict) -> list:
     :param sample: sample analysed with SpaCy package and saved as dictionary
     :return: list of sample substrings
     """
-    return [(ARG1 + sample["text"][ent1["end"]:ent2["start"]] + ARG2) if ent1["end"] < ent2["end"]
-            else (ARG2 + sample["text"][ent2["end"]:ent1["start"]] + ARG1)
-            for ent1, ent2 in itertools.permutations(sample["ents"], 2)]
+    return [
+        (ARG1 + sample["text"][ent1["end"] : ent2["start"]] + ARG2)
+        if ent1["end"] < ent2["end"]
+        else (ARG2 + sample["text"][ent2["end"] : ent1["start"]] + ARG1)
+        for ent1, ent2 in itertools.permutations(sample["ents"], 2)
+    ]
 
 
 def get_analysed_conll_data(
-        conll_data: str, patterns2regex: Union[dict, None], perform_search: bool = False) -> pd.DataFrame:
+    conll_data: str, patterns2regex: Union[dict, None], perform_search: bool = False
+) -> pd.DataFrame:
     """
     Reads conll data, extract information about sentences and gold labels. The sample are analysed with SpaCy package.
     :param conll_data: path to data saved in conll format
@@ -83,7 +87,7 @@ def get_analysed_conll_data(
     """
     samples, enc_samples, relations, retrieved_patterns = [], [], [], []
     analyzer = spacy.load("en_core_web_sm")
-    with open(conll_data, encoding='utf-8') as f:
+    with open(conll_data, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line.startswith("# id="):  # Instance starts
@@ -96,7 +100,9 @@ def get_analysed_conll_data(
                 sample_extractions = get_extracted_sample(sample_spacy)
 
                 if perform_search:
-                    sample_patterns_retrieved = retrieve_patterns_in_sample(sample_extractions, patterns2regex)
+                    sample_patterns_retrieved = retrieve_patterns_in_sample(
+                        sample_extractions, patterns2regex
+                    )
                     if sample_patterns_retrieved:
                         samples.append(sample)
                         relations.append(label)
@@ -116,12 +122,18 @@ def get_analysed_conll_data(
                 elif token == "-RRB-":
                     token = ")"
                 sample += " " + token
-    return pd.DataFrame.from_dict({"samples": samples,
-                                   "retrieved_patterns": retrieved_patterns,
-                                   "gold_labels": relations})
+    return pd.DataFrame.from_dict(
+        {
+            "samples": samples,
+            "retrieved_patterns": retrieved_patterns,
+            "gold_labels": relations,
+        }
+    )
 
 
-def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Union[np.ndarray, None]:
+def retrieve_patterns_in_sample(
+    extr_samples: list, pattern2regex: dict
+) -> Union[np.ndarray, None]:
     """
     Looks for pattern in a sample and returns a list which would be turned into a row of a Z matrix.
     :param extr_samples: list of sample substrings in the form of "ARG1 <some words> ARG2", in which the patterns
