@@ -1,5 +1,7 @@
+import copy
 import logging
 import os
+from abc import ABC
 
 import numpy as np
 import torch
@@ -8,16 +10,17 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
-
+from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, check_splitting, return_unique
-from knodle.trainer.utils.denoise import get_majority_vote_probs
+from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
 
 logger = logging.getLogger(__name__)
+torch.set_printoptions(edgeitems=100)
+NO_MATCH_CLASS = -1
 
 
 class CrossWeighWeightsCalculator:
-
     def __init__(self,
                  model: Module,
                  rule_assignments_t: np.ndarray,
@@ -29,6 +32,7 @@ class CrossWeighWeightsCalculator:
         self.rule_matches_z = rule_matches_z
         self.rule_assignments_t = rule_assignments_t
         self.model = model
+        self.model_copy = copy.deepcopy(self.model)
 
         if denoising_config is None:
             self.denoising_config = CrossWeighDenoisingConfig(self.model)
@@ -38,43 +42,47 @@ class CrossWeighWeightsCalculator:
             logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
 
         self.device = set_device(self.denoising_config.enable_cuda)
+        self.sample_weights = self.initialise_sample_weights()
 
     def calculate_weights(self) -> np.ndarray:
         """
-        This function calculates the weights for samples using CrossWeigh method
-        :return matrix of the sample weights
+        This function calculates the sample_weights for samples using CrossWeigh method
+        :return matrix of the sample sample_weights
         """
-        set_seed(self.denoising_config.seed)  # set seed for reproducibility
+        set_seed(self.denoising_config.seed)
         logger.info("======= Denoising with CrossWeigh is started =======")
 
         os.makedirs(self.denoising_config.path_to_weights, exist_ok=True)
-        labels = get_majority_vote_probs(self.rule_matches_z, self.rule_assignments_t)
-        sample_weights = self.initialise_sample_weights()
+
+        if self.denoising_config.negative_samples:
+            labels = get_majority_vote_probs_with_no_rel(self.rule_matches_z, self.rule_assignments_t, NO_MATCH_CLASS)
+        else:
+            labels = get_majority_vote_probs(self.rule_matches_z, self.rule_assignments_t)
+
         for partition in range(self.denoising_config.cw_partitions):
             logger.info("============= CrossWeigh Partition {}/{}: =============".format(partition + 1,
                                                                                          self.denoising_config.cw_partitions))
             rules_shuffled_idx = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
             for fold in range(self.denoising_config.cw_folds):
-                self.model.init_weights()
+                self.model = self.model_copy
                 train_loader, test_loader = self.get_cw_data(rules_shuffled_idx, labels, fold)
                 self.cw_train(train_loader)
-                self.cw_test(test_loader, sample_weights)
-            logger.info("============= CrossWeigh Partition {} is done =============".format(partition + 1))
-        self._save_weights(sample_weights)
+                self.cw_test(test_loader)
+            logger.info("============ CrossWeigh Partition {} is done ============".format(partition + 1))
+        self._save_weights()
 
-        logger.info("======= Denoising with CrossWeigh is completed, weights are saved to {} =======".format(
+        logger.info("======= Denoising with CrossWeigh is completed, sample_weights are saved to {} =======".format(
             self.denoising_config.path_to_weights))
-        return sample_weights
+        return self.sample_weights
 
     def _get_shuffled_rules_idx(self) -> np.ndarray:
         """ Get shuffled row indices of dataset """
         return np.random.rand(self.rule_assignments_t.shape[0]).argsort()
 
-    def initialise_sample_weights(self) -> np.ndarray:
-        """ Creates an initial sample weights matrix of size (num_samples x 1) where weights for all samples equal
+    def initialise_sample_weights(self) -> torch.FloatTensor:
+        """ Creates an initial sample sample_weights matrix of size (num_samples x 1) where sample_weights for all samples equal
         sample_start_weights param """
-        return np.array([self.denoising_config.samples_start_weights] * self.inputs_x.tensors[0].shape[0],
-                        dtype=np.float64)
+        return torch.FloatTensor([self.denoising_config.samples_start_weights] * self.inputs_x.tensors[0].shape[0])
 
     def calculate_rules_indices(self, rules_idx: np.ndarray, fold: int) -> (np.ndarray, np.ndarray):
         """
@@ -126,7 +134,7 @@ class CrossWeighWeightsCalculator:
         """
         Extracts the samples and labels from the original matrices by the indices. If intersection is filled with
         another sample matrix, it also checks whether the sample is not in this other matrix yet.
-        :param labels: all sample labels
+        :param labels: all training samples labels, shape=(num_samples, num_classes)
         :param indices: indices of the samples & labels which are to be included in the set
         :param check_intersections: optional parameter that indicates that intersections should be checked (used to
         exclude the sentences from the CrossWeigh training set which are already in CrossWeigh test set)
@@ -155,7 +163,7 @@ class CrossWeighWeightsCalculator:
         which could be used for further model training or testing
         """
         tensor_words = samples.to(device=self.device)
-        tensor_target = torch.FloatTensor(labels).to(device=self.device)
+        tensor_target = torch.LongTensor(labels).to(device=self.device)
         tensor_idx = torch.LongTensor(idx).to(device=self.device)
 
         dataset = torch.utils.data.TensorDataset(tensor_words, tensor_target, tensor_idx)
@@ -169,20 +177,25 @@ class CrossWeighWeightsCalculator:
         self.model.train()
         for _ in tqdm(range(self.denoising_config.cw_epochs)):
             for tokens, labels, _ in train_loader:
+                self.denoising_config.criterion.weight = self.denoising_config.class_weights
+                self.denoising_config.criterion.reduction = "none"
                 self.denoising_config.optimizer.zero_grad()
                 output = self.model(tokens)
-                loss = self.denoising_config.criterion(output, labels, weight=self.denoising_config.class_weights)
+                loss = self._get_train_loss(self.denoising_config.criterion, output, labels, self.sample_weights)
+                # loss = self.denoising_config.criterion(output, labels, weight=self.denoising_config.class_weights)
                 loss.backward()
                 if self.denoising_config.use_grad_clipping:
                     nn.utils.clip_grad_norm_(self.model.parameters(), self.denoising_config.grad_clipping)
                 self.denoising_config.optimizer.step()
 
-    def cw_test(self, test_loader: DataLoader, sample_weights: np.ndarray) -> None:
+    def _get_train_loss(self, criterion, output, labels, weights):
+        return (criterion(output, labels) * weights).sum() / self.denoising_config.class_weights[labels].sum()
+
+    def cw_test(self, test_loader: DataLoader) -> None:
         """
         This function tests of trained CrossWeigh model on a hold-out fold, compared the predicted labels with the
-        ones got with weak supervision and reduces weights of disagreed samples
+        ones got with weak supervision and reduces sample_weights of disagreed samples
         :param test_loader: loader with the data which is used for testing (hold-out fold)
-        :param sample_weights: current sample weights as they have been calculated in the cw rounds before
         """
         self.model.eval()
         correct_predictions, wrong_predictions = 0, 0
@@ -198,12 +211,15 @@ class CrossWeighWeightsCalculator:
                     if guess not in gold_classes:
                         correct_predictions += 1
                         curr_id = idx[curr_pred].tolist()
-                        sample_weights[curr_id] *= self.denoising_config.weight_reducing_rate
+                        self.sample_weights[curr_id] *= self.denoising_config.weight_reducing_rate
                     else:
                         wrong_predictions += 1
-        logger.info("Correct predictions: {}, wrong predictions: {}".format(correct_predictions, wrong_predictions))
+        logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
+            correct_predictions * 100/(correct_predictions+wrong_predictions),
+            wrong_predictions * 100/(correct_predictions+wrong_predictions)))
 
-    def _save_weights(self, weights: np.ndarray) -> None:
-        tokens_with_weights = np.hstack((self.inputs_x.tensors[0], weights[:, None]))
-        dump(tokens_with_weights, self.denoising_config.path_to_weights + "/" + "sample_weights")
+    def _save_weights(self) -> None:
+        # tokens_with_weights = np.hstack((self.inputs_x.tensors[0], self.sample_weights[:, None]))
+        dump(self.sample_weights, self.denoising_config.path_to_weights + "/" + "sample_weights")
+
 
