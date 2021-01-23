@@ -45,7 +45,6 @@ class MajorityBertTrainer(DsModelTrainer):
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
-                # TODO: possible device change
                 outputs = self.model(**inputs)
                 loss = self.trainer_config.criterion(outputs[0], labels)
 
@@ -53,7 +52,6 @@ class MajorityBertTrainer(DsModelTrainer):
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 self.trainer_config.optimizer.step()
-                # self.scheduler.step() # TODO
                 acc = accuracy_of_probs(outputs[0], labels)
 
                 epoch_loss += loss.detach()
