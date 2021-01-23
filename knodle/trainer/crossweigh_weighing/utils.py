@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 
@@ -73,3 +73,38 @@ def set_device(enable_cuda: bool):
         logger.info("Using CPU")
         return torch.device('cpu')
 
+
+def check_splitting(
+        tst_samples: torch.Tensor, tst_labels: np.ndarray, tst_idx: np.ndarray, samples: torch.Tensor, labels: np.ndarray
+) -> None:
+    """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
+
+    rnd_tst = np.random.randint(0, tst_samples.shape[0])        # take some random index
+    tst_sample = tst_samples[rnd_tst, :]
+    tst_idx = tst_idx[rnd_tst]
+    tst_label = tst_labels[rnd_tst, :]
+
+    if not torch.equal(tst_sample, samples[tst_idx, :]):
+        raise RuntimeError("The splitting of original training set into cw train and test sets have been done "
+                           "incorrectly! A sample does not correspond to one in original dataset")
+
+    if not np.array_equal(tst_label, labels[tst_idx, :]):
+        raise RuntimeError("The splitting of original training set into cw train and test sets have been done "
+                           "incorrectly! A sample label does not correspond to one in original dataset")
+
+
+def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.ndarray:
+    """ Checks intersections between the 1st and the 2nd arrays and return unique values of the 1st array """
+    intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[1].tolist()
+    return np.delete(where_to_find, intersections)
+
+
+def make_plot(value_1: list, value_2: list, value_3: list, value_4: list, label_1: str, label_2: str, label_3: str,
+              label_4: str):
+    """ The function creates a plot of 4 curves and displays it"""
+    plt.plot(value_1, "g", label=label_1)
+    plt.plot(value_2, "r", label=label_2)
+    plt.plot(value_3, "b", label=label_3)
+    plt.plot(value_4, "y", label=label_4)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.show()

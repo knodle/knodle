@@ -4,10 +4,12 @@ import numpy as np
 import torch
 from abc import ABC, abstractmethod
 from sklearn.metrics import classification_report
+from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
+from knodle.trainer.utils.utils import extract_tensor_from_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -46,56 +48,26 @@ class DsModelTrainer(ABC):
     def train(self):
         pass
 
-    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
-        """
-        Runs evaluation and returns a classification report with different evaluation metrics.
-        Args:
-            test_features: Test feature set
-            test_labels: Gold label set.
+    def test(self, features_dataset: TensorDataset, labels: Tensor):
+        feature_labels_dataset = TensorDataset(features_dataset.tensors[0], labels)
+        feature_labels_dataloader = self._make_dataloader(feature_labels_dataset)
 
-        Returns:
+        self.model.eval()
+        all_predictions, all_labels = torch.Tensor(), torch.Tensor()
+        for features, labels in feature_labels_dataloader:
+            outputs = self.model(features)
+            _, predicted = torch.max(outputs, 1)
+            all_predictions = torch.cat([all_predictions, predicted])
+            all_labels = torch.cat([all_labels, labels])
 
-        """
-        predictions = self._prediction_loop(test_features, True)
-        predictions, test_labels = (
-            predictions.detach().numpy(),
-            test_labels.tensors[0].detach().numpy(),
-        )
-        if predictions.shape[1] > 1:
-            predictions = np.argmax(predictions, axis=1)
+        predictions, test_labels = (all_predictions.detach().numpy(), all_labels.detach().numpy())
+        clf_report = classification_report(y_true=test_labels, y_pred=predictions, output_dict=True)
 
-        clf_report = classification_report(
-            y_true=test_labels, y_pred=predictions, output_dict=True
-        )
-        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        logger.info(clf_report)
+        logger.info("Accuracy: {}, ".format(clf_report["accuracy"]))
+        print(clf_report)
+        print("Accuracy: {}, ".format(clf_report["accuracy"]))
         return clf_report
-
-    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
-        """
-        This method returns all predictions of the model. Currently this function aims just for the test function.
-        Args:
-            features: DataSet with features to get predictions from
-            evaluate: Boolean if model in evaluation mode or not.
-
-        Returns:
-
-        """
-        feature_dataloader = self._make_dataloader(features)
-
-        if evaluate:
-            self.model.eval()
-        else:
-            self.model.train()
-
-        predictions_list = torch.Tensor()
-
-        for feature_counter, feature_batch in enumerate(feature_dataloader):
-            # DISCUSS
-            features = feature_batch[0]
-            predictions = self.model(features)
-            predictions_list = torch.cat([predictions_list, predictions])
-
-        return predictions_list
 
     def _make_dataloader(
         self, dataset: TensorDataset, shuffle: bool = True
