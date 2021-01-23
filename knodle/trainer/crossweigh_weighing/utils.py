@@ -7,13 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_labels(rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray) -> np.ndarray:
-    """ Calculates sample labels basing on z and t matrices """
+    """ Calculates sample labels basing on z and t matrices. If several patterns matched, select one randomly """
 
-    assert rule_matches_z.shape[1] == rule_assignments_t.shape[0], "Check matrices dimensionality!"
+    if rule_matches_z.shape[1] != rule_assignments_t.shape[0]:
+        raise ValueError("Dimensions mismatch!")
 
-    one_hot_labels = rule_matches_z.dot(rule_assignments_t)  # calculate labels
+    one_hot_labels = rule_matches_z.dot(rule_assignments_t)
     one_hot_labels[one_hot_labels > 0] = 1
-    labels = [np.where(r == 1)[0][0] for r in one_hot_labels]
+    labels = [np.random.choice(np.where(r == 1)[0], 1)[0] for r in one_hot_labels]
     return np.stack(labels, axis=0)
 
 
@@ -41,14 +42,6 @@ def vocab_and_vectors(filename: str, special_tokens: list) -> (dict, dict, np.nd
                 word_to_id[word] = nextword_id
                 nextword_id += 1
     return word_to_id, matrix
-
-
-def add_padding(tokens: list, maxlen: int) -> list:
-    """ Provide padding of the encoded tokens to the maxlen; if length of tokens > maxlen, reduce it to maxlen """
-    padded_tokens = [0] * maxlen
-    for token in range(0, min(len(tokens), maxlen)):
-        padded_tokens[token] = tokens[token]
-    return padded_tokens
 
 
 def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
@@ -79,8 +72,4 @@ def set_device(enable_cuda: bool):
     else:
         logger.info("Using CPU")
         return torch.device('cpu')
-
-
-
-
 

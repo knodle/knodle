@@ -15,7 +15,7 @@ from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
 from knodle.trainer import TrainerConfig
-from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
+from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import accuracy_of_probs
@@ -24,22 +24,7 @@ from knodle.trainer.utils.utils import accuracy_of_probs
 logger = logging.getLogger(__name__)
 
 
-def read_evaluation_data():
-    imdb_dataset = pd.read_csv("../ImdbDataset/imdb_data_preprocessed.csv")
-    rule_matches_z = load("../ImdbDataset/rule_matches.lib")
-    mapping_rules_labels_t = load("../ImdbDataset/mapping_rules_labels.lib")
-    return imdb_dataset, rule_matches_z, mapping_rules_labels_t
-
-
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
-    acc = accuracy_score(labels, preds)
-    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
-
-
-class MajorityBertTrainer(SimpleDsModelTrainer):
+class MajorityBertTrainer(DsModelTrainer):
     def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
@@ -115,7 +100,6 @@ class MajorityBertTrainer(SimpleDsModelTrainer):
         predictions_list = []
         with torch.no_grad():
             for feature_counter, feature_batch in enumerate(feature_dataloader):
-                # DISCUSS
                 inputs = {
                     "input_ids": feature_batch[0],
                     "attention_mask": feature_batch[1],
