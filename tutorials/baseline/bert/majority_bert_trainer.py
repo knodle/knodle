@@ -1,25 +1,16 @@
 import logging
-import os
 
-import pandas as pd
 import numpy as np
-from joblib import load, dump
 from tqdm.auto import tqdm
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 import torch
 from torch import Tensor
-from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 
-from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import accuracy_of_probs
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,20 +24,19 @@ class MajorityBertTrainer(DsModelTrainer):
         self.model.to(device)
 
         labels = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
-        label_dataset = TensorDataset(Tensor(labels))
 
-        feature_dataloader = self._make_dataloader(self.model_input_x)
-        label_dataloader = self._make_dataloader(label_dataset)
+        feature_label_dataloader = self._make_dataloader(
+            self.model_input_x.tensors[0], self.model_input_x.tensors[1], Tensor(labels)
+        )
+
         log_section("Training starts", logger)
-
-        i = 0
         self.model.train()
+
         for current_epoch in tqdm(range(self.trainer_config.epochs)):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
-            for feature_batch, label_batch in zip(feature_dataloader, label_dataloader):
-
+            for feature_batch, label_batch in zip(feature_label_dataloader):
                 inputs = {
                     "input_ids": feature_batch[0].to(device),
                     "attention_mask": feature_batch[1].to(device),
@@ -69,8 +59,8 @@ class MajorityBertTrainer(DsModelTrainer):
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
 
-            avg_loss = epoch_loss / len(feature_dataloader)
-            avg_acc = epoch_acc / len(feature_dataloader)
+            avg_loss = epoch_loss / len(feature_label_dataloader)
+            avg_acc = epoch_acc / len(feature_label_dataloader)
 
             logger.info("Epoch loss: {}".format(avg_loss))
             logger.info("Epoch Accuracy: {}".format(avg_acc))
