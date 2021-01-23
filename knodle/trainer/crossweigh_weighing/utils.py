@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 
@@ -97,3 +97,14 @@ def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.nda
     """ Checks intersections between the 1st and the 2nd arrays and return unique values of the 1st array """
     intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[1].tolist()
     return np.delete(where_to_find, intersections)
+
+
+def make_plot(value_1: list, value_2: list, value_3: list, value_4: list, label_1: str, label_2: str, label_3: str,
+              label_4: str):
+    """ The function creates a plot of 4 curves and displays it"""
+    plt.plot(value_1, "g", label=label_1)
+    plt.plot(value_2, "r", label=label_2)
+    plt.plot(value_3, "b", label=label_3)
+    plt.plot(value_4, "y", label=label_4)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.show()

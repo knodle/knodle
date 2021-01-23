@@ -11,7 +11,7 @@ class CrossWeighDenoisingConfig:
     def __init__(self,
                  model: nn.Module,
                  crossweigh_partitions: int = 3,
-                 crossweigh_folds: int = 10,
+                 crossweigh_folds: int = 5,
                  crossweigh_epochs: int = 2,
                  weight_reducing_rate: int = 0.5,
                  samples_start_weights: int = 3.0,
