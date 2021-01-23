@@ -8,5 +8,6 @@ class LogisticRegressionModel(nn.Module):
         self.linear = torch.nn.Linear(input_dim, output_classes)
 
     def forward(self, x):
+        x = x.float()
         outputs = self.linear(x)
         return outputs
