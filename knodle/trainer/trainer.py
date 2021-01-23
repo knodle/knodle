@@ -8,7 +8,7 @@ from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
-from knodle.trainer.config import TrainerConfig
+from knodle.trainer.config.trainer_config import TrainerConfig
 
 logger = logging.getLogger(__name__)
 

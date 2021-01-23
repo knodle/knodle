@@ -7,18 +7,15 @@ from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
 from knodle.trainer import TrainerConfig
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.ds_model_trainer.ds_model_trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
-from knodle.trainer.utils.utils import (
-    accuracy_of_probs,
-    extract_tensor_from_dataset,
-)
+from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 
 logger = logging.getLogger(__name__)
 
 
-class SimpleDsModelTrainer(DsModelTrainer):
+class NoDenoisingTrainer(Trainer):
     """
     The baseline class implements a baseline model for labeling data with weak supervision.
         A simple majority vote is used for this purpose.

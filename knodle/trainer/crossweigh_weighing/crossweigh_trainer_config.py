@@ -8,21 +8,22 @@ from torch.optim import SGD, optimizer
 
 
 class CrossWeighTrainerConfig:
-    def __init__(self,
-                 model: Module,
-                 criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
-                 batch_size: int = 32,
-                 optimizer_: optimizer = None,
-                 output_classes: int = 2,
-                 lr: float = 0.01,
-                 epochs: int = 2,
-                 class_weights: Tensor = None,
-                 seed: int = 12345,      # set seed for reproducibility
-                 enable_cuda: bool = False,
-                 use_grad_clipping: bool = True,
-                 grad_clipping: int = 5,
-                 negative_samples: bool = False     # True if there is a special label for no_relation samples
-                 ):
+    def __init__(
+            self,
+            model: Module,
+            criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
+            batch_size: int = 32,
+            optimizer_: optimizer = None,
+            output_classes: int = 2,
+            lr: float = 0.01,
+            epochs: int = 2,
+            class_weights: Tensor = None,
+            seed: int = 12345,  # set seed for reproducibility
+            enable_cuda: bool = False,
+            use_grad_clipping: bool = True,
+            grad_clipping: int = 5,
+            negative_samples: bool = False  # True if there is a special label for no_relation samples
+    ):
         self.criterion = criterion
         self.batch_size = batch_size
         self.lr = lr
@@ -50,4 +51,3 @@ class CrossWeighTrainerConfig:
             self.optimizer = SGD(model.parameters(), lr=self.lr)
         else:
             self.optimizer = optimizer_
-

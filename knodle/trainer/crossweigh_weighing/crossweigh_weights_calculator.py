@@ -1,7 +1,6 @@
 import copy
 import logging
 import os
-from abc import ABC
 
 import numpy as np
 import torch
@@ -10,8 +9,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, check_splitting, return_unique
 from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
 
