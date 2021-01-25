@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression.logistic_regression_model import (
-    LogisticRegressionModel,
+    LogisticRegressionModel
 )
 from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
 
