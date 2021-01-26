@@ -86,7 +86,9 @@ class MajorityBertTrainer(DsModelTrainer):
 
         self.model.eval()
         predictions_list = []
+        label_list = []
         with torch.no_grad():
+            i = 0
             for input_ids_batch, attention_mask_batch, label_batch in tqdm(feature_label_dataloader):
                 inputs = {
                     "input_ids": input_ids_batch.to(device),
@@ -96,13 +98,20 @@ class MajorityBertTrainer(DsModelTrainer):
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
-                predictions = self.model(**inputs)[0]
-                predictions_list.append(predictions.detach().numpy())
+                prediction_probs = self.model(**inputs)[0]
+                predictions = np.argmax(prediction_probs.detach().numpy(), axis=-1)
+                predictions_list.append(predictions)
+                print("label", label_batch.detach().numpy().shape)
+                label_list.append(label_batch.detach().numpy())
+                i = i + 1
+                if i > 1:
+                    break
 
-        predictions = np.vstack(predictions_list)
-
-        predictions, test_labels = (predictions, labels.tensors[0].detach().numpy())
-        clf_report = classification_report(y_true=test_labels, y_pred=predictions, output_dict=True)
+        predictions = np.squeeze(np.hstack(predictions_list))
+        gold_labels = np.squeeze(np.hstack(label_list))
+        print(predictions.shape)
+        print(gold_labels.shape)
+        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         logger.info(clf_report)
         logger.info("Accuracy: {}, ".format(clf_report["accuracy"]))
