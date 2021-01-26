@@ -10,6 +10,7 @@ from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
+from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import (
     accuracy_of_probs,
     extract_tensor_from_dataset,
@@ -25,12 +26,12 @@ class SimpleDsModelTrainer(DsModelTrainer):
     """
 
     def __init__(
-        self,
-        model: Module,
-        mapping_rules_labels_t: np.ndarray,
-        model_input_x: TensorDataset,
-        rule_matches_z: np.ndarray,
-        trainer_config: TrainerConfig = None,
+            self,
+            model: Module,
+            mapping_rules_labels_t: np.ndarray,
+            model_input_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            trainer_config: TrainerConfig = None,
     ):
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
@@ -41,12 +42,13 @@ class SimpleDsModelTrainer(DsModelTrainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        labels = get_majority_vote_probs(
+        label_probs = get_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t
         )
 
-        model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
-        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(labels))
+        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
+        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)

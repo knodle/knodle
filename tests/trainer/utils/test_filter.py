@@ -26,12 +26,11 @@ def test_filter_empty_probabilities():
     ])
 
     input_dataset = TensorDataset(torch.from_numpy(input_ids), torch.from_numpy(input_mask))
-    probs_dataset = TensorDataset(torch.from_numpy(class_probs))
 
-    new_input_dataset, new_probs_dataset = filter_empty_probabilities(input_dataset, probs_dataset)
+    new_input_dataset, new_probs = filter_empty_probabilities(input_dataset, class_probs)
 
     assert np.array_equal(new_input_dataset.tensors[0].detach().numpy(), gold_ids)
     assert np.array_equal(new_input_dataset.tensors[1].detach().numpy(), gold_mask)
-    assert np.array_equal(new_probs_dataset.tensors[0].detach().numpy(), gold_probs)
+    assert np.array_equal(new_probs, gold_probs)
 
 
