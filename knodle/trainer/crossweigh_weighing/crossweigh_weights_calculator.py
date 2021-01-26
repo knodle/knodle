@@ -9,7 +9,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, check_splitting, return_unique, get_labels
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class CrossWeighWeightsCalculator:
         self.device = set_device(self.denoising_config.enable_cuda)
         self.sample_weights = self.initialise_sample_weights()
 
-    def calculate_weights(self) -> np.ndarray:
+    def calculate_weights(self) -> torch.FloatTensor:
         """
         This function calculates the sample_weights for samples using CrossWeigh method
         :return matrix of the sample sample_weights
@@ -78,8 +78,10 @@ class CrossWeighWeightsCalculator:
         return np.random.rand(self.rule_assignments_t.shape[0]).argsort()
 
     def initialise_sample_weights(self) -> torch.FloatTensor:
-        """ Creates an initial sample sample_weights matrix of size (num_samples x 1) where sample_weights for all samples equal
-        sample_start_weights param """
+        """
+        Creates an initial sample sample_weights matrix of size (num_samples x 1) where sample_weights for all
+        samples equal sample_start_weights param
+        """
         return torch.FloatTensor([self.denoising_config.samples_start_weights] * self.inputs_x.tensors[0].shape[0])
 
     def calculate_rules_indices(self, rules_idx: np.ndarray, fold: int) -> (np.ndarray, np.ndarray):
@@ -215,4 +217,3 @@ class CrossWeighWeightsCalculator:
         logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
             correct_predictions * 100/(correct_predictions+wrong_predictions),
             wrong_predictions * 100/(correct_predictions+wrong_predictions)))
-

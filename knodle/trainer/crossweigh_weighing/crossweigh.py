@@ -10,11 +10,11 @@ from joblib import load
 from tqdm import tqdm
 import torch.nn.functional as F
 
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, make_plot, get_labels
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils.utils import accuracy_of_probs
 
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class CrossWeigh(DsModelTrainer):
+class CrossWeigh(Trainer):
 
     def __init__(self,
                  model: Module,
@@ -74,7 +74,8 @@ class CrossWeigh(DsModelTrainer):
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
 
-        sample_weights = self._get_sample_weights() if self.use_weights else Tensor([1] * len(self.model_input_x))
+        sample_weights = self._get_sample_weights() if self.use_weights \
+            else torch.FloatTensor([1] * len(self.model_input_x))
 
         if not self.run_classifier:
             logger.info("No classifier should be trained")
