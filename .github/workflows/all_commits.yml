@@ -22,7 +22,7 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest
-          pytest tests/
+          pytest 
       - name: Build
         run: |
           python setup.py sdist bdist_wheel
