@@ -2,21 +2,17 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.model.logistic_regression.logistic_regression_model import (
-    LogisticRegressionModel,
-)
+from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 
 
 def test_train():
-
     num_samples = 64
     num_features = 16
     num_rules = 6
     num_classes = 2
 
     model = LogisticRegressionModel(num_features, num_classes)
-
 
     x_np = np.ones((num_samples, num_features)).astype(np.float32)
     x_tensor = torch.from_numpy(x_np)
@@ -30,16 +26,16 @@ def test_train():
     mapping_rules_labels_t[:, 0] = 1
 
     trainer = NoDenoisingTrainer(
-        model = model,
-        mapping_rules_labels_t = mapping_rules_labels_t,
-        model_input_x = model_input_x,
-        rule_matches_z = rule_matches_z
+        model=model,
+        mapping_rules_labels_t=mapping_rules_labels_t,
+        model_input_x=model_input_x,
+        rule_matches_z=rule_matches_z
     )
 
     trainer.train()
 
-    y_np = np.zeros((num_samples, ))
-    y_labels = TensorDataset(torch.from_numpy(y_np))
+    y_np = np.zeros((num_samples,))
+    y_labels = torch.from_numpy(y_np)
     metrics = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%
