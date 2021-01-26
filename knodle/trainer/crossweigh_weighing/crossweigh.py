@@ -1,20 +1,33 @@
+import logging
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.autograd import function
 from torch.functional import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
+from joblib import load
+from tqdm import tqdm
+import torch.nn.functional as F
 
-from knodle.trainer.crossweigh_weighing import utils
+from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
+from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, make_plot
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import (
     CrossWeighWeightsCalculator,
 )
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.utils.denoise import (
+    get_majority_vote_probs,
+    get_majority_vote_probs_with_no_rel,
+)
+from knodle.trainer.utils.utils import accuracy_of_probs
 
-from knodle.trainer.config.crossweigh_trainer_config import TrainerConfig
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 
-PRINT_EVERY = 10
+NO_MATCH_CLASS = -1
+torch.set_printoptions(edgeitems=100)
+logger = logging.getLogger(__name__)
+logging.getLogger("matplotlib.font_manager").disabled = True
 
 
 class CrossWeigh(DsModelTrainer):
@@ -24,18 +37,18 @@ class CrossWeigh(DsModelTrainer):
         rule_assignments_t: np.ndarray,
         inputs_x: TensorDataset,
         rule_matches_z: np.ndarray,
-        dev_inputs: TensorDataset,
-        dev_labels: np.ndarray,
-        trainer_config: TrainerConfig = None,
+        dev_features: TensorDataset,
+        dev_labels: TensorDataset,
+        weights: np.ndarray = None,
         denoising_config: CrossWeighDenoisingConfig = None,
+        trainer_config: CrossWeighTrainerConfig = None,
     ):
         """
         :param model: a pre-defined classifier model that is to be trained
         :param rule_assignments_t: binary matrix that contains info about which rule correspond to which label
         :param inputs_x: encoded samples (samples x features)
         :param rule_matches_z: binary matrix that contains info about rules matched in samples (samples x rules)
-        :param dev_inputs: development samples using for model evaluation
-        :param dev_labels: development labels using for model evaluation
+        :param dev_features_labels: development samples and corresponding labels used for model evaluation
         :param trainer_config: config used for main training
         :param denoising_config: config used for CrossWeigh denoising
         """
@@ -46,101 +59,143 @@ class CrossWeigh(DsModelTrainer):
         self.inputs_x = inputs_x
         self.rule_matches_z = rule_matches_z
         self.rule_assignments_t = rule_assignments_t
-
-        self.dev_inputs = dev_inputs
+        self.weights = weights
+        self.denoising_config = denoising_config
+        self.dev_features = dev_features
         self.dev_labels = dev_labels
 
-        if denoising_config is None:
-            self.denoising_config = CrossWeighDenoisingConfig(self.model)
-            self.logger.info(
+        if trainer_config is None:
+            self.trainer_config = CrossWeighTrainerConfig(self.model)
+            logger.info(
                 "Default CrossWeigh Config is used: {}".format(
-                    self.denoising_config.__dict__
+                    self.trainer_config.__dict__
                 )
             )
         else:
-            self.denoising_config = denoising_config
-            self.logger.info(
+            self.trainer_config = trainer_config
+            logger.info(
                 "Initalized trainer with custom model config: {}".format(
-                    self.denoising_config.__dict__
+                    self.trainer_config.__dict__
                 )
             )
 
-        self.device = utils.set_device(self.trainer_config.enable_cuda)
+        self.device = set_device(self.trainer_config.enable_cuda)
 
     def train(self):
-        """
-        This function weights the samples with CrossWeigh method and train the model
-        """
-        utils.set_seed(self.trainer_config.seed)  # set seed for reproducibility
+        """ This function sample_weights the samples with CrossWeigh method and train the model """
+        set_seed(self.trainer_config.seed)
 
-        # calculate sample weights
-        sample_weights = CrossWeighWeightsCalculator(
-            self.model,
-            self.rule_assignments_t,
-            self.inputs_x,
-            self.rule_matches_z,
-            self.denoising_config,
-        ).calculate_weights()
-
-        self.logger.info("Classifier training is started")
-
-        labels = utils.get_labels(self.rule_matches_z, self.rule_assignments_t)
+        sample_weights = self._get_sample_weights()
+        train_labels = self._get_labels()
 
         train_loader = self._get_feature_label_dataloader(
-            self.inputs_x, labels, sample_weights
+            self.model_input_x, train_labels, sample_weights
         )
         dev_loader = self._get_feature_label_dataloader(
-            self.dev_inputs, self.dev_labels
+            self.dev_features, self.dev_labels
         )
 
+        logger.info("Classifier training is started")
         self.model.train()
-        steps_counter = 0
-
-        for curr_epoch in range(self.trainer_config.epochs):
-            for tokens, labels, weights in train_loader:
-                tokens, labels, weights = (
-                    tokens.to(device=self.device),
-                    labels.to(device=self.device),
-                    weights.to(device=self.device),
+        train_losses, dev_losses, train_accs, dev_accs = [], [], [], []
+        for curr_epoch in tqdm(range(self.trainer_config.epochs)):
+            running_loss, epoch_acc = 0.0, 0.0
+            self.trainer_config.criterion.weight = self.trainer_config.class_weights
+            self.trainer_config.criterion.reduction = "none"
+            batch_losses = []
+            for features, labels, weights in train_loader:
+                self.model.zero_grad()
+                predictions = self.model(features)
+                loss = self._get_loss_with_sample_weights(
+                    self.trainer_config.criterion, predictions, labels, weights
                 )
-                steps_counter += 1
-                tokens, labels = tokens.to(device=self.device), labels.to(
-                    device=self.device
-                )
-
-                self.trainer_config.criterion.reduction = "none"
-                self.trainer_config.optimizer.zero_grad()
-
-                output = self.model(tokens)
-                loss = self._get_train_loss(output, labels, weights)
                 loss.backward()
-
-                if self.trainer_config.use_grad_clipping:
-                    nn.utils.clip_grad_norm_(
-                        self.model.parameters(), self.trainer_config.grad_clipping
-                    )
-
                 self.trainer_config.optimizer.step()
+                acc = accuracy_of_probs(predictions, labels)
 
-                self._print_intermediate_result(
-                    steps_counter, curr_epoch, loss, dev_loader
+                running_loss += loss.detach()
+                batch_losses.append(running_loss)
+                epoch_acc += acc.item()
+
+            avg_loss = running_loss / len(train_loader)
+            avg_acc = epoch_acc / len(train_loader)
+            train_losses.append(avg_loss)
+            train_accs.append(avg_acc)
+
+            logger.info("Epoch loss: {}".format(avg_loss))
+            logger.info("Epoch Accuracy: {}".format(avg_acc))
+
+            dev_loss, dev_acc = self._evaluate(dev_loader)
+            dev_losses.append(dev_loss)
+            dev_accs.append(dev_acc)
+
+            logger.info(
+                "Train loss: {:.7f}, train accuracy: {:.2f}%, dev loss: {:.3f}, dev accuracy: {:.2f}%".format(
+                    avg_loss, avg_acc * 100, dev_loss, dev_acc * 100
                 )
+            )
+
+        make_plot(
+            train_losses,
+            dev_losses,
+            train_accs,
+            dev_accs,
+            "train loss",
+            "dev loss",
+            "train acc",
+            "dev acc",
+        )
 
     def _evaluate(self, dev_loader):
         """Model evaluation on dev set: the trained model is applied on the dev set and the average loss value
         is returned"""
         self.model.eval()
         with torch.no_grad():
-            val_losses = []
+            dev_loss, dev_acc = 0.0, 0.0
+            dev_criterion = nn.CrossEntropyLoss(
+                weight=self.trainer_config.class_weights
+            )
             for tokens, labels in dev_loader:
-                tokens, labels = tokens.to(device=self.device), labels.to(
-                    device=self.device
-                )
-                self.trainer_config.criterion.reduction = "mean"
-                output = self.model(tokens)
-                val_loss = self.trainer_config.criterion(output, labels)
-                val_losses.append(val_loss.item())
-        return np.mean(val_losses)
+                labels = labels.long()
+                predictions = self.model(tokens)
+                acc = accuracy_of_probs(predictions, labels)
+
+                predictions_one_hot = F.one_hot(
+                    predictions.argmax(1), num_classes=2
+                ).float()
+                loss = dev_criterion(predictions_one_hot, labels.flatten(0))
+
+                dev_loss += loss.detach()
+                dev_acc += acc.item()
+        return dev_loss / len(dev_loader), dev_acc / len(dev_loader)
+
+    def _get_sample_weights(self):
+        """This function checks whether there are accesible already pretrained sample weights. If yes, return
+        them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
+        if self.weights is not None:
+            logger.info("Already pretrained samples sample_weights will be used.")
+            sample_weights = load(self.weights)
+        else:
+            logger.info(
+                "No pretrained sample sample_weights are found, they will be calculated now"
+            )
+            sample_weights = CrossWeighWeightsCalculator(
+                self.model,
+                self.rule_assignments_t,
+                self.inputs_x,
+                self.rule_matches_z,
+                self.denoising_config,
+            ).calculate_weights()
+        return sample_weights
+
+    def _get_labels(self):
+        """ Check whether dataset contains negative samples and calculates the labels using majority voting"""
+        if self.trainer_config.negative_samples:
+            return get_majority_vote_probs_with_no_rel(
+                self.rule_matches_z, self.rule_assignments_t, NO_MATCH_CLASS
+            )
+        else:
+            return get_majority_vote_probs(self.rule_matches_z, self.rule_assignments_t)
 
     def _get_feature_label_dataloader(
         self,
@@ -149,11 +204,10 @@ class CrossWeigh(DsModelTrainer):
         sample_weights: np.ndarray = None,
         shuffle: bool = True,
     ) -> DataLoader:
-        """ Converts encoded samples and labels to dataloader. Optionally: sample weights (in train dataloader) """
+        """ Converts encoded samples and labels to dataloader. Optionally: add sample_weights as well """
 
         tensor_target = torch.LongTensor(labels).to(device=self.device)
-        tensor_samples = samples.tensors[0].long().to(device=self.device)
-
+        tensor_samples = samples.tensors[0].to(device=self.device)
         if sample_weights is not None:
             sample_weights = torch.FloatTensor(sample_weights).to(device=self.device)
             dataset = torch.utils.data.TensorDataset(
@@ -161,26 +215,13 @@ class CrossWeigh(DsModelTrainer):
             )
         else:
             dataset = torch.utils.data.TensorDataset(tensor_samples, tensor_target)
-
         dataloader = self._make_dataloader(dataset, shuffle=shuffle)
         return dataloader
 
-    def _get_train_loss(self, output, labels, weights):
+    def _get_loss_with_sample_weights(
+        self, criterion: function, output: Tensor, labels: Tensor, weights: Tensor
+    ) -> Tensor:
+        """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
         return (
-            self.trainer_config.criterion(output, labels) * weights
+            criterion(output, labels) * weights
         ).sum() / self.trainer_config.class_weights[labels].sum()
-
-    def _print_intermediate_result(
-        self, curr_step: int, curr_epoch: int, curr_loss: Tensor, dev_loader: DataLoader
-    ) -> None:
-        if curr_step % PRINT_EVERY == 0:
-            dev_loss = self._evaluate(dev_loader)
-            self.logger.info(
-                "Epoch: {}/{}...   Step: {}...   Loss: {:.6f}   Val Loss: {:.6f}".format(
-                    curr_epoch + 1,
-                    self.trainer_config.epochs,
-                    curr_step,
-                    curr_loss.item(),
-                    dev_loss,
-                )
-            )

@@ -100,7 +100,6 @@ def download_conll():
     client = Minio(config.get("minio_url"), secure=False)
 
     for file in tqdm(config.get("minio_files")):
-        file_path = os.path.join(os.getenv("data_dir"), file)
         client.fget_object(
             bucket_name=config.get("minio_bucket"),
             object_name=os.path.join(config.get("minio_prefix"), file),

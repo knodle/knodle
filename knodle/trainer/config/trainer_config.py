@@ -16,7 +16,7 @@ class TrainerConfig:
         optimizer_: optimizer = None,
         output_classes: int = 2,
         lr: float = 0.01,
-        epochs: int = 1,
+        epochs: int = 35,
     ):
         self.criterion = criterion
         self.batch_size = batch_size

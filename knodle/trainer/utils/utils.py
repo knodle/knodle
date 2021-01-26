@@ -28,7 +28,7 @@ def accuracy_of_probs(predictions: Tensor, ground_truth: Tensor):
     Function to calculate the accuracy of two tensors with probabilities attached.
     Args:
         predictions: Predictions, shape: instances x labels
-        ground_truth: Ground truth, shape one of (instaces x 1) or (instaces x labels)
+        ground_truth: Ground truth, shape one of (instances x 1) or (instances x labels)
 
     Returns: Accuracy
 

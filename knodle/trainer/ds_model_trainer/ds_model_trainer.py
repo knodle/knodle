@@ -4,10 +4,12 @@ import numpy as np
 import torch
 from abc import ABC, abstractmethod
 from sklearn.metrics import classification_report
+from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config.trainer_config import TrainerConfig
+from knodle.trainer.utils.utils import extract_tensor_from_dataset
 
 logger = logging.getLogger(__name__)
 
