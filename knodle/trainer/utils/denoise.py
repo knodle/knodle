@@ -4,6 +4,14 @@ import numpy as np
 def get_majority_vote_labels(
         rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, no_rule_label: int = -1
 ) -> np.array:
+    """Computes the majority labels. If no clear "winner" is found, no_rule_label is used instead.
+
+    Args:
+        rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
+        mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
+        no_rule_label: Dummy label
+    Returns: Decision per sample. Shape: (instances, )
+    """
 
     rule_counts_probs = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
 
