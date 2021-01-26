@@ -1,10 +1,3 @@
-# CI related
-black
-flake8
-
-wheel
-setuptools
-
 # General
 joblib
 tqdm
