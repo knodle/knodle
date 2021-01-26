@@ -26,5 +26,5 @@ jobs:
           pytest
       - name: Build
         run: |
-          pip install wheels setuptools
+          pip install setuptools
           python setup.py sdist bdist_wheel
