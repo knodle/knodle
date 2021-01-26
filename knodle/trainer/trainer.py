@@ -8,13 +8,12 @@ from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
-from knodle.trainer.config.trainer_config import TrainerConfig
-from knodle.trainer.utils.utils import extract_tensor_from_dataset
+from knodle.trainer.config import TrainerConfig
 
 logger = logging.getLogger(__name__)
 
 
-class DsModelTrainer(ABC):
+class Trainer(ABC):
     def __init__(
         self,
         model: Module,

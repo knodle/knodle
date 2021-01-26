@@ -10,11 +10,11 @@ from joblib import load
 from tqdm import tqdm
 import torch.nn.functional as F
 
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, make_plot
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.ds_model_trainer.ds_model_trainer import Trainer
 from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
 from knodle.trainer.utils.utils import accuracy_of_probs
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class CrossWeigh(DsModelTrainer):
+class CrossWeigh(Trainer):
 
     def __init__(self,
                  model: Module,

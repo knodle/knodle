@@ -25,7 +25,7 @@ Example for training the baseline classifier:
 ```python
 from knodle.model import LogisticRegressionModel
 from knodle.trainer import TrainerConfig
-from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
+from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 from knodle.data import get_imdb_dataset
 
 OUTPUT_CLASSES = 2
@@ -35,10 +35,10 @@ model_input_x, mapping_rules_labels_t, rule_matches_z = get_imdb_dataset()
 model = LogisticRegressionModel(model_input_x.shape[1], OUTPUT_CLASSES)
 
 trainer = SimpleDsModelTrainer(
-    model,
-    mapping_rules_labels_t=mapping_rules_labels_t,
-    model_input_x=train_dataset,
-    rule_matches_z=train_rule_matches_z
+  model,
+  mapping_rules_labels_t=mapping_rules_labels_t,
+  model_input_x=train_dataset,
+  rule_matches_z=train_rule_matches_z
 )
 
 trainer.train()

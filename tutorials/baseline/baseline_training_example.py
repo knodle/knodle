@@ -13,7 +13,7 @@ from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer import TrainerConfig
-from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
+from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def train_simple_ds_model():
         model=model, optimizer_=AdamW(model.parameters(), lr=0.01)
     )
 
-    trainer = SimpleDsModelTrainer(
+    trainer = NoDenoisingTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=train_dataset,
