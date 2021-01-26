@@ -17,7 +17,6 @@ from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import Cro
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils.utils import accuracy_of_probs
 
-
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
@@ -25,25 +24,25 @@ logging.getLogger('matplotlib.font_manager').disabled = True
 
 class CrossWeigh(Trainer):
 
-    def __init__(self,
-                 model: Module,
-                 rule_assignments_t: np.ndarray,
-                 inputs_x: TensorDataset,
-                 rule_matches_z: np.ndarray,
-                 dev_features: TensorDataset,
-                 dev_labels: TensorDataset,
-                 path_to_weights: str = "data/sample_weights",
-                 denoising_config: CrossWeighDenoisingConfig = None,
-                 trainer_config: CrossWeighTrainerConfig = None,
-                 run_classifier: bool = True,
-                 use_weights: bool = True
-                 ):
+    def __init__(
+            self,
+            model: Module,
+            rule_assignments_t: np.ndarray,
+            inputs_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            dev_features: TensorDataset,
+            dev_labels: TensorDataset,
+            path_to_weights: str = "data/sample_weights",
+            denoising_config: CrossWeighDenoisingConfig = None,
+            trainer_config: CrossWeighTrainerConfig = None,
+            run_classifier: bool = True,
+            use_weights: bool = True
+    ):
         """
         :param model: a pre-defined classifier model that is to be trained
         :param rule_assignments_t: binary matrix that contains info about which rule correspond to which label
         :param inputs_x: encoded samples (samples x features)
         :param rule_matches_z: binary matrix that contains info about rules matched in samples (samples x rules)
-        :param dev_features_labels: development samples and corresponding labels used for model evaluation
         :param trainer_config: config used for main training
         :param denoising_config: config used for CrossWeigh denoising
         """
@@ -81,7 +80,8 @@ class CrossWeigh(Trainer):
             logger.info("No classifier should be trained")
             return
 
-        train_labels = get_labels(self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
+        train_labels = get_labels(self.rule_matches_z, self.rule_assignments_t,
+                                  self.trainer_config.no_match_class_label)
         train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)
         dev_loader = self._get_feature_label_dataloader(self.dev_features, self.dev_labels)
 
@@ -136,7 +136,8 @@ class CrossWeigh(Trainer):
                 predictions = self.model(tokens)
                 acc = accuracy_of_probs(predictions, labels)
 
-                predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
+                predictions_one_hot = F.one_hot(predictions.argmax(1),
+                                                num_classes=self.trainer_config.output_classes).float()
                 loss = dev_criterion(predictions_one_hot, labels.flatten(0))
 
                 dev_loss += loss.detach()
@@ -174,6 +175,7 @@ class CrossWeigh(Trainer):
         dataloader = self._make_dataloader(dataset, shuffle=shuffle)
         return dataloader
 
-    def _get_loss_with_sample_weights(self, criterion: function, output: Tensor, labels: Tensor, weights: Tensor) -> Tensor:
+    def _get_loss_with_sample_weights(self, criterion: function, output: Tensor, labels: Tensor,
+                                      weights: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
         return (criterion(output, labels) * weights).sum() / self.trainer_config.class_weights[labels].sum()
