@@ -58,8 +58,8 @@ class MajorityBertTrainer(DsModelTrainer):
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
-                # if i > 0:
-                #     break
+                if i > 0:
+                    break
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
@@ -76,17 +76,18 @@ class MajorityBertTrainer(DsModelTrainer):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model.to(device)
 
-        feature_labels_dataloader = self._make_dataloader(
+        feature_label_dataloader = self._make_dataloader(
             TensorDataset(
                 features_dataset.tensors[0], features_dataset.tensors[1],
                 labels.tensors[0]
-            )
+            ),
+            shuffle=False
         )
 
         self.model.eval()
+        predictions_list = []
         with torch.no_grad():
-            all_predictions, all_labels = torch.Tensor(), torch.Tensor()
-            for input_ids_batch, attention_mask_batch, label_batch in feature_labels_dataloader:
+            for input_ids_batch, attention_mask_batch, label_batch in tqdm(feature_label_dataloader):
                 inputs = {
                     "input_ids": input_ids_batch.to(device),
                     "attention_mask": attention_mask_batch.to(device),
@@ -95,12 +96,12 @@ class MajorityBertTrainer(DsModelTrainer):
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
-                outputs = self.model(**inputs)
-                _, predicted = torch.max(outputs, 1)
-                all_predictions = torch.cat([all_predictions, predicted])
-                all_labels = torch.cat([all_labels, labels])
+                predictions = self.model(**inputs)[0]
+                predictions_list.append(predictions.detach().numpy())
 
-        predictions, test_labels = (all_predictions.detach().numpy(), all_labels.detach().numpy())
+        predictions = np.vstack(predictions_list)
+
+        predictions, test_labels = (predictions, labels.tensors[0].detach().numpy())
         clf_report = classification_report(y_true=test_labels, y_pred=predictions, output_dict=True)
 
         logger.info(clf_report)
@@ -108,33 +109,3 @@ class MajorityBertTrainer(DsModelTrainer):
         print(clf_report)
         print("Accuracy: {}, ".format(clf_report["accuracy"]))
         return clf_report
-
-    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
-        """
-        This method returns all predictions of the model. Currently this function aims just for the test function.
-        Args:
-            features: DataSet with features to get predictions from
-            evaluate: Boolean if model in evaluation mode or not.
-
-        Returns:
-
-        """
-
-        feature_dataloader = self._make_dataloader(features)
-
-        if evaluate:
-            self.model.eval()
-        else:
-            self.model.train()
-
-        predictions_list = []
-        with torch.no_grad():
-            for feature_counter, feature_batch in enumerate(feature_dataloader):
-                inputs = {
-                    "input_ids": feature_batch[0],
-                    "attention_mask": feature_batch[1],
-                }
-                predictions = self.model(**inputs)[0]
-                predictions_list.append(predictions.detach().numpy())
-
-        return torch.from_numpy(np.vstack(predictions_list))
