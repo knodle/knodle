@@ -7,10 +7,6 @@ __all__ = []
 
 import logging
 
-# from knodle.model.logistic_regression.logistic_regression_model import (
-#    LogisticRegressionModel,
-# )
-
 logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
