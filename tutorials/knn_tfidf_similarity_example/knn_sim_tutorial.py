@@ -114,7 +114,7 @@ def train_knn_model():
 
         wandb.log({
             "test_accuracy": clf_report["accuracy"],
-            "f1_weighted": clf_report.get('weighted avg').get('f1-score'),
+            "f1_weighted": clf_report.get('weighted avg').get('f1-score'), pp
             "recall_weighted": clf_report.get('weighted avg').get('precision'),
             "precision_weighted": clf_report.get('weighted avg').get('recall'),
 
