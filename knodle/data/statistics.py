@@ -11,8 +11,7 @@ def get_z_stats(z_matrix: np.array):
 
 def majority_vote(z, t, y):
     y_majority = get_majority_vote_labels(z, t)
-    print(y.shape)
-    print(y_majority.shape)
-    print((pd.Series(y_majority) == pd.Series(y)).mean())
-    print(classification_report(y, y_majority))
+    return classification_report(y, y_majority, output_dict=True)
+
+
 

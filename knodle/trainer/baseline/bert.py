@@ -58,8 +58,8 @@ class MajorityBertTrainer(DsModelTrainer):
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
-                if i > 0:
-                    break
+                # if i > 0:
+                #     break
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
@@ -78,7 +78,7 @@ class MajorityBertTrainer(DsModelTrainer):
 
         feature_labels_dataloader = self._make_dataloader(
             TensorDataset(
-                features_dataset.model_input_x.tensors[0], features_dataset.model_input_x.tensors[1],
+                features_dataset.tensors[0], features_dataset.tensors[1],
                 labels.tensors[0]
             )
         )
