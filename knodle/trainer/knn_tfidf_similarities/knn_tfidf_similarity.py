@@ -17,6 +17,7 @@ from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 from torch.utils.tensorboard import SummaryWriter
 from knodle.model.EarlyStopping import EarlyStopping
+import wandb
 
 writer = SummaryWriter()
 torch.manual_seed(123)
@@ -74,7 +75,7 @@ class KnnTfidfSimilarity(DsModelTrainer):
         feature_label_dataset = TensorDataset(model_input_x_tensor, labels)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, True)
 
-        if self.dev_rule_matches_z:
+        if self.dev_rule_matches_z is not None:
             dev_labels = get_majority_vote_probs(
                 self.dev_rule_matches_z, self.mapping_rules_labels_t
             )
@@ -136,7 +137,7 @@ class KnnTfidfSimilarity(DsModelTrainer):
                 current_epoch,
             )
 
-            if self.dev_rule_matches_z:
+            if self.dev_rule_matches_z is not None:
 
                 val_loss, val_acc = self.validation(dev_feature_label_dataloader)
                 log_section(
@@ -149,11 +150,11 @@ class KnnTfidfSimilarity(DsModelTrainer):
                     current_epoch,
                 )
 
-                early_stopping(-1 * val_acc, self.model)
+                # early_stopping(-1 * val_acc, self.model)
 
-                if early_stopping.early_stop:
-                    self.logger.info("Early stopping")
-                    break
+                # if early_stopping.early_stop:
+                #     self.logger.info("Early stopping")
+                #     break
 
         log_section("Training done", logger)
 

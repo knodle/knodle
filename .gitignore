@@ -44,6 +44,8 @@ nosetests.xml
 
 *.npy
 runs/
+runs_old/
+wandb/
 *.pt
 launch.json
 *.env

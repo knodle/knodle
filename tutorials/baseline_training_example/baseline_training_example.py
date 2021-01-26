@@ -6,7 +6,7 @@ from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from torch import Tensor
-from torch.optim import AdamW
+from torch.optim import AdamW, SGD
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression.logistic_regression_model import (
@@ -46,7 +46,11 @@ def train_simple_ds_model():
     y_dev = dev.label_id
     y_test = test.label_id
 
-    tfidf_values = create_tfidf_values(imdb_dataset.reviews_preprocessed.values, True)
+    max_features = 40000
+
+    tfidf_values = create_tfidf_values(
+        imdb_dataset.reviews_preprocessed.values, True, max_features
+    )
 
     train_rule_matches_z = rule_matches_z[X_train.index]
     train_tfidf_sparse = tfidf_values[X_train.index]
@@ -56,7 +60,9 @@ def train_simple_ds_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = TrainerConfig(model=model, epochs=50)
+    custom_model_config = TrainerConfig(
+        model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
+    )
     trainer = SimpleDsModelTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
@@ -84,7 +90,13 @@ def train_simple_ds_model():
             "optimizer": str(trainer.trainer_config.optimizer),
             "learning_rate": trainer.trainer_config.optimizer.defaults["lr"],
         },
-        {"test_accuracy": clf_report["accuracy"]},
+        {
+            "test_accuracy": clf_report["accuracy"],
+            "f1_weighted": clf_report.get('weighted avg').get('f1-score'),
+            "recall_weighted": clf_report.get('weighted avg').get('precision'),
+            "precision_weighted": clf_report.get('weighted avg').get('recall'),
+
+        },
     )
 
 
@@ -95,15 +107,17 @@ def read_evaluation_data():
     return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 
 
-def create_tfidf_values(text_data: [str], force_create_new: bool):
+def create_tfidf_values(
+    text_data: [str], force_create_new: bool = False, max_features: int = None
+):
     if os.path.exists("tutorials/ImdbDataset/tfidf.lib") and not force_create_new:
-        cached_data = load("tutorials/ImdbDataset/tfidf.lib")
+        cached_data = load("tutorials/ImdbDataset/tfidf_{}.lib".format(max_features))
         if cached_data.shape == text_data.shape:
             return cached_data
 
-    vectorizer = TfidfVectorizer(min_df=2, max_features=700)
+    vectorizer = TfidfVectorizer(min_df=2, max_features=max_features)
     transformed_data = vectorizer.fit_transform(text_data)
-    dump(transformed_data, "tutorials/ImdbDataset/tfidf.lib")
+    dump(transformed_data, "tutorials/ImdbDataset/tfidf_{}.lib".format(max_features))
     return transformed_data
 
 
