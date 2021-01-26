@@ -1,25 +1,21 @@
 import logging
+import os
 
 import numpy as np
+import torch
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from torch import Tensor
 from torch.nn import Module
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 from tqdm import tqdm
-import torch
-import os
 
 from knodle.trainer import TrainerConfig
 from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
-from torch.utils.tensorboard import SummaryWriter
-from knodle.model.EarlyStopping import EarlyStopping
-import wandb
 
-writer = SummaryWriter()
 torch.manual_seed(123)
 
 logger = logging.getLogger(__name__)
@@ -54,8 +50,6 @@ class KnnTfidfSimilarity(DsModelTrainer):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
-
-        # denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
 
         if self.cache_denoised_matches:
             denoised_rule_matches_z = self.get_or_create_z(self.caching_prefix, self.k)
@@ -96,7 +90,6 @@ class KnnTfidfSimilarity(DsModelTrainer):
             dev_feature_label_dataloader = self._make_dataloader(
                 dev_feature_label_dataset, True
             )
-            early_stopping = EarlyStopping(patience=7, verbose=True, name="knn")
 
         log_section("Training starts", logger)
 
@@ -108,7 +101,6 @@ class KnnTfidfSimilarity(DsModelTrainer):
             for step, (feature_batch, label_batch) in enumerate(
                 feature_label_dataloader
             ):
-                # nself.print_step_update(step, len(feature_label_dataloader))
                 self.model.zero_grad()
                 predictions = self.model(feature_batch)
                 loss = self.trainer_config.criterion(predictions, label_batch)
@@ -128,33 +120,11 @@ class KnnTfidfSimilarity(DsModelTrainer):
                 {"Epoch_accuracy": avg_acc, "Epoch_loss": avg_loss},
             )
 
-            writer.add_scalars(
-                "training_metrics",
-                {
-                    "train_loss": float(avg_loss.cpu().numpy()),
-                    "train_accuracy": avg_acc,
-                },
-                current_epoch,
-            )
-
             if self.dev_rule_matches_z is not None:
-
                 val_loss, val_acc = self.validation(dev_feature_label_dataloader)
                 log_section(
                     "Validation Stats", logger, {"Accuracy": val_acc, "Loss": val_loss}
                 )
-
-                writer.add_scalars(
-                    "validation_metrics",
-                    {"val_loss": float(val_loss), "val_acc": val_acc},
-                    current_epoch,
-                )
-
-                # early_stopping(-1 * val_acc, self.model)
-
-                # if early_stopping.early_stop:
-                #     self.logger.info("Early stopping")
-                #     break
 
         log_section("Training done", logger)
 

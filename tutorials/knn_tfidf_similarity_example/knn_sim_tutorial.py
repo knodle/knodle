@@ -1,25 +1,22 @@
 import logging
-
 import os
+
 import pandas as pd
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from torch import Tensor
+from torch.optim import SGD
 from torch.utils.data import TensorDataset
-from torch.optim import AdamW, SGD
-from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
+from knodle.trainer import TrainerConfig
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )
-from knodle.trainer import TrainerConfig
-from torch.utils.tensorboard import SummaryWriter
-import wandb
-
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +32,6 @@ def train_knn_model():
 
     imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
 
-    review_series = imdb_dataset.reviews_preprocessed
-    label_ids = imdb_dataset.label_id
-
     rest, dev = train_test_split(
         imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE
     )
@@ -47,10 +41,6 @@ def train_knn_model():
     X_train = train.reviews_preprocessed
     X_dev = dev.reviews_preprocessed
     X_test = test.reviews_preprocessed
-
-    y_train = train.label_id
-    y_dev = dev.label_id
-    y_test = test.label_id
 
     max_features = 40000
 
@@ -64,80 +54,43 @@ def train_knn_model():
     train_dataset = TensorDataset(train_tfidf)
 
     dev_rule_matches_z = rule_matches_z[X_dev.index]
-    dev_tfidf_sparse = tfidf_values[X_dev.index]
     dev_tfidf = Tensor(tfidf_values[X_dev.index].toarray())
 
     dev_dataset = TensorDataset(dev_tfidf)
 
-    for current_k in range(1, 100, 1):
-        print(current_k)
-        model = LogisticRegressionModel(tfidf_values.shape[1], 2)
+    model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-        custom_model_config = TrainerConfig(
-            model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
-        )
+    custom_model_config = TrainerConfig(
+        model=model, epochs=1, optimizer_=SGD(model.parameters(), lr=0.1)
+    )
 
-        trainer = KnnTfidfSimilarity(
-            model,
-            mapping_rules_labels_t=mapping_rules_labels_t,
-            tfidf_values=train_tfidf_sparse,
-            model_input_x=train_dataset,
-            rule_matches_z=train_rule_matches_z,
-            dev_model_input_x=dev_dataset,
-            dev_rule_matches_z=dev_rule_matches_z,
-            k=current_k,
-            cache_denoised_matches=True,
-            caching_prefix="imdb_",
-            trainer_config=custom_model_config,
-        )
-        experiment_name = wandb.util.generate_id()
+    trainer = KnnTfidfSimilarity(
+        model,
+        mapping_rules_labels_t=mapping_rules_labels_t,
+        tfidf_values=train_tfidf_sparse,
+        model_input_x=train_dataset,
+        rule_matches_z=train_rule_matches_z,
+        dev_model_input_x=dev_dataset,
+        dev_rule_matches_z=dev_rule_matches_z,
+        k=1,
+        cache_denoised_matches=True,
+        caching_prefix="imdb_",
+        trainer_config=custom_model_config,
+    )
 
-        trainer.trainer_config.k = current_k
+    trainer.train()
 
-        wandb.init(
-            project="knodle",
-            group=experiment_name,
-            config=trainer.trainer_config)
+    tfidf_values_sparse = Tensor(tfidf_values[X_test.index].toarray())
+    tfidf_values_sparse = tfidf_values_sparse.to(custom_model_config.device)
 
-        trainer.train()
+    test_tfidf = TensorDataset(tfidf_values_sparse)
 
-        tfidf_values_sparse = Tensor(tfidf_values[X_test.index].toarray())
-        tfidf_values_sparse = tfidf_values_sparse.to(custom_model_config.device)
+    y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+    y_test = y_test.to(custom_model_config.device)
+    y_test = TensorDataset(y_test)
 
-        test_tfidf = TensorDataset(tfidf_values_sparse)
-
-        y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
-        y_test = y_test.to(custom_model_config.device)
-        y_test = TensorDataset(y_test)
-
-        clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
-
-        wandb.log({
-            "test_accuracy": clf_report["accuracy"],
-            "f1_weighted": clf_report.get('weighted avg').get('f1-score'), pp
-            "recall_weighted": clf_report.get('weighted avg').get('precision'),
-            "precision_weighted": clf_report.get('weighted avg').get('recall'),
-
-        },)
-
-        writer.add_hparams(
-            {
-                "type": "knn",
-                "epochs": trainer.trainer_config.epochs,
-                "optimizer": str(trainer.trainer_config.optimizer),
-                "learning_rate": trainer.trainer_config.optimizer.defaults["lr"],
-                "k": trainer.trainer_config.k,
-            },
-            {
-                "test_accuracy": clf_report["accuracy"],
-                "f1_weighted": clf_report.get('weighted avg').get('f1-score'),
-                "recall_weighted": clf_report.get('weighted avg').get('precision'),
-                "precision_weighted": clf_report.get('weighted avg').get('recall'),
-
-            },
-        )
-
-        wandb.finish()
+    clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
+    print(clf_report)
 
 
 def read_evaluation_data():
