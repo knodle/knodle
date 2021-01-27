@@ -2,10 +2,8 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.model.logistic_regression.logistic_regression_model import (
-    LogisticRegressionModel
-)
-from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
+from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
+from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 
 
 def test_train():
@@ -27,7 +25,7 @@ def test_train():
     mapping_rules_labels_t = np.zeros((num_rules, num_classes))
     mapping_rules_labels_t[:, 0] = 1
 
-    trainer = SimpleDsModelTrainer(
+    trainer = NoDenoisingTrainer(
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,

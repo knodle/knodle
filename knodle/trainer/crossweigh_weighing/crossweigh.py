@@ -9,40 +9,41 @@ from torch.utils.data import TensorDataset, DataLoader
 from joblib import load
 from tqdm import tqdm
 import torch.nn.functional as F
+import os
 
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
-from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, make_plot
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
+from knodle.trainer.crossweigh_weighing.utils import set_device, set_seed, make_plot, get_labels
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
-from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
+from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils.utils import accuracy_of_probs
 
-
-NO_MATCH_CLASS = -1
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class CrossWeigh(DsModelTrainer):
+class CrossWeigh(Trainer):
 
-    def __init__(self,
-                 model: Module,
-                 rule_assignments_t: np.ndarray,
-                 inputs_x: TensorDataset,
-                 rule_matches_z: np.ndarray,
-                 dev_features: TensorDataset,
-                 dev_labels: TensorDataset,
-                 weights: np.ndarray = None,
-                 denoising_config: CrossWeighDenoisingConfig = None,
-                 trainer_config: CrossWeighTrainerConfig = None):
+    def __init__(
+            self,
+            model: Module,
+            rule_assignments_t: np.ndarray,
+            inputs_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            dev_features: TensorDataset,
+            dev_labels: TensorDataset,
+            path_to_weights: str = "data",
+            denoising_config: CrossWeighDenoisingConfig = None,
+            trainer_config: CrossWeighTrainerConfig = None,
+            run_classifier: bool = True,
+            use_weights: bool = True
+    ):
         """
         :param model: a pre-defined classifier model that is to be trained
         :param rule_assignments_t: binary matrix that contains info about which rule correspond to which label
         :param inputs_x: encoded samples (samples x features)
         :param rule_matches_z: binary matrix that contains info about rules matched in samples (samples x rules)
-        :param dev_features_labels: development samples and corresponding labels used for model evaluation
         :param trainer_config: config used for main training
         :param denoising_config: config used for CrossWeigh denoising
         """
@@ -53,10 +54,12 @@ class CrossWeigh(DsModelTrainer):
         self.inputs_x = inputs_x
         self.rule_matches_z = rule_matches_z
         self.rule_assignments_t = rule_assignments_t
-        self.weights = weights
         self.denoising_config = denoising_config
         self.dev_features = dev_features
         self.dev_labels = dev_labels
+        self.path_to_weights = path_to_weights
+        self.run_classifier = run_classifier
+        self.use_weights = use_weights
 
         if trainer_config is None:
             self.trainer_config = CrossWeighTrainerConfig(self.model)
@@ -66,14 +69,20 @@ class CrossWeigh(DsModelTrainer):
             logger.info("Initalized trainer with custom model config: {}".format(self.trainer_config.__dict__))
 
         self.device = set_device(self.trainer_config.enable_cuda)
+        set_seed(self.trainer_config.seed)
 
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
-        set_seed(self.trainer_config.seed)
 
-        sample_weights = self._get_sample_weights()
-        train_labels = self._get_labels()
+        sample_weights = self._get_sample_weights() if self.use_weights \
+            else torch.FloatTensor([1] * len(self.model_input_x))
 
+        if not self.run_classifier:
+            logger.info("No classifier should be trained")
+            return
+
+        train_labels = get_labels(self.rule_matches_z, self.rule_assignments_t,
+                                  self.trainer_config.no_match_class_label)
         train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)
         dev_loader = self._get_feature_label_dataloader(self.dev_features, self.dev_labels)
 
@@ -90,6 +99,8 @@ class CrossWeigh(DsModelTrainer):
                 predictions = self.model(features)
                 loss = self._get_loss_with_sample_weights(self.trainer_config.criterion, predictions, labels, weights)
                 loss.backward()
+                if self.trainer_config.use_grad_clipping:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
                 self.trainer_config.optimizer.step()
                 acc = accuracy_of_probs(predictions, labels)
 
@@ -126,7 +137,8 @@ class CrossWeigh(DsModelTrainer):
                 predictions = self.model(tokens)
                 acc = accuracy_of_probs(predictions, labels)
 
-                predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=2).float()
+                predictions_one_hot = F.one_hot(predictions.argmax(1),
+                                                num_classes=self.trainer_config.output_classes).float()
                 loss = dev_criterion(predictions_one_hot, labels.flatten(0))
 
                 dev_loss += loss.detach()
@@ -136,22 +148,18 @@ class CrossWeigh(DsModelTrainer):
     def _get_sample_weights(self):
         """ This function checks whether there are accesible already pretrained sample weights. If yes, return
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
-        if self.weights is not None:
-            logger.info("Already pretrained samples sample_weights will be used.")
-            sample_weights = load(self.weights)
-        else:
-            logger.info("No pretrained sample sample_weights are found, they will be calculated now")
-            sample_weights = CrossWeighWeightsCalculator(
-                self.model, self.rule_assignments_t, self.inputs_x, self.rule_matches_z, self.denoising_config
-            ).calculate_weights()
-        return sample_weights
 
-    def _get_labels(self):
-        """ Check whether dataset contains negative samples and calculates the labels using majority voting"""
-        if self.trainer_config.negative_samples:
-            return get_majority_vote_probs_with_no_rel(self.rule_matches_z, self.rule_assignments_t, NO_MATCH_CLASS)
-        else:
-            return get_majority_vote_probs(self.rule_matches_z, self.rule_assignments_t)
+        try:
+            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
+            logger.info("Already pretrained samples sample_weights will be used.")
+        except OSError:
+            logger.info("No pretrained sample weights are found, they will be calculated now")
+            sample_weights = CrossWeighWeightsCalculator(self.model, self.rule_assignments_t, self.inputs_x,
+                                                         self.rule_matches_z, self.path_to_weights,
+                                                         self.denoising_config
+                                                         ).calculate_weights()
+            logger.info("Sample weights are calculated and saved to {} file".format(self.path_to_weights))
+        return sample_weights
 
     def _get_feature_label_dataloader(
             self, samples: TensorDataset, labels: np.ndarray, sample_weights: np.ndarray = None, shuffle: bool = True
@@ -168,6 +176,7 @@ class CrossWeigh(DsModelTrainer):
         dataloader = self._make_dataloader(dataset, shuffle=shuffle)
         return dataloader
 
-    def _get_loss_with_sample_weights(self, criterion: function, output: Tensor, labels: Tensor, weights: Tensor) -> Tensor:
+    def _get_loss_with_sample_weights(self, criterion: function, output: Tensor, labels: Tensor,
+                                      weights: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
         return (criterion(output, labels) * weights).sum() / self.trainer_config.class_weights[labels].sum()

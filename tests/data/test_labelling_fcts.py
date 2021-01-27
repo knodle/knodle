@@ -1,9 +1,9 @@
 import numpy as np
 
-from knodle.data.labelling_fcts import transform_lambda_matrix_to_z_t
+from knodle.data.labelling_fcts import transform_rule_class_matrix_to_z_t
 
 
-def test_transform_lambda_matrix_to_z_t():
+def test_transform_rule_class_matrix_to_z_t():
 
     lambda_matrix = np.array([
         [-1, 2, -1, 1],
@@ -24,7 +24,7 @@ def test_transform_lambda_matrix_to_z_t():
         [0, 1, 0]
     ])
 
-    z, t = transform_lambda_matrix_to_z_t(lambda_matrix)
+    z, t = transform_rule_class_matrix_to_z_t(lambda_matrix)
 
     np.array_equal(correct_z_matrix, z)
     np.array_equal(correct_t_matrix, t)

@@ -8,15 +8,16 @@ from torch import Tensor
 from torch.utils.data import TensorDataset
 from sklearn.metrics import classification_report
 
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
+from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import accuracy_of_probs
 
 logger = logging.getLogger(__name__)
 
 
-class MajorityBertTrainer(DsModelTrainer):
+class MajorityBertTrainer(Trainer):
     def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
@@ -24,10 +25,11 @@ class MajorityBertTrainer(DsModelTrainer):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model.to(device)
 
-        labels = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
+        label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
+        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
 
         feature_label_dataloader = self._make_dataloader(
-            TensorDataset(self.model_input_x.tensors[0], self.model_input_x.tensors[1], torch.from_numpy(labels))
+        model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs)
         )
 
         log_section("Training starts", logger)

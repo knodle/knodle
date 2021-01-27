@@ -4,12 +4,10 @@ import sys
 import torch
 from joblib import load
 import pandas as pd
-from torchtext.vocab import GloVe
 
-from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.model.logistic_regression.logisitc_regression_with_emb_layer import LogisticRegressionModel
-from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 from tutorials.crossweigh_weighing_example import utils
 from torch.utils.data import TensorDataset

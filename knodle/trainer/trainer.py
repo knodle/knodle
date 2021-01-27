@@ -13,7 +13,7 @@ from knodle.trainer.config.trainer_config import TrainerConfig
 logger = logging.getLogger(__name__)
 
 
-class DsModelTrainer(ABC):
+class Trainer(ABC):
     def __init__(
         self,
         model: Module,
