@@ -22,7 +22,7 @@ class CrossWeighTrainerConfig:
             enable_cuda: bool = False,
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
-            negative_samples: bool = False,  # True if there is a special label for no_relation samples
+            negative_samples: bool = False  # True if there is a special label for no_relation samples
     ):
         self.criterion = criterion
         self.batch_size = batch_size

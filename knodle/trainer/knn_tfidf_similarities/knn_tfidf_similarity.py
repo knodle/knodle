@@ -10,7 +10,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset
 
 from knodle.trainer import TrainerConfig
-from knodle.trainer.ds_model_trainer.ds_model_trainer import DsModelTrainer
+from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_all_neighbors
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
@@ -20,7 +20,7 @@ torch.manual_seed(123)
 logger = logging.getLogger(__name__)
 
 
-class KnnTfidfSimilarity(DsModelTrainer):
+class KnnTfidfSimilarity(Trainer):
     def __init__(
             self,
             model: Module,
