@@ -9,6 +9,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from joblib import load
 from tqdm import tqdm
 import torch.nn.functional as F
+import os
 
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
@@ -32,7 +33,7 @@ class CrossWeigh(Trainer):
             rule_matches_z: np.ndarray,
             dev_features: TensorDataset,
             dev_labels: TensorDataset,
-            path_to_weights: str = "data/sample_weights",
+            path_to_weights: str = "data",
             denoising_config: CrossWeighDenoisingConfig = None,
             trainer_config: CrossWeighTrainerConfig = None,
             run_classifier: bool = True,
@@ -149,7 +150,7 @@ class CrossWeigh(Trainer):
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
 
         try:
-            sample_weights = load(self.path_to_weights)
+            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights"))
             logger.info("Already pretrained samples sample_weights will be used.")
         except OSError:
             logger.info("No pretrained sample weights are found, they will be calculated now")

@@ -29,7 +29,7 @@ class CrossWeighWeightsCalculator:
         self.rule_matches_z = rule_matches_z
         self.rule_assignments_t = rule_assignments_t
         self.model = model
-        self.model_to_train = copy.deepcopy(self.model)
+        self.crossweigh_model = copy.deepcopy(self.model)
         self.output_dir = output_dir
 
         if denoising_config is None:
@@ -63,13 +63,14 @@ class CrossWeighWeightsCalculator:
 
             rules_shuffled_idx = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
             for fold in range(self.denoising_config.cw_folds):
-                self.model_to_train = self.model            # for each fold the model should be trained from scratch
+                # for each fold the model is trained from scratch
+                self.crossweigh_model = copy.deepcopy(self.model).to(device=self.device)
                 train_loader, test_loader = self.get_cw_data(rules_shuffled_idx, labels, fold)
                 self.cw_train(train_loader)
                 self.cw_test(test_loader)
             logger.info("============ CrossWeigh Partition {} is done ============".format(partition + 1))
 
-        dump(self.sample_weights, self.output_dir)
+        dump(self.sample_weights, os.path.join(self.output_dir, "sample_weights"))
         logger.info("======= Denoising with CrossWeigh is completed =======")
         return self.sample_weights
 
@@ -174,18 +175,18 @@ class CrossWeighWeightsCalculator:
         Training of CrossWeigh model
         :param train_loader: loader with the data which is used for training (k-1 folds)
         """
-        self.model_to_train.train()
+        self.crossweigh_model.train()
         for _ in tqdm(range(self.denoising_config.cw_epochs)):
             for tokens, labels, _ in train_loader:
                 self.denoising_config.criterion.weight = self.denoising_config.class_weights
                 self.denoising_config.criterion.reduction = "none"
                 self.denoising_config.optimizer.zero_grad()
-                output = self.model_to_train(tokens)
+                output = self.crossweigh_model(tokens)
                 loss = self._get_train_loss(self.denoising_config.criterion, output, labels, self.sample_weights)
                 # loss = self.denoising_config.criterion(output, labels, weight=self.denoising_config.class_weights)
                 loss.backward()
                 if self.denoising_config.use_grad_clipping:
-                    nn.utils.clip_grad_norm_(self.model_to_train.parameters(), self.denoising_config.grad_clipping)
+                    nn.utils.clip_grad_norm_(self.crossweigh_model.parameters(), self.denoising_config.grad_clipping)
                 self.denoising_config.optimizer.step()
 
     def _get_train_loss(self, criterion, output, labels, weights):
@@ -197,11 +198,11 @@ class CrossWeighWeightsCalculator:
         ones got with weak supervision and reduces sample_weights of disagreed samples
         :param test_loader: loader with the data which is used for testing (hold-out fold)
         """
-        self.model_to_train.eval()
+        self.crossweigh_model.eval()
         correct_predictions, wrong_predictions = 0, 0
         with torch.no_grad():
             for tokens, labels, idx in test_loader:
-                outputs = self.model_to_train(tokens)
+                outputs = self.crossweigh_model(tokens)
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()
                 for curr_pred in range(len(predictions)):
