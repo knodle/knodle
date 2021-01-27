@@ -150,7 +150,7 @@ class CrossWeigh(Trainer):
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
 
         try:
-            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights"))
+            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
             logger.info("Already pretrained samples sample_weights will be used.")
         except OSError:
             logger.info("No pretrained sample weights are found, they will be calculated now")

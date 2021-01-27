@@ -70,7 +70,7 @@ class CrossWeighWeightsCalculator:
                 self.cw_test(test_loader)
             logger.info("============ CrossWeigh Partition {} is done ============".format(partition + 1))
 
-        dump(self.sample_weights, os.path.join(self.output_dir, "sample_weights"))
+        dump(self.sample_weights, os.path.join(self.output_dir, "sample_weights.lib"))
         logger.info("======= Denoising with CrossWeigh is completed =======")
         return self.sample_weights
 
