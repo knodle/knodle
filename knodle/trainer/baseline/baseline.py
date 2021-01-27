@@ -10,14 +10,11 @@ from knodle.trainer import TrainerConfig
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
+from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import (
     accuracy_of_probs,
     extract_tensor_from_dataset,
 )
-import torch
-
-torch.manual_seed(123)
-from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -45,17 +42,17 @@ class NoDenoisingTrainer(Trainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        labels = get_majority_vote_probs(
+        label_probs = get_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t
         )
-        labels = Tensor(labels)
-        labels = labels.to(self.trainer_config.device)
+        label_probs = Tensor(label_probs)
+        label_probs = label_probs.to(self.trainer_config.device)
 
-        model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
-        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
+        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
 
-        feature_label_dataset = TensorDataset(model_input_x_tensor, labels)
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset, True)
+        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)
 

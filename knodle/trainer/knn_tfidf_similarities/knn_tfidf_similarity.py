@@ -13,6 +13,7 @@ from knodle.trainer import TrainerConfig
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_all_neighbors
+from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 
 torch.manual_seed(123)
@@ -55,18 +56,15 @@ class KnnTfidfSimilarity(Trainer):
         else:
             denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
 
-        labels = get_majority_vote_probs(
+        label_probs = get_majority_vote_probs(
             denoised_rule_matches_z, self.mapping_rules_labels_t
         )
 
-        labels = Tensor(labels)
-        labels = labels.to(self.trainer_config.device)
+        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
 
-        model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
-        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
-
-        feature_label_dataset = TensorDataset(model_input_x_tensor, labels)
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset, True)
+        model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
+        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         if self.dev_rule_matches_z is not None:
             dev_labels = get_majority_vote_probs(

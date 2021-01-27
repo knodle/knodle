@@ -10,6 +10,7 @@ from torch.utils.data import TensorDataset
 from knodle.trainer.ds_model_trainer.ds_model_trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
+from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import accuracy_of_probs
 
 logger = logging.getLogger(__name__)
@@ -25,12 +26,11 @@ class MajorityBertTrainer(Trainer):
         )
         self.model.to(device)
 
-        labels = get_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t
-        )
+        label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
+        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
 
         feature_label_dataloader = self._make_dataloader(
-            self.model_input_x.tensors[0], self.model_input_x.tensors[1], Tensor(labels)
+        model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs)
         )
 
         log_section("Training starts", logger)
@@ -45,18 +45,18 @@ class MajorityBertTrainer(Trainer):
                     "input_ids": feature_batch[0].to(device),
                     "attention_mask": feature_batch[1].to(device),
                 }
-                labels = label_batch[0].to(device)
+                label_probs = label_batch[0].to(device)
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 outputs = self.model(**inputs)
-                loss = self.trainer_config.criterion(outputs[0], labels)
+                loss = self.trainer_config.criterion(outputs[0], label_probs)
 
                 # backward pass
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 self.trainer_config.optimizer.step()
-                acc = accuracy_of_probs(outputs[0], labels)
+                acc = accuracy_of_probs(outputs[0], label_probs)
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
