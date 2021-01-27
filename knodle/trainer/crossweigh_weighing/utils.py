@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
 
 logger = logging.getLogger(__name__)
 
@@ -130,3 +131,17 @@ def make_plot(
     plt.plot(value_4, "y", label=label_4)
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0.0)
     plt.show()
+
+
+def get_labels(
+        rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray, no_match_class_label: int = None
+) -> np.ndarray:
+    """ Check whether dataset contains negative samples and calculates the labels using majority voting """
+    if no_match_class_label:
+        if no_match_class_label < 0:
+            raise RuntimeError("A label for negative samples should be greater that 0 for correct matrix multiplication")
+        if no_match_class_label < rule_matches_z.shape[1]:
+            raise RuntimeError("The label for negative samples is probably already assigned to some other class")
+        return get_majority_vote_probs_with_no_rel(rule_matches_z, rule_assignments_t, no_match_class_label)
+    else:
+        return get_majority_vote_probs(rule_matches_z, rule_assignments_t)
