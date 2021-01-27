@@ -20,10 +20,14 @@ class MajorityBertTrainer(DsModelTrainer):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        device = (
+            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        )
         self.model.to(device)
 
-        labels = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
+        labels = get_majority_vote_probs(
+            self.rule_matches_z, self.mapping_rules_labels_t
+        )
 
         feature_label_dataloader = self._make_dataloader(
             self.model_input_x.tensors[0], self.model_input_x.tensors[1], Tensor(labels)

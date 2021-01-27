@@ -9,6 +9,7 @@ from knodle.trainer.baseline.baseline import SimpleDsModelTrainer
 
 
 def test_train():
+
     num_samples = 64
     num_features = 16
     num_rules = 6
@@ -31,13 +32,13 @@ def test_train():
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,
-        rule_matches_z=rule_matches_z
+        rule_matches_z=rule_matches_z,
     )
 
     trainer.train()
 
     y_np = np.zeros((num_samples,))
-    y_labels = torch.from_numpy(y_np)
+    y_labels = TensorDataset(torch.from_numpy(y_np))
     metrics = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%

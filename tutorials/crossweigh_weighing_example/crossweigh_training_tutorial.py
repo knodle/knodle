@@ -7,7 +7,9 @@ import pandas as pd
 from torchtext.vocab import GloVe
 
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.model.logistic_regression.logisitc_regression_with_emb_layer import LogisticRegressionModel
+from knodle.model.logistic_regression.logisitc_regression_with_emb_layer import (
+    LogisticRegressionModel,
+)
 from knodle.trainer.config.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.config.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
@@ -26,8 +28,12 @@ MAXLEN = 50
 
 
 def train_crossweigh(
-        path_t: str, path_train_samples: str, path_z: str, path_word_emb_file: str,
-        path_dev_features_labels: str = None, sample_weights: str = None
+        path_t: str,
+        path_train_samples: str,
+        path_z: str,
+        path_word_emb_file: str,
+        path_dev_features_labels: str = None,
+        sample_weights: str = None,
 ) -> None:
     """
     Training the model with CrossWeigh model denoising
@@ -47,55 +53,74 @@ def train_crossweigh(
 
     if path_dev_features_labels is not None:
         # the test set is given for testing the function
-        train_input_x = utils.get_data_features(input_data, word2id, samples_column=2, maxlen=MAXLEN)
+        train_input_x = utils.get_data_features(
+            input_data, word2id, samples_column=2, maxlen=MAXLEN
+        )
         input_dev_data = pd.read_csv(path_dev_features_labels)
-        dev_input_x, dev_labels = utils.get_data_features(input_dev_data, word2id, samples_column=1, labels_column=2,
-                                                          maxlen=MAXLEN)
+        dev_input_x, dev_labels = utils.get_data_features(
+            input_dev_data, word2id, samples_column=1, labels_column=2, maxlen=MAXLEN
+        )
 
     else:
         # the dataset should be splitted into train and test set
         data_series = input_data.reviews_preprocessed
         label_ids = input_data.label_id
-        train_data_spl, dev_data_spl, _, dev_labels = train_test_split(data_series, label_ids, test_size=0.2,
-                                                                       random_state=0)
+        train_data_spl, dev_data_spl, _, dev_labels = train_test_split(
+            data_series, label_ids, test_size=0.2, random_state=0
+        )
 
-        train_input_x = TensorDataset(torch.LongTensor(
-            encode_samples(list(train_data_spl.values), word2id, MAXLEN)))
+        train_input_x = TensorDataset(
+            torch.LongTensor(
+                encode_samples(list(train_data_spl.values), word2id, MAXLEN)
+            )
+        )
         train_rule_matches_z = rule_matches_z[train_data_spl.index]
 
-        dev_input_x = torch.LongTensor(encode_samples(list(dev_data_spl.values), word2id, MAXLEN))
-        dev_labels = torch.LongTensor(input_data.loc[dev_data_spl.index, "label_id"].values)
+        dev_input_x = torch.LongTensor(
+            encode_samples(list(dev_data_spl.values), word2id, MAXLEN)
+        )
+        dev_labels = torch.LongTensor(
+            input_data.loc[dev_data_spl.index, "label_id"].values
+        )
         dev_input_x_dataset = TensorDataset(dev_input_x)
         dev_labels_dataset = TensorDataset(dev_labels)
 
     dev_features_and_labels = TensorDataset(dev_input_x, dev_labels)
 
-    model = LogisticRegressionModel(MAXLEN,
-                                    word_embedding_matrix.shape[0],
-                                    word_embedding_matrix.shape[1],
-                                    word_embedding_matrix,
-                                    NUM_CLASSES)
+    model = LogisticRegressionModel(
+        MAXLEN,
+        word_embedding_matrix.shape[0],
+        word_embedding_matrix.shape[1],
+        word_embedding_matrix,
+        NUM_CLASSES,
+    )
 
-    custom_crossweigh_denoising_config = CrossWeighDenoisingConfig(model=model,
-                                                                   # class_weights=CLASS_WEIGHTS,
-                                                                   lr=0.8,
-                                                                   output_classes=NUM_CLASSES,
-                                                                   negative_samples=False)
-    custom_crossweigh_trainer_config = CrossWeighTrainerConfig(model=model,
-                                                               # class_weights=CLASS_WEIGHTS,
-                                                               lr=0.01,
-                                                               output_classes=NUM_CLASSES,
-                                                               epochs=35,
-                                                               negative_samples=False)
+    custom_crossweigh_denoising_config = CrossWeighDenoisingConfig(
+        model=model,
+        # class_weights=CLASS_WEIGHTS,
+        lr=0.8,
+        output_classes=NUM_CLASSES,
+        negative_samples=False,
+    )
+    custom_crossweigh_trainer_config = CrossWeighTrainerConfig(
+        model=model,
+        # class_weights=CLASS_WEIGHTS,
+        lr=0.01,
+        output_classes=NUM_CLASSES,
+        epochs=35,
+        negative_samples=False,
+    )
 
-    trainer = CrossWeigh(model=model,
-                         rule_assignments_t=rule_assignments_t,
-                         inputs_x=train_input_x,
-                         rule_matches_z=train_rule_matches_z,
-                         dev_features_labels=dev_features_and_labels,
-                         weights=sample_weights,
-                         denoising_config=custom_crossweigh_denoising_config,
-                         trainer_config=custom_crossweigh_trainer_config)
+    trainer = CrossWeigh(
+        model=model,
+        rule_assignments_t=rule_assignments_t,
+        inputs_x=train_input_x,
+        rule_matches_z=train_rule_matches_z,
+        dev_features_labels=dev_features_and_labels,
+        weights=sample_weights,
+        denoising_config=custom_crossweigh_denoising_config,
+        trainer_config=custom_crossweigh_trainer_config,
+    )
     trainer.train()
     trainer.test(test_features=dev_input_x_dataset, test_labels=dev_labels_dataset)
 
@@ -107,13 +132,17 @@ if __name__ == "__main__":
     parser.add_argument("--rule_matches_z", help="")
     parser.add_argument("--word_embeddings", help="")
     parser.add_argument("--dev_features_labels", help="")
-    parser.add_argument("--sample_weights", help="If there are pretrained samples sample_weights")
+    parser.add_argument(
+        "--sample_weights", help="If there are pretrained samples sample_weights"
+    )
 
     args = parser.parse_args()
 
-    train_crossweigh(args.rule_assignments_t,
-                     args.path_train_samples,
-                     args.rule_matches_z,
-                     args.word_embeddings,
-                     args.dev_features_labels,
-                     args.sample_weights)
+    train_crossweigh(
+        args.rule_assignments_t,
+        args.path_train_samples,
+        args.rule_matches_z,
+        args.word_embeddings,
+        args.dev_features_labels,
+        args.sample_weights,
+    )

@@ -7,8 +7,8 @@ from torch.utils.data import TensorDataset
 
 def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorDataset:
     encoding = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
-    input_ids = encoding.get('input_ids')
-    attention_mask = encoding.get('attention_mask')
+    input_ids = encoding.get("input_ids")
+    attention_mask = encoding.get("attention_mask")
 
     input_values_x = TensorDataset(input_ids, attention_mask)
 
@@ -16,8 +16,13 @@ def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorData
 
 
 def create_bert_input(
-        tokenizer, train_x: List[str], rule_matches_z: np.array, mapping_rules_labels_t: np.array, train_y: np.array,
-        test_x: List[str], test_y: np.array
+        tokenizer,
+        train_x: List[str],
+        rule_matches_z: np.array,
+        mapping_rules_labels_t: np.array,
+        train_y: np.array,
+        test_x: List[str],
+        test_y: np.array,
 ) -> [TensorDataset, np.array, np.array, TensorDataset, TensorDataset, TensorDataset]:
     """Note that this can also be used for DistillBert and other versions.
 
@@ -33,6 +38,10 @@ def create_bert_input(
     test_y = TensorDataset(torch.from_numpy(test_y))
 
     return (
-        train_ids_mask, train_rule_matches_z, mapping_rules_labels_t, train_y,
-        test_ids_mask, test_y
+        train_ids_mask,
+        train_rule_matches_z,
+        mapping_rules_labels_t,
+        train_y,
+        test_ids_mask,
+        test_y,
     )

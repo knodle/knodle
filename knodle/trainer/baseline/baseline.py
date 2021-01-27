@@ -14,6 +14,9 @@ from knodle.trainer.utils.utils import (
     accuracy_of_probs,
     extract_tensor_from_dataset,
 )
+import torch
+
+torch.manual_seed(123)
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +47,14 @@ class SimpleDsModelTrainer(DsModelTrainer):
         labels = get_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t
         )
+        labels = Tensor(labels)
+        labels = labels.to(self.trainer_config.device)
 
         model_input_x_tensor = extract_tensor_from_dataset(self.model_input_x, 0)
-        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(labels))
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
+        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
+
+        feature_label_dataset = TensorDataset(model_input_x_tensor, labels)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset, True)
 
         log_section("Training starts", logger)
 
