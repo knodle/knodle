@@ -26,10 +26,14 @@ class MajorityBertTrainer(Trainer):
         self.model.to(device)
 
         label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
-        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+
+        if self.trainer_config.filter_non_labelled:
+            model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        else:
+            model_input_x = self.model_input_x
 
         feature_label_dataloader = self._make_dataloader(
-        model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs)
+            TensorDataset(model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs))
         )
 
         log_section("Training starts", logger)
@@ -60,8 +64,8 @@ class MajorityBertTrainer(Trainer):
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
-                if i > 0:
-                    break
+                # if i > 0:
+                #     break
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
@@ -96,23 +100,20 @@ class MajorityBertTrainer(Trainer):
                     "input_ids": input_ids_batch.to(device),
                     "attention_mask": attention_mask_batch.to(device),
                 }
-                labels = label_batch.to(device)
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 prediction_probs = self.model(**inputs)[0]
                 predictions = np.argmax(prediction_probs.detach().numpy(), axis=-1)
                 predictions_list.append(predictions)
-                print("label", label_batch.detach().numpy().shape)
                 label_list.append(label_batch.detach().numpy())
-                i = i + 1
-                if i > 1:
-                    break
+                # i = i + 1
+                # if i > 0:
+                #     break
 
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))
-        print(predictions.shape)
-        print(gold_labels.shape)
+
         clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         logger.info(clf_report)
