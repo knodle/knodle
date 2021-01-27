@@ -22,7 +22,7 @@ class CrossWeighTrainerConfig:
             enable_cuda: bool = False,
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
-            negative_samples: bool = False  # True if there is a special label for no_relation samples
+            no_match_class_label: int = None
     ):
         self.criterion = criterion
         self.batch_size = batch_size
@@ -32,7 +32,7 @@ class CrossWeighTrainerConfig:
         self.use_grad_clipping = use_grad_clipping
         self.grad_clipping = grad_clipping
         self.output_classes = output_classes
-        self.negative_samples = negative_samples
+        self.no_match_class_label = no_match_class_label
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
