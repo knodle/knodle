@@ -104,9 +104,9 @@ class MajorityBertTrainer(Trainer):
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 prediction_probs = self.model(**inputs)[0]
-                predictions = np.argmax(prediction_probs.detach().numpy(), axis=-1)
+                predictions = np.argmax(prediction_probs.cpu().detach().numpy(), axis=-1)
                 predictions_list.append(predictions)
-                label_list.append(label_batch.detach().numpy())
+                label_list.append(label_batch.cpu().detach().numpy())
                 # i = i + 1
                 # if i > 0:
                 #     break
