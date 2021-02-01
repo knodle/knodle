@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_labels, activate_all_neighbors
+from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_labels, activate_neighbors
 
 
 @pytest.fixture
@@ -49,12 +49,20 @@ def test_get_majority_vote_probs(values):
     assert np.array_equal(gold_probs, majority_probs)
 
 
+def test_majority_vote_old():
+    rule_matches_z = np.array([[1, 1], [1, 1], [0, 0]])
+    mapping_rules_labels_t = np.array([[0], [1]])
+    majority_vote = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
+    correct_result = np.array([[1], [1], [0]])
+    assert_array_equal(correct_result, majority_vote)
+
+
 def test_denoise_knn():
     test_array = np.array([[0, 1], [1, 0]])
     right_result = np.array([[1, 1], [1, 1]])
     indices = np.array([[0, 1], [1, 0]])
 
-    denoised_z = activate_all_neighbors(test_array, indices)
+    denoised_z = activate_neighbors(test_array, indices)
     assert_array_equal(denoised_z, right_result)
 
     test_array = np.diag(np.ones((3,)))
@@ -69,7 +77,7 @@ def test_denoise_knn():
     right_result[1, 0] = 1
     right_result[2, 1] = 1
 
-    denoised_z = activate_all_neighbors(test_array, indices)
+    denoised_z = activate_neighbors(test_array, indices)
     assert_array_equal(denoised_z, right_result)
 
     test_array = np.diag(np.ones((3,)))
@@ -84,7 +92,7 @@ def test_denoise_knn():
     right_result[1, 0] = 0
     right_result[2, 1] = 0
 
-    denoised_z = activate_all_neighbors(test_array, indices)
+    denoised_z = activate_neighbors(test_array, indices)
     assert_array_equal(denoised_z, right_result)
 
 # def test_denoise_knn_2():

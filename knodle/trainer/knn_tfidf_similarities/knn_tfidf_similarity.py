@@ -1,18 +1,21 @@
+import os
 import logging
 
+import joblib
+import pandas as pd
 import numpy as np
-import os
-import torch
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
+
+import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset
 
-from knodle.trainer import TrainerConfig
 from knodle.trainer.trainer import Trainer
+from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.utils import log_section
-from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_all_neighbors
+from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_neighbors
 from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 
@@ -28,33 +31,28 @@ class KnnTfidfSimilarity(Trainer):
             mapping_rules_labels_t: np.ndarray,
             model_input_x: TensorDataset,
             rule_matches_z: np.ndarray,
-            tfidf_values: csr_matrix,
-            k: int,
             dev_rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None,
-            trainer_config: TrainerConfig = None,
-            cache_denoised_matches=False,
-            caching_prefix="knn_cached",
+            trainer_config: KNNConfig = None
     ):
+        self.tfidf_values = csr_matrix(model_input_x.tensors[0].numpy())
+        self.tfidf_values = csr_matrix(model_input_x.tensors[0].numpy())
+        self.dev_rule_matches_z = dev_rule_matches_z
+        self.dev_model_input_x = dev_model_input_x
+
+        if trainer_config is None:
+            trainer_config = KNNConfig(self.model)
+
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
         )
-        self.tfidf_values = tfidf_values
-        self.k = k
-        self.cache_denoised_matches = cache_denoised_matches
-        self.caching_prefix = caching_prefix
-        self.dev_rule_matches_z = dev_rule_matches_z
-        self.dev_model_input_x = dev_model_input_x
 
     def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        if self.cache_denoised_matches:
-            denoised_rule_matches_z = self.get_or_create_z(self.caching_prefix, self.k)
-        else:
-            denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
+        denoised_rule_matches_z = self._denoise_rule_matches()
 
         label_probs = get_majority_vote_probs(
             denoised_rule_matches_z, self.mapping_rules_labels_t
@@ -95,16 +93,15 @@ class KnnTfidfSimilarity(Trainer):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
 
-            for step, (feature_batch, label_batch) in enumerate(
-                    feature_label_dataloader
-            ):
+            for step, (feature_batch, label_batch) in enumerate(feature_label_dataloader):
                 self.model.zero_grad()
                 predictions = self.model(feature_batch)
                 loss = self.trainer_config.criterion(predictions, label_batch)
+
                 loss.backward()
                 self.trainer_config.optimizer.step()
-                acc = accuracy_of_probs(predictions, label_batch)
 
+                acc = accuracy_of_probs(predictions, label_batch)
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
 
@@ -134,7 +131,6 @@ class KnnTfidfSimilarity(Trainer):
                 predictions = self.model(feature_batch)
 
                 loss = self.trainer_config.criterion(predictions, label_batch)
-
                 acc = accuracy_of_probs(predictions, label_batch)
 
                 epoch_loss += loss.item()
@@ -144,44 +140,45 @@ class KnnTfidfSimilarity(Trainer):
             validation_dataloader
         )
 
-    def _denoise_rule_matches(self, rule_matches_z: np.ndarray) -> np.ndarray:
+    def _denoise_rule_matches(self) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
         Args:
             rule_matches_z: Matrix with all applied weak supervision sources. Shape: (Instances x Rules)
         Returns: Denoised / Improved applied labeling function matrix. Shape: (Instances x Rules)
         """
-        logger.info("Start denoising labeling functions with k: {}.".format(self.k))
 
-        if self.k == 1:
-            return rule_matches_z
+        # load cached data, if available
+        cache_dir = self.trainer_config.caching_folder
+        if cache_dir is not None:
+            cache_file = os.path.join(cache_dir, "denoised_rule_matches_z.lib")
+            if os.path.isfile(cache_file):
+                return joblib.load(cache_file)
 
-        logger.info("This can take a while ...")
+        k = self.trainer_config.k
+        if k == 1:
+            return self.rule_matches_z
 
-        neighbors = NearestNeighbors(n_neighbors=self.k, n_jobs=-1).fit(
-            self.tfidf_values
-        )
-        distances, indices = neighbors.kneighbors(self.tfidf_values)
-        new_lfs = activate_all_neighbors(rule_matches_z, indices)
-        return new_lfs
+        logger.info(f"Start denoising labeling functions with k: {k}.")
 
-    def get_or_create_z(self, prefix: str, k: int) -> np.ndarray:
-        path_for_cache = "data/cached_knn/{}_{}_{}".format(prefix, str(k), ".npy")
-
-        if os.path.exists(path_for_cache):
-            denoised_rule_matches_z = np.load(path_for_cache, allow_pickle=True)
+        # Set up data structure, to quickly find nearest neighbors
+        if k is not None:
+            neighbors = NearestNeighbors(n_neighbors=k, n_jobs=-1).fit(self.tfidf_values)
+            distances, indices = neighbors.kneighbors(self.tfidf_values, n_neighbors=k)
         else:
-            denoised_rule_matches_z = self._denoise_rule_matches(self.rule_matches_z)
-            self.cache_matches(path_for_cache, denoised_rule_matches_z)
+            neighbors = NearestNeighbors(radius=self.trainer_config.radius, n_jobs=-1).fit(self.tfidf_values)
+            distances, indices = neighbors.radius_neighbors(self.tfidf_values)
+
+        # activate matches.
+        denoised_rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
+
+        # save data for caching
+        if cache_dir is not None:
+            os.makedirs(cache_dir, exist_ok=True)
+            joblib.dump(cache_file, denoised_rule_matches_z)
 
         return denoised_rule_matches_z
 
-    def cache_matches(
-            self, file_path: str, denoised_rule_matches_z: np.ndarray
-    ) -> None:
-        os.makedirs("data/cached_knn/", exist_ok=True)
-        np.save(file_path, denoised_rule_matches_z)
-
     def print_step_update(self, step: int, max_steps: int):
         if step % 40 == 0 and not step == 0:
-            logger.info("  Batch {:>5,}  of  {:>5,}.".format(step, max_steps))
+            logger.info(f"  Batch {step}  of  {max_steps}.")

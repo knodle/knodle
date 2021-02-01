@@ -1,5 +1,17 @@
 import numpy as np
-from tqdm import tqdm
+
+from random import randint
+
+
+def sample_majority(probs: np.array, random_label: bool = True, default_label: int = -1):
+    row_max = np.max(probs)
+    num_occurrences = (row_max == probs).sum()
+    if num_occurrences == 1:
+        return np.argmax(probs)
+    else:
+        if random_label:
+            return randint(0, probs.shape[0] - 1)
+        return default_label
 
 
 def get_majority_vote_labels(
@@ -13,7 +25,6 @@ def get_majority_vote_labels(
         no_rule_label: Dummy label
     Returns: Decision per sample. Shape: (instances, )
     """
-
     rule_counts_probs = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
 
     def row_majority(row):
@@ -22,6 +33,12 @@ def get_majority_vote_labels(
         if num_occurrences == 1:
             return np.argmax(row)
         else:
+            if no_rule_label == None:
+                a = randint(0, rule_counts_probs.shape[1] - 1)
+                if a >= 2:
+                    print(a)
+                    print(rule_counts_probs.shape)
+                return a
             return no_rule_label
 
     majority_labels = np.apply_along_axis(row_majority, axis=1, arr=rule_counts_probs)
@@ -111,7 +128,7 @@ def get_majority_vote_probs_with_no_rel(
 #     return new_lfs_array
 
 
-def activate_all_neighbors(
+def activate_neighbors(
         rule_matches_z: np.ndarray, indices: np.ndarray
 ) -> np.ndarray:
     """

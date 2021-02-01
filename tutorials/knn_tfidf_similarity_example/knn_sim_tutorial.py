@@ -1,19 +1,19 @@
 import logging
 import os
+import sys
 
 import pandas as pd
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from torch import Tensor
-from torch.optim import SGD
+from torch.optim import SGD, AdamW
 from torch.utils.data import TensorDataset
 from torch.utils.tensorboard import SummaryWriter
-import sys
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer import TrainerConfig
+from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )
@@ -21,8 +21,11 @@ from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
 logger = logging.getLogger(__name__)
 
 OUTPUT_CLASSES = 2
-DEV_SIZE = 1000
-TEST_SIZE = 1000
+# DEV_SIZE = 1000
+# TEST_SIZE = 1000
+
+DEV_SIZE = 5000
+TEST_SIZE = 5000
 RANDOM_STATE = 123
 writer = SummaryWriter()
 
@@ -52,7 +55,7 @@ def train_knn_model():
     X_dev = dev.reviews_preprocessed
     X_test = test.reviews_preprocessed
 
-    max_features = 40000
+    max_features = 200
 
     tfidf_values = create_tfidf_values(
         imdb_dataset.reviews_preprocessed.values, True, max_features
@@ -69,38 +72,37 @@ def train_knn_model():
     dev_dataset = TensorDataset(dev_tfidf)
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
+    for k in [2, 2, 4, 8, 15]:
+        custom_model_config = KNNConfig(
+            model=model, epochs=3, optimizer_=AdamW(model.parameters(), lr=0.01),
+            k=k  # , caching_folder=os.path.join(os.getcwd(), "data/knn_caching")
+        )
 
-    custom_model_config = TrainerConfig(
-        model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
-    )
+        trainer = KnnTfidfSimilarity(
+            model,
+            mapping_rules_labels_t=mapping_rules_labels_t,
+            model_input_x=train_dataset,
+            rule_matches_z=train_rule_matches_z,
+            dev_model_input_x=dev_dataset,
+            dev_rule_matches_z=dev_rule_matches_z,
+            trainer_config=custom_model_config,
+        )
 
-    trainer = KnnTfidfSimilarity(
-        model,
-        mapping_rules_labels_t=mapping_rules_labels_t,
-        tfidf_values=train_tfidf_sparse,
-        model_input_x=train_dataset,
-        rule_matches_z=train_rule_matches_z,
-        dev_model_input_x=dev_dataset,
-        dev_rule_matches_z=dev_rule_matches_z,
-        k=28,
-        cache_denoised_matches=True,
-        caching_prefix="imdb_",
-        trainer_config=custom_model_config,
-    )
+        trainer.train()
 
-    trainer.train()
+        tfidf_values_sparse = Tensor(tfidf_values[X_test.index].toarray())
+        tfidf_values_sparse = tfidf_values_sparse.to(custom_model_config.device)
 
-    tfidf_values_sparse = Tensor(tfidf_values[X_test.index].toarray())
-    tfidf_values_sparse = tfidf_values_sparse.to(custom_model_config.device)
+        test_tfidf = TensorDataset(tfidf_values_sparse)
 
-    test_tfidf = TensorDataset(tfidf_values_sparse)
+        y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
+        y_test = y_test.to(custom_model_config.device)
+        y_test = TensorDataset(y_test)
 
-    y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
-    y_test = y_test.to(custom_model_config.device)
-    y_test = TensorDataset(y_test)
-
-    clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
-    print(clf_report)
+        clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
+        print("-------------------------")
+        print(f"k == {k}")
+        print(clf_report)
 
 
 def read_evaluation_data():

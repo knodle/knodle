@@ -45,13 +45,15 @@ class NoDenoisingTrainer(Trainer):
         label_probs = get_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t
         )
-        label_probs = Tensor(label_probs)
-        label_probs = label_probs.to(self.trainer_config.device)
 
         model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
         model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
 
-        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
+        label_probs = Tensor(label_probs)
+        label_probs = label_probs.to(self.trainer_config.device)
+        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
+
+        feature_label_dataset = TensorDataset(model_input_x_tensor, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)
