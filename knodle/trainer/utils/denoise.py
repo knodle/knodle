@@ -33,7 +33,7 @@ def get_majority_vote_labels(
         if num_occurrences == 1:
             return np.argmax(row)
         else:
-            if no_rule_label == None:
+            if no_rule_label is None:
                 a = randint(0, rule_counts_probs.shape[1] - 1)
                 if a >= 2:
                     print(a)
