@@ -4,15 +4,14 @@ import numpy as np
 from tqdm.auto import tqdm
 
 import torch
-from torch import Tensor
 from torch.utils.data import TensorDataset
 from sklearn.metrics import classification_report
 
+from knodle.transformation.majority import input_to_majority_vote_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
+
 from knodle.trainer.trainer import Trainer
-from knodle.trainer.utils import log_section
-from knodle.trainer.utils.denoise import get_majority_vote_probs
-from knodle.trainer.utils.filter import filter_empty_probabilities
-from knodle.trainer.utils.utils import accuracy_of_probs
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
 
@@ -22,23 +21,17 @@ class MajorityBertTrainer(Trainer):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
-        device = (
-            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+        model_input_x, label_probs = input_to_majority_vote_input(
+            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+            filter_empty_z_rows=self.trainer_config.filter_non_labelled
         )
-        self.model.to(device)
 
-        label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
-
-        if self.trainer_config.filter_non_labelled:
-            model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
-        else:
-            model_input_x = self.model_input_x
-
-        feature_label_dataloader = self._make_dataloader(
-            TensorDataset(model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs))
-        )
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)
+        device = self.trainer_config.device
         self.model.train()
 
         for current_epoch in range(self.trainer_config.epochs):

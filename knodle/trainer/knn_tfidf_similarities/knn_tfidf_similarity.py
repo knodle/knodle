@@ -2,7 +2,6 @@ import os
 import logging
 
 import joblib
-import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
@@ -12,11 +11,13 @@ from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset
 
+from knodle.transformation.majority import input_to_majority_vote_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
+
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_neighbors
-from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
 
 torch.manual_seed(123)
@@ -54,37 +55,22 @@ class KnnTfidfSimilarity(Trainer):
 
         denoised_rule_matches_z = self._denoise_rule_matches()
 
-        label_probs = get_majority_vote_probs(
-            denoised_rule_matches_z, self.mapping_rules_labels_t
+        model_input_x, label_probs = input_to_majority_vote_input(
+            self.model_input_x, denoised_rule_matches_z, self.mapping_rules_labels_t,
+            filter_empty_z_rows=self.trainer_config.filter_non_labelled
         )
 
-        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
-
-        model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
-        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         if self.dev_rule_matches_z is not None:
-            dev_labels = get_majority_vote_probs(
-                self.dev_rule_matches_z, self.mapping_rules_labels_t
+            model_input_x, label_probs = input_to_majority_vote_input(
+                self.dev_model_input_x, self.dev_rule_matches_z, self.mapping_rules_labels_t,
+                filter_empty_z_rows=self.trainer_config.filter_non_labelled
             )
 
-            dev_labels = Tensor(dev_labels)
-            dev_labels = dev_labels.to(self.trainer_config.device)
-
-            dev_model_input_x_tensor = extract_tensor_from_dataset(
-                self.dev_model_input_x, 0
-            )
-            dev_model_input_x_tensor = dev_model_input_x_tensor.to(
-                self.trainer_config.device
-            )
-
-            dev_feature_label_dataset = TensorDataset(
-                dev_model_input_x_tensor, dev_labels
-            )
-            dev_feature_label_dataloader = self._make_dataloader(
-                dev_feature_label_dataset, True
-            )
+            dev_feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+            dev_feature_label_dataloader = self._make_dataloader(dev_feature_label_dataset)
 
         log_section("Training starts", logger)
 
@@ -94,6 +80,9 @@ class KnnTfidfSimilarity(Trainer):
             logger.info("Epoch: {}".format(current_epoch))
 
             for step, (feature_batch, label_batch) in enumerate(feature_label_dataloader):
+                feature_batch = feature_batch.to(self.trainer_config.device)
+                label_batch = label_batch.to(self.trainer_config.device)
+
                 self.model.zero_grad()
                 predictions = self.model(feature_batch)
                 loss = self.trainer_config.criterion(predictions, label_batch)
@@ -128,6 +117,8 @@ class KnnTfidfSimilarity(Trainer):
 
         with torch.no_grad():
             for feature_batch, label_batch in validation_dataloader:
+                feature_batch = feature_batch.to(self.trainer_config.device)
+                label_batch = label_batch.to(self.trainer_config.device)
                 predictions = self.model(feature_batch)
 
                 loss = self.trainer_config.criterion(predictions, label_batch)

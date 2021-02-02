@@ -1,19 +1,18 @@
 import logging
 
 import numpy as np
-from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
+from knodle.transformation.majority import input_to_majority_vote_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
+
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.baseline.majority_config import MajorityConfig
-from knodle.trainer.utils import log_section
-from knodle.trainer.utils.denoise import get_majority_vote_probs
-from knodle.trainer.utils.filter import filter_empty_probabilities
 from knodle.trainer.utils.utils import (
-    accuracy_of_probs,
-    extract_tensor_from_dataset,
+    log_section,
+    accuracy_of_probs
 )
 
 logger = logging.getLogger(__name__)
@@ -44,25 +43,16 @@ class NoDenoisingTrainer(Trainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        label_probs = get_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t
+        model_input_x, label_probs = input_to_majority_vote_input(
+            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+            filter_empty_z_rows=self.trainer_config.filter_non_labelled
         )
 
-        if self.trainer_config.filter_non_labelled:
-            model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
-        else:
-            model_input_x = self.model_input_x
-
-        model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
-
-        label_probs = Tensor(label_probs)
-        label_probs = label_probs.to(self.trainer_config.device)
-        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
-
-        feature_label_dataset = TensorDataset(model_input_x_tensor, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)
+        device = self.trainer_config.device
 
         self.model.train()
         for current_epoch in tqdm(range(self.trainer_config.epochs)):
@@ -70,6 +60,9 @@ class NoDenoisingTrainer(Trainer):
             logger.info("Epoch: {}".format(current_epoch))
 
             for feature_batch, label_batch in feature_label_dataloader:
+                feature_batch = feature_batch.to(device)
+                label_batch = label_batch.to(device)
+
                 self.model.zero_grad()
                 predictions = self.model(feature_batch)
                 loss = self.trainer_config.criterion(predictions, label_batch)
