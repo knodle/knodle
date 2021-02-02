@@ -49,13 +49,6 @@ def test_get_majority_vote_probs(values):
     assert np.array_equal(gold_probs, majority_probs)
 
 
-def test_majority_vote_old():
-    rule_matches_z = np.array([[1, 1], [1, 1], [0, 0]])
-    mapping_rules_labels_t = np.array([[0], [1]])
-    majority_vote = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
-    correct_result = np.array([[1], [1], [0]])
-    assert_array_equal(correct_result, majority_vote)
-
 
 def test_denoise_knn():
     test_array = np.array([[0, 1], [1, 0]])
