@@ -1,18 +1,29 @@
 import numpy as np
 
+from random import randint
+
+
+def sample_majority(probs: np.array, random_label: bool = True, default_label: int = -1):
+    row_max = np.max(probs)
+    num_occurrences = (row_max == probs).sum()
+    if num_occurrences == 1:
+        return np.argmax(probs)
+    else:
+        if random_label:
+            return randint(0, probs.shape[0] - 1)
+        return default_label
+
 
 def get_majority_vote_labels(
         rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, no_rule_label: int = -1
 ) -> np.array:
     """Computes the majority labels. If no clear "winner" is found, no_rule_label is used instead.
-
     Args:
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         no_rule_label: Dummy label
     Returns: Decision per sample. Shape: (instances, )
     """
-
     rule_counts_probs = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
 
     def row_majority(row):
@@ -21,6 +32,12 @@ def get_majority_vote_labels(
         if num_occurrences == 1:
             return np.argmax(row)
         else:
+            if no_rule_label is None:
+                a = randint(0, rule_counts_probs.shape[1] - 1)
+                if a >= 2:
+                    print(a)
+                    print(rule_counts_probs.shape)
+                return a
             return no_rule_label
 
     majority_labels = np.apply_along_axis(row_majority, axis=1, arr=rule_counts_probs)
@@ -40,7 +57,6 @@ def get_majority_vote_probs(
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
     Returns: Array with majority vote decision. Shape: instances x classes
-
     """
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
         raise ValueError("Dimensions mismatch!")
@@ -65,7 +81,6 @@ def get_majority_vote_probs_with_no_rel(
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         no_match_class:
     Returns: Array with majority vote decision. Shape: instances x classes
-
     """
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
         raise ValueError("Dimensions mismatch!")

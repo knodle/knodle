@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_labels
 
@@ -38,7 +39,7 @@ def test_get_majority_vote_labels(values):
     z, t, _, gold_labels = values
 
     majority_labels = get_majority_vote_labels(z, t)
-    assert np.array_equal(majority_labels,  gold_labels)
+    assert np.array_equal(majority_labels, gold_labels)
 
 
 def test_get_majority_vote_probs(values):
@@ -46,3 +47,11 @@ def test_get_majority_vote_probs(values):
 
     majority_probs = get_majority_vote_probs(z, t)
     assert np.array_equal(gold_probs, majority_probs)
+
+
+def test_majority_vote_old():
+    rule_matches_z = np.array([[1, 1], [1, 1], [0, 0]])
+    mapping_rules_labels_t = np.array([[0], [1]])
+    majority_vote = get_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
+    correct_result = np.array([[1], [1], [0]])
+    assert_array_equal(correct_result, majority_vote)
