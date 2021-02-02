@@ -11,12 +11,11 @@ def test_input_labels_to_tensordataset():
 
     a = np.ones((4, 4))
     b = np.ones((4, 3))
-    l = np.ones((4,))
+    labels = np.ones((4,))
 
     input_data = TensorDataset(Tensor(a), Tensor(b))
-    labels = l
 
     input_label_dataset = input_labels_to_tensordataset(input_data, labels)
 
     assert len(input_label_dataset.tensors) == 3
-    assert_array_equal(input_label_dataset.tensors[-1].cpu().numpy(), l)
+    assert_array_equal(input_label_dataset.tensors[-1].cpu().numpy(), labels)
