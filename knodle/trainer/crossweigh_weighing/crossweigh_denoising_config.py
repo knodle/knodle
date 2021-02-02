@@ -5,6 +5,7 @@ import torch.nn as nn
 from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.optim import optimizer
+from knodle.trainer.utils.utils import check_and_return_device
 
 
 class CrossWeighDenoisingConfig:
@@ -25,7 +26,6 @@ class CrossWeighDenoisingConfig:
             optimizer_: optimizer = None,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             seed: int = "12345",
-            enable_cuda: bool = False,
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
             no_match_class_label: int = None):
@@ -42,10 +42,10 @@ class CrossWeighDenoisingConfig:
         self.output_classes = output_classes
         self.criterion = criterion
         self.seed = seed
-        self.enable_cuda = enable_cuda
         self.use_grad_clipping = use_grad_clipping
         self.grad_clipping = grad_clipping
         self.no_match_class_label = no_match_class_label
+        self.device = check_and_return_device()
 
         self.criterion = criterion
 
