@@ -6,8 +6,8 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
-from knodle.trainer import TrainerConfig
 from knodle.trainer.trainer import Trainer
+from knodle.trainer.baseline.majority_config import MajorityConfig
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.filter import filter_empty_probabilities
@@ -26,13 +26,15 @@ class NoDenoisingTrainer(Trainer):
     """
 
     def __init__(
-        self,
-        model: Module,
-        mapping_rules_labels_t: np.ndarray,
-        model_input_x: TensorDataset,
-        rule_matches_z: np.ndarray,
-        trainer_config: TrainerConfig = None,
+            self,
+            model: Module,
+            mapping_rules_labels_t: np.ndarray,
+            model_input_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            trainer_config: MajorityConfig = None,
     ):
+        if trainer_config is None:
+            trainer_config = MajorityConfig(model=model)
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
         )
@@ -46,7 +48,11 @@ class NoDenoisingTrainer(Trainer):
             self.rule_matches_z, self.mapping_rules_labels_t
         )
 
-        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        if self.trainer_config.filter_non_labelled:
+            model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        else:
+            model_input_x = self.model_input_x
+
         model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
 
         label_probs = Tensor(label_probs)

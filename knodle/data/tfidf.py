@@ -47,11 +47,11 @@ def create_tfidf_input(
 
     train_rule_matches_z = rule_matches_z.astype(np.float)
     if train_y is not None:
-        train_y = TensorDataset(torch.from_numpy(train_y))
+        train_y = torch.from_numpy(train_y)
 
     test_x = vectorizer.transform(test_x).toarray().astype(np.float)
     test_x = TensorDataset(torch.from_numpy(test_x))
-    test_y = TensorDataset(torch.from_numpy(test_y))
+    test_y = torch.from_numpy(test_y)
 
     return (
         train_x,

@@ -25,7 +25,7 @@ test_requirements = ["pytest", "pytest-cov"]
 
 setup(
     name="knodle",
-    version="0.1.0",
+    version=VERSION.get("__version__"),
     url="https://github.com/knodle/knodle",
     license="TBC",
     author="knodle",

@@ -6,6 +6,7 @@ from tqdm.auto import tqdm
 import torch
 from torch import Tensor
 from torch.utils.data import TensorDataset
+from sklearn.metrics import classification_report
 
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
@@ -27,39 +28,46 @@ class MajorityBertTrainer(Trainer):
         self.model.to(device)
 
         label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
-        model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+
+        if self.trainer_config.filter_non_labelled:
+            model_input_x, label_probs = filter_empty_probabilities(self.model_input_x, label_probs)
+        else:
+            model_input_x = self.model_input_x
 
         feature_label_dataloader = self._make_dataloader(
-        model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs)
+            TensorDataset(model_input_x.tensors[0], model_input_x.tensors[1], Tensor(label_probs))
         )
 
         log_section("Training starts", logger)
         self.model.train()
 
-        for current_epoch in tqdm(range(self.trainer_config.epochs)):
+        for current_epoch in range(self.trainer_config.epochs):
             epoch_loss, epoch_acc = 0.0, 0.0
             logger.info("Epoch: {}".format(current_epoch))
-
-            for feature_batch, label_batch in zip(feature_label_dataloader):
+            i = 0
+            for input_ids_batch, attention_mask_batch, label_batch in tqdm(feature_label_dataloader):
+                i = i + 1
                 inputs = {
-                    "input_ids": feature_batch[0].to(device),
-                    "attention_mask": feature_batch[1].to(device),
+                    "input_ids": input_ids_batch.to(device),
+                    "attention_mask": attention_mask_batch.to(device),
                 }
-                label_probs = label_batch[0].to(device)
+                labels = label_batch.to(device)
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 outputs = self.model(**inputs)
-                loss = self.trainer_config.criterion(outputs[0], label_probs)
+                loss = self.trainer_config.criterion(outputs[0], labels)
 
                 # backward pass
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 self.trainer_config.optimizer.step()
-                acc = accuracy_of_probs(outputs[0], label_probs)
+                acc = accuracy_of_probs(outputs[0], labels)
 
                 epoch_loss += loss.detach()
                 epoch_acc += acc.item()
+                # if i > 0:
+                #     break
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
@@ -72,31 +80,46 @@ class MajorityBertTrainer(Trainer):
 
         self.model.eval()
 
-    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
-        """
-        This method returns all predictions of the model. Currently this function aims just for the test function.
-        Args:
-            features: DataSet with features to get predictions from
-            evaluate: Boolean if model in evaluation mode or not.
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset):
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.model.to(device)
 
-        Returns:
+        feature_label_dataloader = self._make_dataloader(
+            TensorDataset(
+                features_dataset.tensors[0], features_dataset.tensors[1],
+                labels.tensors[0]
+            ),
+            shuffle=False
+        )
 
-        """
-        feature_dataloader = self._make_dataloader(features)
-
-        if evaluate:
-            self.model.eval()
-        else:
-            self.model.train()
-
+        self.model.eval()
         predictions_list = []
+        label_list = []
         with torch.no_grad():
-            for feature_counter, feature_batch in enumerate(feature_dataloader):
+            i = 0
+            for input_ids_batch, attention_mask_batch, label_batch in tqdm(feature_label_dataloader):
                 inputs = {
-                    "input_ids": feature_batch[0],
-                    "attention_mask": feature_batch[1],
+                    "input_ids": input_ids_batch.to(device),
+                    "attention_mask": attention_mask_batch.to(device),
                 }
-                predictions = self.model(**inputs)[0]
-                predictions_list.append(predictions.detach().numpy())
 
-        return torch.from_numpy(np.vstack(predictions_list))
+                # forward pass
+                self.trainer_config.optimizer.zero_grad()
+                prediction_probs = self.model(**inputs)[0]
+                predictions = np.argmax(prediction_probs.cpu().detach().numpy(), axis=-1)
+                predictions_list.append(predictions)
+                label_list.append(label_batch.cpu().detach().numpy())
+                # i = i + 1
+                # if i > 0:
+                #     break
+
+        predictions = np.squeeze(np.hstack(predictions_list))
+        gold_labels = np.squeeze(np.hstack(label_list))
+
+        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
+
+        logger.info(clf_report)
+        logger.info("Accuracy: {}, ".format(clf_report["accuracy"]))
+        print(clf_report)
+        print("Accuracy: {}, ".format(clf_report["accuracy"]))
+        return clf_report
