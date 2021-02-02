@@ -5,24 +5,11 @@ from knodle.data.labelling_fcts import transform_rule_class_matrix_to_z_t
 
 def test_transform_rule_class_matrix_to_z_t():
 
-    lambda_matrix = np.array([
-        [-1, 2, -1, 1],
-        [1, -1, -1, 1],
-        [1, 2, 0, -1]
-    ])
+    lambda_matrix = np.array([[-1, 2, -1, 1], [1, -1, -1, 1], [1, 2, 0, -1]])
 
-    correct_z_matrix = np.array([
-        [0, 1, 0, 1],
-        [1, 0, 0, 1],
-        [1, 1, 1, 0]
-    ])
+    correct_z_matrix = np.array([[0, 1, 0, 1], [1, 0, 0, 1], [1, 1, 1, 0]])
 
-    correct_t_matrix = np.array([
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 0, 0],
-        [0, 1, 0]
-    ])
+    correct_t_matrix = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
     z, t = transform_rule_class_matrix_to_z_t(lambda_matrix)
 

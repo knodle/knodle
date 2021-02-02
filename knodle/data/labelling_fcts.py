@@ -21,7 +21,9 @@ def transform_rule_class_matrix_to_z_t(class_matrix: np.array) -> [np.array, np.
         row = class_matrix[:, i].tolist()
         label = max(row)
         if set(row) != {-1, label}:
-            raise RuntimeError("A weak labeller is not allowed to label more than one class.")
+            raise RuntimeError(
+                "A weak labeller is not allowed to label more than one class."
+            )
 
         t_matrix[i, label] = 1
 

@@ -42,6 +42,13 @@ nosetests.xml
 .python-version
 .DS_Store
 
+*.npy
+runs/
+runs_old/
+wandb/
+*.pt
+launch.json
+*.env
 # Large datasets
 *.lib
 *.csv

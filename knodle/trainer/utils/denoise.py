@@ -91,3 +91,59 @@ def get_majority_vote_probs_with_no_rel(
 
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
+
+
+# def activate_all_neighbors(
+#         rule_matches_z: np.ndarray, indices: np.ndarray
+# ) -> np.ndarray:
+#     """
+#     Find all closest neighbors and take the same label ids
+#     Args:
+#         rule_matches_z: All rule matches. Shape: instances x rules
+#         indices: Neighbor indices from knn
+#     Returns:
+#     """
+#     new_lfs_array = np.full(rule_matches_z.shape, fill_value=0)
+#
+#     for index, lf in enumerate(rule_matches_z):
+#
+#         try:
+#             matched_lfs = np.where(lf != 0)[0]
+#             if len(matched_lfs) == 0:
+#                 continue
+#             matched_lfs = matched_lfs[:, np.newaxis]
+#             neighbors = indices[index]
+#             to_replace = new_lfs_array[neighbors, matched_lfs]
+#             label_matched_lfs = lf[matched_lfs][:, 0]
+#             tiled_labels = np.tile(
+#                 np.array(label_matched_lfs), (to_replace.shape[1], 1)
+#             ).transpose()
+#             new_lfs_array[neighbors, matched_lfs] = tiled_labels
+#         except IndexError:
+#             pass
+#
+#     return new_lfs_array
+
+
+def activate_neighbors(
+        rule_matches_z: np.ndarray, indices: np.ndarray
+) -> np.ndarray:
+    """
+    Find all closest neighbors and take the same label ids
+    Args:
+        rule_matches_z: All rule matches. Shape: instances x rules
+        indices: Neighbor indices from knn
+    Returns:
+    """
+    new_z_matrix = np.zeros(rule_matches_z.shape)
+    for index, sample in enumerate(rule_matches_z):
+        neighbors = indices[index].astype(int)
+        neighborhood_z = rule_matches_z[neighbors, :]
+
+        activated_lfs = neighborhood_z.sum(axis=0)  # Add all lf activations
+
+        # All with != 0 are valid. We could also do some division here for weighted
+        activated_lfs = np.where(activated_lfs > 0)[0]
+        new_z_matrix[index, activated_lfs] = 1
+
+    return new_z_matrix
