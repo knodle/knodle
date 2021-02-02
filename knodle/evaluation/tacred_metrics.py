@@ -53,16 +53,22 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
             # (print the score)
             sys.stdout.write(("{:<" + str(longest_relation) + "}").format(relation))
             sys.stdout.write("  P: ")
-            if prec < 0.1: sys.stdout.write(' ')
-            if prec < 1.0: sys.stdout.write(' ')
+            if prec < 0.1:
+                sys.stdout.write(' ')
+            if prec < 1.0:
+                sys.stdout.write(' ')
             sys.stdout.write("{:.2%}".format(prec))
             sys.stdout.write("  R: ")
-            if recall < 0.1: sys.stdout.write(' ')
-            if recall < 1.0: sys.stdout.write(' ')
+            if recall < 0.1:
+                sys.stdout.write(' ')
+            if recall < 1.0:
+                sys.stdout.write(' ')
             sys.stdout.write("{:.2%}".format(recall))
             sys.stdout.write("  F1: ")
-            if f1 < 0.1: sys.stdout.write(' ')
-            if f1 < 1.0: sys.stdout.write(' ')
+            if f1 < 0.1:
+                sys.stdout.write(' ')
+            if f1 < 1.0:
+                sys.stdout.write(' ')
             sys.stdout.write("{:.2%}".format(f1))
             sys.stdout.write("  #: %d" % gold)
             sys.stdout.write("\n")
