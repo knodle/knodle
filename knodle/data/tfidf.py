@@ -21,9 +21,13 @@ def create_tfidf_values(text_data: [str], max_features: int = 2000) -> np.array:
 
 
 def create_tfidf_input(
-        train_x: List[str], rule_matches_z: np.array, mapping_rules_labels_t: np.array, train_y: np.array,
-        test_x: List[str], test_y: np.array,
-        num_features: int = 2000
+        train_x: List[str],
+        rule_matches_z: np.array,
+        mapping_rules_labels_t: np.array,
+        train_y: np.array,
+        test_x: List[str],
+        test_y: np.array,
+        num_features: int = 2000,
 ) -> [TensorDataset, np.array, np.array, TensorDataset, TensorDataset, TensorDataset]:
     """Transform data for trianing purposes.
 
@@ -50,6 +54,10 @@ def create_tfidf_input(
     test_y = torch.from_numpy(test_y)
 
     return (
-        train_x, train_rule_matches_z, mapping_rules_labels_t, train_y,
-        test_x, test_y
+        train_x,
+        train_rule_matches_z,
+        mapping_rules_labels_t,
+        train_y,
+        test_x,
+        test_y,
     )

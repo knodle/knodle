@@ -54,7 +54,12 @@ class NoDenoisingTrainer(Trainer):
             model_input_x = self.model_input_x
 
         model_input_x_tensor = extract_tensor_from_dataset(model_input_x, 0)
-        feature_label_dataset = TensorDataset(model_input_x_tensor, Tensor(label_probs))
+
+        label_probs = Tensor(label_probs)
+        label_probs = label_probs.to(self.trainer_config.device)
+        model_input_x_tensor = model_input_x_tensor.to(self.trainer_config.device)
+
+        feature_label_dataset = TensorDataset(model_input_x_tensor, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         log_section("Training starts", logger)

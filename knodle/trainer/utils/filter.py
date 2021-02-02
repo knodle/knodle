@@ -22,5 +22,4 @@ def filter_empty_probabilities(input_data_x: TensorDataset, class_probas_y: np.a
         new_tensors.append(input_data_x.tensors[i][non_zeros])
 
     new_x = TensorDataset(*new_tensors)
-
     return new_x, class_probas_y[non_zeros]

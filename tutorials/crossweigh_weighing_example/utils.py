@@ -8,7 +8,7 @@ from torch.utils.data import TensorDataset
 
 logger = logging.getLogger(__name__)
 
-SPECIAL_TOKENS = ['<PAD>', '<UNK>']
+SPECIAL_TOKENS = ["<PAD>", "<UNK>"]
 
 
 def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
@@ -19,13 +19,15 @@ def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
     """
     with open(filename, encoding="UTF-8") as in_file:
         parts = in_file.readline().strip().split(" ")
-        word_embedding_matrix = np.zeros((int(parts[0]) + len(SPECIAL_TOKENS), int(parts[1])))
+        word_embedding_matrix = np.zeros(
+            (int(parts[0]) + len(SPECIAL_TOKENS), int(parts[1]))
+        )
         word2id = dict()
         for idx, token in enumerate(SPECIAL_TOKENS):
             word2id[token] = idx
         nextword_id = len(SPECIAL_TOKENS)
         for line in in_file:
-            parts = line.strip().split(' ')
+            parts = line.strip().split(" ")
             word = parts[0]
             if word not in word2id:
                 emb = [float(v) for v in parts[1:]]
@@ -36,7 +38,11 @@ def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
 
 
 def get_data_features(
-        input_data: pd.Series, word2id: dict, maxlen: int, samples_column: int, labels_column: int = None,
+        input_data: pd.Series,
+        word2id: dict,
+        maxlen: int,
+        samples_column: int,
+        labels_column: int = None,
 ) -> Union[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
     """
     This function reads the input data saved as a DataFrame and encode sentences with words ids.
@@ -46,7 +52,9 @@ def get_data_features(
     :param maxlen: maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
     :return:
     """
-    enc_input_samples = encode_samples(list(input_data.iloc[:, samples_column]), word2id, maxlen)
+    enc_input_samples = encode_samples(
+        list(input_data.iloc[:, samples_column]), word2id, maxlen
+    )
     # inputs_x_tensor = torch.LongTensor(enc_input_samples)
     # inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
 
@@ -74,7 +82,9 @@ def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
     enc_input_samples = []
     for sample in raw_samples:
         enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
-        enc_input_samples.append(np.asarray(add_padding(enc_tokens, maxlen), dtype="float32"))
+        enc_input_samples.append(
+            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
+        )
     return enc_input_samples
 
 
@@ -84,4 +94,3 @@ def add_padding(tokens: list, maxlen: int) -> list:
     for token in range(0, min(len(tokens), maxlen)):
         padded_tokens[token] = tokens[token]
     return padded_tokens
-

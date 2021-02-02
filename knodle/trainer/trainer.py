@@ -4,7 +4,6 @@ import numpy as np
 import torch
 from abc import ABC, abstractmethod
 from sklearn.metrics import classification_report
-from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -15,12 +14,12 @@ logger = logging.getLogger(__name__)
 
 class Trainer(ABC):
     def __init__(
-        self,
-        model: Module,
-        mapping_rules_labels_t: np.ndarray,
-        model_input_x: TensorDataset,
-        rule_matches_z: np.ndarray,
-        trainer_config: TrainerConfig = None,
+            self,
+            model: Module,
+            mapping_rules_labels_t: np.ndarray,
+            model_input_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            trainer_config: TrainerConfig = None,
     ):
         """
         Constructor for each DsModelTrainer.
@@ -31,45 +30,75 @@ class Trainer(ABC):
                 rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
                 trainer_config: Config for different parameters like loss function, optimizer, batch size.
         """
-        self.model = model
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
 
         if trainer_config is None:
-            self.trainer_config = TrainerConfig(self.model)
-            logger.info("Default trainer Config is used: {}".format(self.trainer_config))
+            self.trainer_config = TrainerConfig(model)
+
         else:
             self.trainer_config = trainer_config
-            logger.info("Initalized trainer with custom trainer config: {}".format(self.trainer_config.__dict__))
+
+        self.model = model.to(self.trainer_config.device)
 
     @abstractmethod
     def train(self):
         pass
 
-    def test(self, features_dataset: TensorDataset, labels: Tensor):
-        feature_labels_dataset = TensorDataset(features_dataset.tensors[0], labels)
-        feature_labels_dataloader = self._make_dataloader(feature_labels_dataset)
+    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
+        """
+        Runs evaluation and returns a classification report with different evaluation metrics.
+        Args:
+            test_features: Test feature set
+            test_labels: Gold label set.
 
-        self.model.eval()
-        all_predictions, all_labels = torch.Tensor(), torch.Tensor()
-        for features, labels in feature_labels_dataloader:
-            outputs = self.model(features)
-            _, predicted = torch.max(outputs, 1)
-            all_predictions = torch.cat([all_predictions, predicted])
-            all_labels = torch.cat([all_labels, labels])
+        Returns:
 
-        predictions, test_labels = (all_predictions.detach().numpy(), all_labels.detach().numpy())
-        clf_report = classification_report(y_true=test_labels, y_pred=predictions, output_dict=True)
+        """
+        predictions = self._prediction_loop(test_features, True)
+        predictions, test_labels = (
+            predictions.cpu().detach().numpy(),
+            test_labels.tensors[0].cpu().detach().numpy(),
+        )
+        if predictions.shape[1] > 1:
+            predictions = np.argmax(predictions, axis=1)
 
-        logger.info(clf_report)
-        logger.info("Accuracy: {}, ".format(clf_report["accuracy"]))
-        print(clf_report)
-        print("Accuracy: {}, ".format(clf_report["accuracy"]))
+        clf_report = classification_report(
+            y_true=test_labels, y_pred=predictions, output_dict=True
+        )
+        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
         return clf_report
 
+    def _prediction_loop(self, features: TensorDataset, evaluate: bool):
+        """
+        This method returns all predictions of the model. Currently this function aims just for the test function.
+        Args:
+            features: DataSet with features to get predictions from
+            evaluate: Boolean if model in evaluation mode or not.
+
+        Returns:
+
+        """
+        feature_dataloader = self._make_dataloader(features)
+
+        if evaluate:
+            self.model.eval()
+        else:
+            self.model.train()
+
+        predictions_list = torch.Tensor()
+
+        for feature_counter, feature_batch in enumerate(feature_dataloader):
+            # DISCUSS
+            features = feature_batch[0].to(self.trainer_config.device)
+            predictions = self.model(features)
+            predictions_list = torch.cat([predictions_list, predictions.to("cpu")])
+
+        return predictions_list
+
     def _make_dataloader(
-        self, dataset: TensorDataset, shuffle: bool = True
+            self, dataset: TensorDataset, shuffle: bool = False
     ) -> DataLoader:
         dataloader = DataLoader(
             dataset,

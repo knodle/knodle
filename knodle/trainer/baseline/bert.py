@@ -22,7 +22,9 @@ class MajorityBertTrainer(Trainer):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
         """
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        device = (
+            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        )
         self.model.to(device)
 
         label_probs = get_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
