@@ -89,7 +89,6 @@ class MajorityBertTrainer(Trainer):
         predictions_list = []
         label_list = []
         with torch.no_grad():
-            i = 0
             for input_ids_batch, attention_mask_batch, label_batch in tqdm(feature_label_dataloader):
                 inputs = {
                     "input_ids": input_ids_batch.to(device),
@@ -102,9 +101,6 @@ class MajorityBertTrainer(Trainer):
                 predictions = np.argmax(prediction_probs.cpu().detach().numpy(), axis=-1)
                 predictions_list.append(predictions)
                 label_list.append(label_batch.cpu().detach().numpy())
-                # i = i + 1
-                # if i > 0:
-                #     break
 
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))

@@ -17,8 +17,8 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.utils import log_section
-from knodle.trainer.utils.denoise import get_majority_vote_probs, activate_neighbors
-from knodle.trainer.utils.utils import accuracy_of_probs, extract_tensor_from_dataset
+from knodle.trainer.utils.denoise import activate_neighbors
+from knodle.trainer.utils.utils import accuracy_of_probs
 
 torch.manual_seed(123)
 
