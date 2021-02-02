@@ -2,7 +2,7 @@ import copy
 import logging
 import os
 import random
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy as np
 import torch
@@ -15,6 +15,7 @@ from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import Cross
 from knodle.trainer.crossweigh_weighing.utils import (
     set_device, set_seed, check_splitting, return_unique, get_labels
 )
+
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
@@ -64,7 +65,7 @@ class CrossWeighWeightsCalculator:
         os.makedirs(self.output_dir, exist_ok=True)
 
         labels = get_labels(self.rule_matches_z, self.rule_assignments_t, self.denoising_config.no_match_class_label)
-        rules_samples_ids_dict = self.get_rules_samples_ids_dict()
+        rules_samples_ids_dict = self._get_rules_samples_ids_dict()
 
         for partition in range(self.denoising_config.cw_partitions):
 
@@ -95,7 +96,7 @@ class CrossWeighWeightsCalculator:
         random.shuffle(rel_rules_ids)
         return rel_rules_ids, no_rel_rules_ids
 
-    def get_rules_samples_ids_dict(self):
+    def _get_rules_samples_ids_dict(self):
         """
         This function creates a dictionary {rule id : sample id where this rule matched}. The dictionary is needed as a
         support tool for faster calculation of cw train and cw test sets
@@ -159,13 +160,13 @@ class CrossWeighWeightsCalculator:
         test_loader = self.cw_convert2tensor(test_samples, test_labels, test_idx, shuffle=True)
         train_loader = self.cw_convert2tensor(train_samples, train_labels, train_idx, shuffle=True)
 
-        logger.info("Fold {}/{}        Rules in training set:{}, rules in test set: {}, samples in training set: {}, "
-                    "samples in test set: {}".format(fold, self.denoising_config.cw_folds, len(train_rules_idx),
-                                                     len(test_rules_idx), len(train_samples), len(test_samples)))
+        logger.info(f"Fold {fold}/{self.denoising_config.cw_folds}  Rules in training set: {len(train_rules_idx)}, "
+                    f"rules in test set: {len(test_rules_idx)}, samples in training set: {len(train_samples)}, "
+                    f"samples in test set: {len(test_samples)}")
         return train_loader, test_loader
 
     def _get_cw_samples_labels_idx(
-            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: dict, check_intersections: np.ndarray = None,
+            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict, check_intersections: np.ndarray = None,
     ) -> (torch.Tensor, np.ndarray, np.ndarray):
         """
         Extracts the samples and labels from the original matrices by indices. If intersection is filled with
