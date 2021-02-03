@@ -1,6 +1,6 @@
 from typing import Callable
 import torch
-import torch.nn as nn
+from knodle.trainer.utils.utils import check_and_return_device
 from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.nn import Module
@@ -19,7 +19,6 @@ class CrossWeighTrainerConfig:
             epochs: int = 2,
             class_weights: Tensor = None,
             seed: int = 12345,  # set seed for reproducibility
-            enable_cuda: bool = False,
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
             no_match_class_label: int = None
@@ -28,11 +27,11 @@ class CrossWeighTrainerConfig:
         self.batch_size = batch_size
         self.lr = lr
         self.seed = seed
-        self.enable_cuda = enable_cuda
         self.use_grad_clipping = use_grad_clipping
         self.grad_clipping = grad_clipping
         self.output_classes = output_classes
         self.no_match_class_label = no_match_class_label
+        self.device = check_and_return_device()
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

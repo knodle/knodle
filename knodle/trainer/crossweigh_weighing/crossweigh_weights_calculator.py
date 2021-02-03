@@ -12,9 +12,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.utils import (
-    set_device, set_seed, check_splitting, return_unique, get_labels
-)
+from knodle.trainer.crossweigh_weighing.utils import set_seed, check_splitting, return_unique, get_labels
 
 
 logger = logging.getLogger(__name__)
@@ -24,14 +22,15 @@ NO_RELATION_CLASS = 41
 
 class CrossWeighWeightsCalculator:
 
-    def __init__(self,
-                 model: Module,
-                 rule_assignments_t: np.ndarray,
-                 inputs_x: TensorDataset,
-                 rule_matches_z: np.ndarray,
-                 output_dir: str,
-                 denoising_config: CrossWeighDenoisingConfig = None,
-                 no_relation_class: int = NO_RELATION_CLASS):
+    def __init__(
+            self,
+            model: Module,
+            rule_assignments_t: np.ndarray,
+            inputs_x: TensorDataset,
+            rule_matches_z: np.ndarray,
+            output_dir: str,
+            denoising_config: CrossWeighDenoisingConfig = None,
+            other_class_id: int = NO_RELATION_CLASS):
 
         self.inputs_x = inputs_x
         self.rule_matches_z = rule_matches_z
@@ -39,16 +38,15 @@ class CrossWeighWeightsCalculator:
         self.model = model
         self.crossweigh_model = copy.deepcopy(self.model)
         self.output_dir = output_dir
-        self.no_relation_class = no_relation_class
+        self.no_relation_class = other_class_id
 
         if denoising_config is None:
             self.denoising_config = CrossWeighDenoisingConfig(self.model)
-            logger.info("Default CrossWeigh Config is used: {}".format(self.denoising_config.__dict__))
+            logger.info(f"Default CrossWeigh Config is used: {self.denoising_config.__dict__}")
         else:
             self.denoising_config = denoising_config
-            logger.info("Initalized trainer with custom model config: {}".format(self.denoising_config.__dict__))
+            logger.info(f"Initalized trainer with custom model config: {self.denoising_config.__dict__}")
 
-        self.device = set_device(self.denoising_config.enable_cuda)
         self.sample_weights = self.initialise_sample_weights()
 
     def calculate_weights(self) -> torch.FloatTensor:
@@ -68,17 +66,17 @@ class CrossWeighWeightsCalculator:
         rules_samples_ids_dict = self._get_rules_samples_ids_dict()
 
         for partition in range(self.denoising_config.cw_partitions):
-
-            logger.info("============= CrossWeigh Partition {}/{}: =============".format(
-                partition + 1, self.denoising_config.cw_partitions))
+            logger.info(f"============= CrossWeigh Partition {partition + 1}/{self.denoising_config.cw_partitions}: "
+                        f"=============")
 
             shuffled_rules_ids, no_match_ids = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
 
             for fold in range(self.denoising_config.cw_folds):
                 # for each fold the model is trained from scratch
-                self.crossweigh_model = copy.deepcopy(self.model).to(device=self.device)
-                train_loader, test_loader = self.get_cw_data(shuffled_rules_ids, no_match_ids, rules_samples_ids_dict,
-                                                             labels, fold)
+                self.crossweigh_model = copy.deepcopy(self.model).to(self.denoising_config.device)
+                train_loader, test_loader = self.get_cw_data(
+                    shuffled_rules_ids, no_match_ids, rules_samples_ids_dict, labels, fold
+                )
                 self.cw_train(train_loader)
                 self.cw_test(test_loader)
 
@@ -194,9 +192,9 @@ class CrossWeighWeightsCalculator:
         Turns the input data (encoded samples, encoded labels, indices in the original matrices) to a DataLoader
         which could be used for further model training or testing
         """
-        tensor_words = samples.to(device=self.device)
-        tensor_target = torch.LongTensor(labels).to(device=self.device)
-        tensor_idx = torch.LongTensor(idx).to(device=self.device)
+        tensor_words = samples.to(self.denoising_config.device)
+        tensor_target = torch.LongTensor(labels).to(self.denoising_config.device)
+        tensor_idx = torch.LongTensor(idx).to(self.denoising_config.device)
 
         dataset = torch.utils.data.TensorDataset(tensor_words, tensor_target, tensor_idx)
         return torch.utils.data.DataLoader(dataset, batch_size=self.denoising_config.batch_size, shuffle=shuffle)

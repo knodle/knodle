@@ -1,13 +1,17 @@
 import logging
+from typing import Dict
+
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
+
+from knodle.evaluation import tacred_metrics
 from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
 
 logger = logging.getLogger(__name__)
 
 
-def get_labels(
+def get_labels_randomly(
         rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray
 ) -> np.ndarray:
     """ Calculates sample labels basing on z and t matrices. If several patterns matched, select one randomly """
@@ -108,28 +112,22 @@ def check_splitting(
 
 def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.ndarray:
     """ Checks intersections between the 1st and the 2nd arrays and return unique values of the 1st array """
-    intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[
-        1
-    ].tolist()
+    intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[1].tolist()
     return np.delete(where_to_find, intersections)
 
 
-def make_plot(
-        value_1: list,
-        value_2: list,
-        value_3: list,
-        value_4: list,
-        label_1: str,
-        label_2: str,
-        label_3: str,
-        label_4: str,
-):
+def draw_loss_accuracy_plot(curves: dict) -> None:
     """ The function creates a plot of 4 curves and displays it"""
-    plt.plot(value_1, "g", label=label_1)
-    plt.plot(value_2, "r", label=label_2)
-    plt.plot(value_3, "b", label=label_3)
-    plt.plot(value_4, "y", label=label_4)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", borderaxespad=0.0)
+    colors = "bgrcmyk"
+    color_index = 0
+    epochs = range(1, len(next(iter(curves.values()))) + 1)
+
+    for label, value in curves.items():
+        plt.plot(epochs, value, c=colors[color_index], label=label)
+        color_index += 1
+
+    plt.xticks(epochs)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     plt.show()
 
 
@@ -139,9 +137,19 @@ def get_labels(
     """ Check whether dataset contains negative samples and calculates the labels using majority voting """
     if no_match_class_label:
         if no_match_class_label < 0:
-            raise RuntimeError("A label for negative samples should be greater that 0 for correct matrix multiplication")
+            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
         if no_match_class_label < rule_matches_z.shape[1]:
-            raise RuntimeError("The label for negative samples is probably already assigned to some other class")
+            raise RuntimeError("Label for negative samples is probably already assigned to some other class")
         return get_majority_vote_probs_with_no_rel(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
         return get_majority_vote_probs(rule_matches_z, rule_assignments_t)
+
+
+def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
+    predictions_idx = predictions.astype(int).tolist()
+    labels_idx = labels.astype(int).tolist()
+    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
+
+    predictions = [idx2labels[p] for p in predictions_idx]
+    test_labels = [idx2labels[p] for p in labels_idx]
+    return tacred_metrics.score(test_labels, predictions, verbose=True)
