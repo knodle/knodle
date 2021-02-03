@@ -1,15 +1,16 @@
 import logging
-import os
 import sys
 
+import os
 import pandas as pd
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from torch import Tensor
-from torch.optim import SGD, AdamW
+from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 from torch.utils.tensorboard import SummaryWriter
+
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
@@ -17,6 +18,7 @@ from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,7 @@ def train_knn_model():
     X_dev = dev.reviews_preprocessed
     X_test = test.reviews_preprocessed
 
-    max_features = 200
+    max_features = 40000
 
     tfidf_values = create_tfidf_values(
         imdb_dataset.reviews_preprocessed.values, True, max_features
@@ -72,10 +74,11 @@ def train_knn_model():
     dev_dataset = TensorDataset(dev_tfidf)
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
-    for k in [2, 2, 4, 8, 15]:
+    for k in [1, 2, 4, 8, 15]:
+        print("K is: {}".format(k))
         custom_model_config = KNNConfig(
-            model=model, epochs=3, optimizer_=AdamW(model.parameters(), lr=0.01),
-            k=k  # , caching_folder=os.path.join(os.getcwd(), "data/knn_caching")
+            model=model, epochs=35, optimizer_=AdamW(model.parameters(), lr=0.01),
+            k=k
         )
 
         trainer = KnnTfidfSimilarity(
@@ -107,7 +110,7 @@ def train_knn_model():
 
 def read_evaluation_data():
     imdb_dataset = pd.read_csv("tutorials/ImdbDataset/imdb_data_preprocessed.csv")
-    rule_matches_z = load("tutorials/ImdbDataset/rule_matches.lib")
+    rule_matches_z = load("tutorials/ImdbDataset/rule_matches.lib").toarray()
     mapping_rules_labels_t = load("tutorials/ImdbDataset/mapping_rules_labels.lib")
     return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 

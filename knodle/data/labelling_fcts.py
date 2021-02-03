@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def transform_rule_class_matrix_to_z_t(class_matrix: np.array) -> [np.array, np.array]:
+def transform_rule_class_matrix_to_z_t(class_matrix: np.ndarray) -> [np.ndarray, np.ndarray]:
     """Takes a matrix in the "lambda format" and transforms it to z / t matrices.
     Lambda format:
         - lambda_ij = -1, iff the rule doesn't apply

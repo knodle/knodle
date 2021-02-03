@@ -1,6 +1,6 @@
 import logging
-import os
 
+import os
 import pandas as pd
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,8 +12,8 @@ from torch.utils.data import TensorDataset
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer import TrainerConfig
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
+from knodle.trainer.baseline.majority_config import MajorityConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,24 @@ DEV_SIZE = 1000
 TEST_SIZE = 1000
 RANDOM_STATE = 123
 
+import logging
+import sys
+
+
+def init_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
 
 def train_simple_ds_model():
+    init_logging()
+
     logger.info("Train simple ds model")
     imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
 
@@ -49,8 +65,8 @@ def train_simple_ds_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = TrainerConfig(
-        model=model, epochs=1, optimizer_=SGD(model.parameters(), lr=0.1)
+    custom_model_config = MajorityConfig(
+        model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
     )
 
     trainer = NoDenoisingTrainer(
@@ -81,6 +97,7 @@ def read_evaluation_data():
     )
     imdb_dataset = pd.read_csv(os.path.join(data_path, "imdb_data_preprocessed.csv"))
     rule_matches_z = load(os.path.join(data_path, "rule_matches.lib"))
+    rule_matches_z = rule_matches_z.toarray()
     mapping_rules_labels_t = load(os.path.join(data_path, "mapping_rules_labels.lib"))
     return imdb_dataset, rule_matches_z, mapping_rules_labels_t
 
