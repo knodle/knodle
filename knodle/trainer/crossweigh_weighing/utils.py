@@ -116,7 +116,7 @@ def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.nda
     return np.delete(where_to_find, intersections)
 
 
-def make_plot(curves: dict) -> None:
+def draw_loss_accuracy_plot(curves: dict) -> None:
     """ The function creates a plot of 4 curves and displays it"""
     colors = "bgrcmyk"
     color_index = 0

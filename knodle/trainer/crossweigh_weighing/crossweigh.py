@@ -1,24 +1,23 @@
 import logging
-import numpy as np
-import torch
-import torch.nn as nn
-from sklearn.metrics import classification_report
-from torch.autograd import function
-from torch.functional import Tensor
-from torch.nn import Module
-from torch.utils.data import TensorDataset, DataLoader
-from joblib import load
-from tqdm import tqdm
-import torch.nn.functional as F
 import os
 from typing import Dict, Tuple, Union
 
+import numpy as np
+import torch
+import torch.nn.functional as F
+from joblib import load
+from sklearn.metrics import classification_report
+from torch.functional import Tensor
+from torch.nn import Module
+from torch.utils.data import TensorDataset, DataLoader
+from tqdm import tqdm
+
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from knodle.trainer.crossweigh_weighing.utils import (
-    set_seed, make_plot, get_labels, calculate_dev_tacred_metrics
-)
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.utils import (
+    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics
+)
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils.utils import accuracy_of_probs
 
@@ -103,13 +102,11 @@ class CrossWeigh(Trainer):
         for curr_epoch in tqdm(range(self.trainer_config.epochs)):
             logger.info(f"Epoch {curr_epoch}")
             running_loss, epoch_acc = 0.0, 0.0
-            self.trainer_config.criterion.weight = self.trainer_config.class_weights
-            self.trainer_config.criterion.reduction = 'none'
             batch_losses = []
             for features, labels, weights in train_loader:
                 self.model.zero_grad()
                 predictions = self.model(features)
-                loss = self._get_loss_with_sample_weights(self.trainer_config.criterion, predictions, labels, weights)
+                loss = self._get_loss_with_sample_weights(predictions, labels, weights)
                 loss.backward()
                 if self.trainer_config.use_grad_clipping:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
@@ -133,18 +130,18 @@ class CrossWeigh(Trainer):
                 logger.info(f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
         if self.dev_features is not None:
-            make_plot({"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
+            draw_loss_accuracy_plot({"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
         else:
-            make_plot({"train loss": train_losses, "tran acc": train_acc})
+            draw_loss_accuracy_plot({"train loss": train_losses, "tran acc": train_acc})
 
     def _get_sample_weights(self):
         """ This function checks whether there are accesible already pretrained sample weights. If yes, return
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
 
-        try:
-            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
+        if os.path.isfile(os.path.join(self.path_to_weights, "sample_weights.lib")):
             logger.info("Already pretrained samples sample_weights will be used.")
-        except OSError:
+            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
+        else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
             sample_weights = CrossWeighWeightsCalculator(
                 self.model,
@@ -172,10 +169,13 @@ class CrossWeigh(Trainer):
 
         return self._make_dataloader(dataset, shuffle=shuffle)
 
-    def _get_loss_with_sample_weights(
-            self, criterion: function, output: Tensor, labels: Tensor, weights: Tensor) -> Tensor:
+    def _get_loss_with_sample_weights(self, output: Tensor, labels: Tensor, weights: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
-        return (criterion(output, labels) * weights).sum() / self.trainer_config.class_weights[labels].sum()
+        loss_no_reduction = self.trainer_config.criterion(output,
+                                                          labels,
+                                                          weight=self.trainer_config.class_weights,
+                                                          reduction="none")
+        return (loss_no_reduction * weights).sum() / self.trainer_config.class_weights[labels].sum()
 
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""
@@ -184,10 +184,9 @@ class CrossWeigh(Trainer):
 
         with torch.no_grad():
             dev_loss, dev_acc = 0.0, 0.0
-            dev_criterion = nn.CrossEntropyLoss(weight=self.trainer_config.class_weights)
             for features, labels in dev_dataloader:
                 predictions = self.model(features)
-                dev_loss += self.calculate_dev_loss(predictions, labels.long(), dev_criterion)
+                dev_loss += self.calculate_dev_loss(predictions, labels.long())
 
                 _, predicted = torch.max(predictions, 1)
                 all_predictions = torch.cat([all_predictions, predicted])
@@ -197,10 +196,10 @@ class CrossWeigh(Trainer):
             dev_metrics = self.calculate_dev_metrics(predictions, gold_labels)
         return dev_loss / len(dev_dataloader), dev_metrics
 
-    def calculate_dev_loss(self, predictions: Tensor, labels: Tensor, criterion: function) -> Tensor:
+    def calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
         """ Calculates the loss on the dev set using given criterion"""
         predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
-        loss = criterion(predictions_one_hot, labels.flatten(0))
+        loss = self.trainer_config.criterion(predictions_one_hot, labels.flatten(0))
         return loss.detach()
 
     def calculate_dev_metrics(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Union[Dict, None]:

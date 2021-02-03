@@ -30,7 +30,7 @@ class CrossWeighWeightsCalculator:
             rule_matches_z: np.ndarray,
             output_dir: str,
             denoising_config: CrossWeighDenoisingConfig = None,
-            no_relation_class: int = NO_RELATION_CLASS):
+            other_class_id: int = NO_RELATION_CLASS):
 
         self.inputs_x = inputs_x
         self.rule_matches_z = rule_matches_z
@@ -38,7 +38,7 @@ class CrossWeighWeightsCalculator:
         self.model = model
         self.crossweigh_model = copy.deepcopy(self.model)
         self.output_dir = output_dir
-        self.no_relation_class = no_relation_class
+        self.no_relation_class = other_class_id
 
         if denoising_config is None:
             self.denoising_config = CrossWeighDenoisingConfig(self.model)
