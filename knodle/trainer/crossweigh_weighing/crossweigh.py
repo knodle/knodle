@@ -199,7 +199,8 @@ class CrossWeigh(Trainer):
     def calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
         """ Calculates the loss on the dev set using given criterion"""
         predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
-        loss = self.trainer_config.criterion(predictions_one_hot, labels.flatten(0))
+        labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
+        loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
         return loss.detach()
 
     def calculate_dev_metrics(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Union[Dict, None]:
