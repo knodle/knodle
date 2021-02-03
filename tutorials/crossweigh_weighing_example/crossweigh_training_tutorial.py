@@ -11,7 +11,7 @@ from joblib import load
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
-# from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
@@ -67,40 +67,44 @@ def train_crossweigh(
                               word_embedding_matrix,
                               NUM_CLASSES)
 
-    custom_crossweigh_denoising_config = CrossWeighDenoisingConfig(model=model,
-                                                                   crossweigh_partitions=2,
-                                                                   class_weights=CLASS_WEIGHTS,
-                                                                   crossweigh_folds=10,
-                                                                   crossweigh_epochs=2,
-                                                                   weight_reducing_rate=0.3,
-                                                                   samples_start_weights=3.0,
-                                                                   lr=0.8,
-                                                                   optimizer_=torch.optim.Adam(model.parameters()),
-                                                                   output_classes=NUM_CLASSES
-                                                                   )
+    custom_crossweigh_denoising_config = CrossWeighDenoisingConfig(
+        model=model,
+        crossweigh_partitions=2,
+        class_weights=CLASS_WEIGHTS,
+        crossweigh_folds=10,
+        crossweigh_epochs=2,
+        weight_reducing_rate=0.3,
+        samples_start_weights=3.0,
+        lr=0.8,
+        optimizer_=torch.optim.Adam(model.parameters()),
+        output_classes=NUM_CLASSES
+    )
 
-    custom_crossweigh_trainer_config = CrossWeighTrainerConfig(model=model,
-                                                               class_weights=CLASS_WEIGHTS,
-                                                               lr=2.0,
-                                                               output_classes=NUM_CLASSES,
-                                                               optimizer_=torch.optim.Adam(model.parameters()),
-                                                               epochs=3
-                                                               )
+    custom_crossweigh_trainer_config = CrossWeighTrainerConfig(
+        model=model,
+        class_weights=CLASS_WEIGHTS,
+        lr=2.0,
+        output_classes=NUM_CLASSES,
+        optimizer_=torch.optim.Adam(model.parameters()),
+        epochs=3
+    )
 
-    trainer = CrossWeigh(model=model,
-                         rule_assignments_t=rule_assignments_t,
-                         inputs_x=train_input_x,
-                         rule_matches_z=rule_matches_z,
-                         dev_features=dev_dataset,
-                         dev_labels=dev_labels,
-                         evaluation_method="tacred",
-                         dev_labels_ids=labels2ids,
-                         path_to_weights=path_to_weights,
-                         denoising_config=custom_crossweigh_denoising_config,
-                         trainer_config=custom_crossweigh_trainer_config,
-                         run_classifier=True,
-                         use_weights=True
-                         )
+    trainer = CrossWeigh(
+        model=model,
+        rule_assignments_t=rule_assignments_t,
+        inputs_x=train_input_x,
+        rule_matches_z=rule_matches_z,
+        dev_features=dev_dataset,
+        dev_labels=dev_labels,
+        evaluation_method="tacred",
+        dev_labels_ids=labels2ids,
+        path_to_weights=path_to_weights,
+        denoising_config=custom_crossweigh_denoising_config,
+        trainer_config=custom_crossweigh_trainer_config,
+        run_classifier=True,
+        use_weights=True
+    )
+
     trainer.train()
     print("Testing on the test dataset....")
     metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
@@ -170,7 +174,6 @@ def add_padding(tokens: list, maxlen: int) -> list:
 
 
 def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
-
     feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
     feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
 
