@@ -6,8 +6,8 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
-from knodle.trainer.trainer import Trainer
 from knodle.trainer.baseline.majority_config import MajorityConfig
+from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import get_majority_vote_probs
 from knodle.trainer.utils.filter import filter_empty_probabilities
