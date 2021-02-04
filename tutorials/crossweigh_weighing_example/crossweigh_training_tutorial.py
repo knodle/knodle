@@ -111,6 +111,17 @@ def train_crossweigh(
     print(metrics)
 
 
+def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
+    """ This function turns raw text samples into encoded ones using the given word2id dict """
+    enc_input_samples = []
+    for sample in raw_samples:
+        enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
+        enc_input_samples.append(
+            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
+        )
+    return enc_input_samples
+
+
 def get_train_features(
         path_train_data: str, word2id: dict, samples_column_num: int
 ) -> TensorDataset:
@@ -152,17 +163,6 @@ def read_labels_from_file(path_labels: str, negative_label: str) -> dict:
         relation2ids[negative_label] = max(list(relation2ids.values())) + 1
 
     return relation2ids
-
-
-def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
-    """ This function turns raw text samples into encoded ones using the given word2id dict """
-    enc_input_samples = []
-    for sample in raw_samples:
-        enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
-        enc_input_samples.append(
-            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
-        )
-    return enc_input_samples
 
 
 def add_padding(tokens: list, maxlen: int) -> list:
