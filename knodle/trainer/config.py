@@ -4,6 +4,7 @@ from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import SGD, optimizer
+
 from knodle.trainer.utils.utils import check_and_return_device
 
 
