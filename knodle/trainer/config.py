@@ -4,6 +4,7 @@ from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import SGD, optimizer
+from knodle.trainer.utils.utils import check_and_return_device
 
 
 class TrainerConfig:
@@ -15,7 +16,7 @@ class TrainerConfig:
         optimizer_: optimizer = None,
         output_classes: int = 2,
         lr: float = 0.01,
-        epochs: int = 1,
+        epochs: int = 35,
     ):
         self.criterion = criterion
         self.batch_size = batch_size
@@ -29,3 +30,4 @@ class TrainerConfig:
         else:
             self.optimizer = optimizer_
         self.output_classes = output_classes
+        self.device = check_and_return_device()

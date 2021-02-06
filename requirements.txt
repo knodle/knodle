@@ -1,0 +1,13 @@
+# General
+joblib
+tqdm
+
+# Computation
+numpy
+scipy
+pandas
+
+# ML frameworks
+scikit-learn
+torch
+snorkel

@@ -13,18 +13,18 @@ ARG2 = "$ARG2"
 PRINT_EVERY = 10000
 UNKNOWN_RELATIONS_ID = 404  # id which will be assigned to unknown relations, i.e. relations that wasn't seen in KB
 
+logger = logging.getLogger(__name__)
+
 
 def get_analysed_conll_data(
         conll_data: str,
         patterns2regex: Union[dict, None],
         labels2ids: dict,
-        logger: logging,
-        perform_search: bool = False
+        perform_search: bool = False,
 ) -> Tuple[DataFrame, DataFrame]:
     """
     Reads conll data, extract information about sentences and gold labels. The sample are analysed with SpaCy package
     :param labels2ids: dictionary with labels and their ids
-    :param logger: logger object
     :param conll_data: path to data saved in conll format
     :param patterns2regex: dictionary with pattern and their corresponding regexes
     :param perform_search: boolean whether indicates whether also pattern search in sentences is to be performed
@@ -35,39 +35,52 @@ def get_analysed_conll_data(
     processed_lines = 0
     analyzer = spacy.load("en_core_web_sm")
 
-    samples, labels, enc_labels, patterns_retr, raw_patterns_retr, neg_samples, neg_labels, neg_enc_labels = \
-        ([] for _ in range(8))
+    (
+        samples,
+        labels,
+        enc_labels,
+        patterns_retr,
+        raw_patterns_retr,
+        neg_samples,
+        neg_labels,
+        neg_enc_labels,
+    ) = ([] for _ in range(8))
 
-    with open(conll_data, encoding='utf-8') as f:
+    with open(conll_data, encoding="utf-8") as f:
         for line in f:
             processed_lines += 1
             line = line.strip()
             if line.startswith("# id="):  # Instance starts
                 sample = ""
                 label = line.split(" ")[3][5:]
+                enc_label = encode_labels(label, labels2ids)
             elif line == "":  # Instance ends
-                if label == "no_relation":  # we skip samples that contain no relation in original dataset
+                if (
+                        label == "no_relation" or enc_label == UNKNOWN_RELATIONS_ID
+                ):  # skip no_relation samples or unknown rel
                     continue
                 sample_spacy = analyzer(sample).to_json()
                 sample_extractions = get_extracted_sample(sample_spacy)
 
                 if perform_search:
-                    raw_pattern_retrieved, encoded_pattern_retrieved = retrieve_patterns_in_sample(sample_extractions,
-                                                                                                   patterns2regex)
+                    (
+                        raw_pattern_retrieved,
+                        encoded_pattern_retrieved,
+                    ) = retrieve_patterns_in_sample(sample_extractions, patterns2regex)
                     if encoded_pattern_retrieved:
                         samples.append(sample)
                         labels.append(label)
-                        enc_labels.append(encode_labels(label, labels2ids))
+                        enc_labels.append(enc_label)
                         patterns_retr.append(encoded_pattern_retrieved)
                         raw_patterns_retr.append(raw_pattern_retrieved)
                     else:  # if nothing is found, add this sample preserving its original label
                         neg_samples.append(sample)
                         neg_labels.append(label)
-                        neg_enc_labels.append(encode_labels(label, labels2ids))
+                        neg_enc_labels.append(enc_label)
                 else:
                     samples.append(sample)
                     labels.append(label)
-                    enc_labels.append(encode_labels(label, labels2ids))
+                    enc_labels.append(enc_label)
                     patterns_retr.append([])
                     raw_patterns_retr.append([])
 
@@ -82,42 +95,60 @@ def get_analysed_conll_data(
                     token = ")"
                 sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
-                logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / all_lines,
-                                                                   conll_data.split("/")[-1]))
-    return build_df(samples, patterns_retr, raw_patterns_retr, labels, enc_labels, neg_samples, neg_labels,
-                    neg_enc_labels)
+                logger.info(
+                    "Processed {:0.2f}% of {} file".format(
+                        100 * processed_lines / all_lines, conll_data.split("/")[-1]
+                    )
+                )
+    return build_df(
+        samples,
+        patterns_retr,
+        raw_patterns_retr,
+        labels,
+        enc_labels,
+        neg_samples,
+        neg_labels,
+        neg_enc_labels,
+    )
 
 
 def encode_labels(label: str, label2id: dict) -> int:
-    """ Encodes the labels with corresponding labels id"""
-    try:
-        return label2id[label]
-    except KeyError:
-        logging.error("Unknown relation is detected. The corresponding sample will be encoded with id {}".format(
-            UNKNOWN_RELATIONS_ID))
-        print(label)
-        return UNKNOWN_RELATIONS_ID
+    """ Encodes labels with corresponding labels id. If relation is unknown, returns special id for unknown relations"""
+    return label2id.get(label, UNKNOWN_RELATIONS_ID)
 
 
 def build_df(
-        samples: list, retrieved_patterns: list, raw_patterns_retrieved: list, labels: list, enc_labels: list,
-        neg_samples: list, neg_labels: list, neg_enc_labels: list
+        samples: list,
+        retrieved_patterns: list,
+        raw_patterns_retrieved: list,
+        labels: list,
+        enc_labels: list,
+        neg_samples: list,
+        neg_labels: list,
+        neg_enc_labels: list,
 ) -> (pd.DataFrame, pd.DataFrame):
     """
     This function builds two dataframes: one with samples where some rule matched (columns: sample, matches pattern,
     original label) and the second with labels that got no rule matches (columns: sample, label=original label)
     """
-    samples = pd.DataFrame.from_dict({"samples": samples, "retrieved_patterns": retrieved_patterns,
-                                      "raw_retrieved_patterns": raw_patterns_retrieved, "labels": labels,
-                                      "enc_labels": enc_labels})
-    no_pattern_samples = pd.DataFrame.from_dict({"samples": neg_samples, "enc_labels": neg_enc_labels,
-                                                 "labels": neg_labels})
+    samples = pd.DataFrame.from_dict(
+        {
+            "samples": samples,
+            "retrieved_patterns": retrieved_patterns,
+            "raw_retrieved_patterns": raw_patterns_retrieved,
+            "labels": labels,
+            "enc_labels": enc_labels,
+        }
+    )
+    no_pattern_samples = pd.DataFrame.from_dict(
+        {"samples": neg_samples, "enc_labels": neg_enc_labels, "labels": neg_labels}
+    )
     return samples, no_pattern_samples
 
 
 def get_id(item: Union[int, str], dic: dict) -> Union[int, str]:
-    """ This function checks if there is a key in a dict. If so, it returns a value of a dict.
-    Creates a dictionary pair {key : max(dict value) + 1} otherwise """
+    """This function checks if there is a key in a dict. If so, it returns a value of a dict.
+    Creates a dictionary pair {key : max(dict value) + 1} otherwise"""
     if item in dic:
         item_id = dic[item]
     else:
@@ -127,7 +158,7 @@ def get_id(item: Union[int, str], dic: dict) -> Union[int, str]:
 
 
 def update_dict(key: Union[int, str], value: Union[int, str], dic: dict) -> None:
-    """ This function checks if there is a key in a dict. If so, it added new value to the list of values for this key.
+    """This function checks if there is a key in a dict. If so, it added new value to the list of values for this key.
     Create a {key: {value}} pair otherwise."""
     if key in dic:
         dic[key].append(value)
@@ -162,12 +193,17 @@ def get_extracted_sample(sample: dict) -> list:
     :param sample: sample analysed with SpaCy package and saved as dictionary
     :return: list of sample substrings
     """
-    return [(ARG1 + sample["text"][ent1["end"]:ent2["start"]] + ARG2) if ent1["end"] < ent2["end"]
-            else (ARG2 + sample["text"][ent2["end"]:ent1["start"]] + ARG1)
-            for ent1, ent2 in itertools.permutations(sample["ents"], 2)]
+    return [
+        (ARG1 + sample["text"][ent1["end"]: ent2["start"]] + ARG2)
+        if ent1["end"] < ent2["end"]
+        else (ARG2 + sample["text"][ent2["end"]: ent1["start"]] + ARG1)
+        for ent1, ent2 in itertools.permutations(sample["ents"], 2)
+    ]
 
 
-def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Union[Tuple[None, None], Tuple[list, list]]:
+def retrieve_patterns_in_sample(
+        extr_samples: list, pattern2regex: dict
+) -> Union[Tuple[None, None], Tuple[list, list]]:
     """
     Looks for pattern in a sample and returns a list which would be turned into a row of a Z matrix.
     :param extr_samples: list of sample substrings in the form of "ARG1 <some words> ARG2", in which the patterns
@@ -182,19 +218,18 @@ def retrieve_patterns_in_sample(extr_samples: list, pattern2regex: dict) -> Unio
         if re.search(pattern2regex[pattern], sample):
             matched_patterns.append(pattern)
     if len(matched_patterns) > 0:
-        return matched_patterns, get_match_matrix_row(len(pattern2regex), list(set(matched_patterns)))
+        return matched_patterns, get_match_matrix_row(
+            len(pattern2regex), list(set(matched_patterns))
+        )
     return None, None
 
 
 def count_file_lines(file_name: str) -> int:
     """ Count the number of line in a file """
     with open(file_name) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+        return len(f.readlines())
 
 
 def save_dict(dict_: dict, path: str) -> None:
-    """ Dump dictionary in json file"""
     with open(path, "w+") as f:
         json.dump(dict_, f)
