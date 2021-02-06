@@ -15,24 +15,16 @@ def probabilies_to_majority_vote(
     :param other_class_id: Class ID being used, if there's no clear majority
     :return:
     """
+    if choose_random_label and other_class_id is not None:
+        raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
+
     row_max = np.max(probs)
     num_occurrences = (row_max == probs).sum()
     if num_occurrences == 1:
         return int(np.argmax(probs))
-    # row_max == 0
-    elif row_max == 0:
-        if other_class_id:
-            return other_class_id
-        elif choose_random_label:
-            max_ids = np.where(probs == row_max)[0]
-            return int(np.random.choice(max_ids))
-        else:
-            raise ValueError("If no probability is given, we need an 'other_class_id' to resolve the conflict.")
-    # row_max > 0
     elif choose_random_label:
         max_ids = np.where(probs == row_max)[0]
         return int(np.random.choice(max_ids))
-    # row_max > 0; choose_random_label = False
     elif other_class_id is not None:
         return other_class_id
     else:

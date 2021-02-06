@@ -1,6 +1,6 @@
-import numpy as np
-
 from random import randint
+
+import numpy as np
 
 
 def get_majority_vote_probs_with_no_rel(

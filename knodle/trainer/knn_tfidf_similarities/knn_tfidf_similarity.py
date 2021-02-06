@@ -7,7 +7,6 @@ from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 
 import torch
-from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset
 
@@ -19,8 +18,6 @@ from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import activate_neighbors
 from knodle.trainer.utils.utils import accuracy_of_probs
-
-torch.manual_seed(123)
 
 logger = logging.getLogger(__name__)
 
