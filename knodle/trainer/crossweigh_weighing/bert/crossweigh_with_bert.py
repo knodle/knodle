@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from knodle.trainer.crossweigh_weighing.bert.crossweigh_weights_calculator_with_bert import CrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.bert.crossweigh_weights_calculator_bert import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
     set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics, build_bert_feature_labels_dataloader,
     build_bert_feature_labels_weights_dataloader
