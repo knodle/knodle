@@ -2,14 +2,12 @@ import logging
 import os
 import sys
 
-import pandas as pd
-from joblib import load, dump
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
 from torch import Tensor
-from torch.optim import SGD, AdamW
+from torch.optim import AdamW
 from torch.utils.data import TensorDataset
 from torch.utils.tensorboard import SummaryWriter
+
+from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
@@ -17,65 +15,46 @@ from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
 from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
     KnnTfidfSimilarity,
 )
+from tutorials.ImdbDataset.utils import read_train_dev_test, create_tfidf_values, init_logger
 
 logger = logging.getLogger(__name__)
 
 OUTPUT_CLASSES = 2
-# DEV_SIZE = 1000
-# TEST_SIZE = 1000
-
-DEV_SIZE = 5000
-TEST_SIZE = 5000
 RANDOM_STATE = 123
 writer = SummaryWriter()
+TARGET_PATH = 'data/imdb'
+MAX_FEATURES = 40000
 
 
 def train_knn_model():
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    init_logger()
+    if not not os.path.exists('data/imdb/mapping_rules_labels_t.lib'):
+        minio_connect = MinioConnector()
+        minio_connect.download_dir("datasets/imdb/processed", TARGET_PATH)
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    root.addHandler(handler)
+    train_df, dev_df, test_df, train_rule_matches_z, dev_rule_matches_z, test_rule_matches_z, imdb_dataset, \
+    mapping_rules_labels_t = \
+        read_train_dev_test(
+            TARGET_PATH)
     logger.info("Train knn tfidf similarity model")
 
-    imdb_dataset, rule_matches_z, mapping_rules_labels_t = read_evaluation_data()
-
-    rest, dev = train_test_split(
-        imdb_dataset, test_size=DEV_SIZE, random_state=RANDOM_STATE
-    )
-
-    train, test = train_test_split(rest, test_size=TEST_SIZE, random_state=RANDOM_STATE)
-
-    X_train = train.reviews_preprocessed
-    X_dev = dev.reviews_preprocessed
-    X_test = test.reviews_preprocessed
-
-    max_features = 200
+    X_train = train_df.reviews_preprocessed
+    X_dev = dev_df.reviews_preprocessed
+    X_test = test_df.reviews_preprocessed
 
     tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, True, max_features
+        imdb_dataset.reviews_preprocessed.values, True, MAX_FEATURES
     )
 
-    train_rule_matches_z = rule_matches_z[X_train.index]
-    train_tfidf_sparse = tfidf_values[X_train.index]
-    train_tfidf = Tensor(tfidf_values[X_train.index].toarray())
-    train_dataset = TensorDataset(train_tfidf)
-
-    dev_rule_matches_z = rule_matches_z[X_dev.index]
-    dev_tfidf = Tensor(tfidf_values[X_dev.index].toarray())
-
-    dev_dataset = TensorDataset(dev_tfidf)
+    train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
+    dev_dataset = TensorDataset(Tensor(tfidf_values[X_dev.index].toarray()))
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
-    for k in [2, 2, 4, 8, 15]:
+    for k in [1, 2, 4, 8, 15]:
+        print("K is: {}".format(k))
         custom_model_config = KNNConfig(
-            model=model, epochs=3, optimizer_=AdamW(model.parameters(), lr=0.01),
-            k=k  # , caching_folder=os.path.join(os.getcwd(), "data/knn_caching")
+            model=model, epochs=35, optimizer_=AdamW(model.parameters(), lr=0.01),
+            k=k
         )
 
         trainer = KnnTfidfSimilarity(
@@ -104,26 +83,6 @@ def train_knn_model():
         print(f"k == {k}")
         print(clf_report)
 
-
-def read_evaluation_data():
-    imdb_dataset = pd.read_csv("tutorials/ImdbDataset/imdb_data_preprocessed.csv")
-    rule_matches_z = load("tutorials/ImdbDataset/rule_matches.lib")
-    mapping_rules_labels_t = load("tutorials/ImdbDataset/mapping_rules_labels.lib")
-    return imdb_dataset, rule_matches_z, mapping_rules_labels_t
-
-
-def create_tfidf_values(
-        text_data: [str], force_create_new: bool = False, max_features: int = None
-):
-    if os.path.exists("tutorials/ImdbDataset/tfidf.lib") and not force_create_new:
-        cached_data = load("tutorials/ImdbDataset/tfidf.lib")
-        if cached_data.shape == text_data.shape:
-            return cached_data
-
-    vectorizer = TfidfVectorizer(min_df=2, max_features=max_features)
-    transformed_data = vectorizer.fit_transform(text_data)
-    dump(transformed_data, "tutorials/ImdbDataset/tfidf.lib")
-    return transformed_data
 
 
 if __name__ == "__main__":

@@ -10,13 +10,13 @@ from knodle.transformation.majority import (
 def test_probabilies_to_majority_vote_fixed():
     # format: (probabilities, gold_result, settings)
     probs_gold_result_settings = [
-        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": True, "other_class_id": -1}),
+        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": -1}),
         (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": True, "other_class_id": None}),
         (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": -1}),
         (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": None}),
 
-        (np.array([0.5, 0.5, 0.0]), -1, {"choose_random_label": False, "other_class_id": -1}),
-        (np.array([0.0, 0.0, 0.0]), -1, {"choose_random_label": False, "other_class_id": -1})
+        (np.array([0.5, 0.5, 0.0]), -1, {"choose_random_label": None, "other_class_id": -1}),
+        (np.array([0.0, 0.0, 0.0]), -1, {"choose_random_label": None, "other_class_id": -1})
     ]
 
     for probs, gold_label, settings in probs_gold_result_settings:
@@ -29,12 +29,11 @@ def test_probabilies_to_majority_vote_fixed():
 def test_probabilies_to_majority_vote_random():
     # format: (probabilities, gold_result, settings)
     probs_gold_result_settings = [
-        (np.array([0.5, 0.5, 0.0]), [0, 1], {"choose_random_label": True, "other_class_id": -1}),
+        (np.array([0.5, 0.5, 0.0]), [0, 1], {"choose_random_label": True, "other_class_id": None}),
 
         (np.array([0.3, 0.3, 0, 2, 0.3]), [0, 1, 3], {"choose_random_label": True, "other_class_id": None}),
-        (np.array([0.3, 0.3, 0, 2, 0.3]), [0, 1, 3], {"choose_random_label": True, "other_class_id": None}),
 
-        (np.array([0.0, 0.0, 0.0]), [-1], {"choose_random_label": True, "other_class_id": -1}),
+        (np.array([0.0, 0.0, 0.0]), [-1], {"choose_random_label": False, "other_class_id": -1}),
         (np.array([0.0, 0.0, 0.0]), [0, 1, 2], {"choose_random_label": True, "other_class_id": None})
     ]
 

@@ -1,3 +1,13 @@
-torch==1.7.0
-pandas==0.25.2
-numpy==1.18.5
+torch
+pandas
+numpy
+pytest
+scikit-learn
+transformers
+tqdm
+snorkel
+matplotlib
+joblib
+scipy
+setuptools
+spacy
