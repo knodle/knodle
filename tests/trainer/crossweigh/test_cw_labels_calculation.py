@@ -51,11 +51,6 @@ def get_test_data():
 
 
 @pytest.fixture(scope='session')
-def get_sample_ids_matched_rules_correspondence(get_test_data):
-    return [[get_test_data[0], get_test_data[1]]]
-
-
-@pytest.fixture(scope='session')
 def get_cw_data_test(get_test_data):
     # no filtering, no no_match samples
     test_rules_idx = np.array([1, 2])
@@ -71,7 +66,7 @@ def get_cw_data_test(get_test_data):
                                   [6, 6, 6, 6, 6, 6, 6, 6],
                                   [7, 7, 7, 7, 7, 7, 7, 7]])),
              np.array([[0.5, 0.5, 0], [0.3, 0.7, 0], [0.5, 0.5, 0], [0.5, 0.5, 0]]),
-             np.array([[0, 1, 5, 6]])
+             np.array([0, 1, 5, 6])
              ]]
 
 
@@ -98,9 +93,10 @@ def get_cw_data_train(get_test_data):
              ]]
 
 
-def test_sample_ids_matched_rules_correspondence(get_sample_ids_matched_rules_correspondence):
-    for data in get_sample_ids_matched_rules_correspondence:
-        assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
+def test_sample_ids_matched_rules_correspondence(get_test_data):
+    # for data in get_sample_ids_matched_rules_correspondence:
+    #     assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
+    assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(get_test_data[0]) == get_test_data[1]
 
 
 def test_get_cw_data_test(get_cw_data_test):
@@ -110,8 +106,8 @@ def test_get_cw_data_test(get_cw_data_test):
         )
 
         assert torch.equal(samples, data[4])
-        assert np.equal(labels, data[5]).all()
-        assert np.equal(ids, data[6]).all()
+        np.testing.assert_array_equal(labels, data[5])
+        np.testing.assert_array_equal(ids, data[6])
 
 
 def test_get_cw_data_train(get_cw_data_train):
@@ -121,5 +117,5 @@ def test_get_cw_data_train(get_cw_data_train):
         )
 
         assert torch.equal(samples, data[5])
-        assert np.equal(labels, data[6]).all()
-        assert np.equal(ids, data[7]).all()
+        np.testing.assert_array_equal(labels, data[6])
+        np.testing.assert_array_equal(ids, data[7])
