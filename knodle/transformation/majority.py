@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 from torch.utils.data import TensorDataset
 
 from knodle.transformation.filter import filter_empty_probabilities
@@ -54,10 +55,15 @@ def z_t_matrices_to_majority_vote_probs(
         other_class: Class which is chosen, if no function is hitting.
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
+    print(rule_matches_z.shape, mapping_rules_labels_t.shape )
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
         raise ValueError("Dimensions mismatch!")
 
-    rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
+    if isinstance(rule_matches_z, sp.csr_matrix):
+        rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
+    else:
+        rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
+
     if other_class is not None:
         rule_counts[~rule_counts.any(axis=1), other_class] = 1
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
@@ -87,7 +93,7 @@ def z_t_matrices_to_majority_vote_labels(
 
 def input_to_majority_vote_input(
         input_data_x: TensorDataset, rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray,
-        filter_empty_z_rows: bool = True, other_class_id: int = None, return_probs: bool = True
+        filter_empty_z_rows: bool = True, other_class_id: int = None, use_probabilistic_labels: bool = True
 ):
     if other_class_id is not None and filter_empty_z_rows:
         raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
@@ -96,7 +102,7 @@ def input_to_majority_vote_input(
     if filter_empty_z_rows:
         input_data_x, label_probs = filter_empty_probabilities(input_data_x, label_probs)
 
-    if not return_probs:
+    if not use_probabilistic_labels:
         kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
         label_probs = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=label_probs, **kwargs)
 

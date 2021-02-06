@@ -45,7 +45,7 @@ class NoDenoisingTrainer(Trainer):
 
         model_input_x, label_probs = input_to_majority_vote_input(
             self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
-            filter_empty_z_rows=self.trainer_config.filter_non_labelled
+            filter_empty_z_rows=self.trainer_config.filter_emtpy_z_rows
         )
 
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
@@ -53,7 +53,7 @@ class NoDenoisingTrainer(Trainer):
 
         log_section("Training starts", logger)
         device = self.trainer_config.device
-
+        self.model.to(self.trainer_config.device)
         self.model.train()
         for current_epoch in tqdm(range(self.trainer_config.epochs)):
             epoch_loss, epoch_acc = 0.0, 0.0
