@@ -59,8 +59,7 @@ def train_crossweigh(
     test_dataset, test_labels = get_dev_data(path_test_features_labels, word2id, samples_column_num=1,
                                              labels_column_num=4)
 
-    folder_prefix = f'{0.8}_{2}_{10}_{3}_{0.7}_{2.0}_{True}'
-    path_to_weights = os.path.join(path_sample_weights, folder_prefix)
+    path_to_weights = os.path.join(path_sample_weights)
     os.makedirs(path_to_weights, exist_ok=True)
 
     model = BidirectionalLSTM(word_embedding_matrix.shape[0],
@@ -73,9 +72,9 @@ def train_crossweigh(
         crossweigh_partitions=2,
         class_weights=CLASS_WEIGHTS,
         crossweigh_folds=10,
-        crossweigh_epochs=3,
-        weight_reducing_rate=0.7,
-        samples_start_weights=2.0,
+        crossweigh_epochs=2,
+        weight_reducing_rate=0.3,
+        samples_start_weights=3.0,
         lr=0.8,
         optimizer_=torch.optim.Adam(model.parameters()),
         output_classes=NUM_CLASSES
@@ -110,17 +109,6 @@ def train_crossweigh(
     print("Testing on the test dataset....")
     metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
     print(metrics)
-
-
-def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
-    """ This function turns raw text samples into encoded ones using the given word2id dict """
-    enc_input_samples = []
-    for sample in raw_samples:
-        enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
-        enc_input_samples.append(
-            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
-        )
-    return enc_input_samples
 
 
 def get_train_features(
@@ -164,6 +152,17 @@ def read_labels_from_file(path_labels: str, negative_label: str) -> dict:
         relation2ids[negative_label] = max(list(relation2ids.values())) + 1
 
     return relation2ids
+
+
+def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
+    """ This function turns raw text samples into encoded ones using the given word2id dict """
+    enc_input_samples = []
+    for sample in raw_samples:
+        enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
+        enc_input_samples.append(
+            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
+        )
+    return enc_input_samples
 
 
 def add_padding(tokens: list, maxlen: int) -> list:

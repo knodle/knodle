@@ -77,21 +77,3 @@ def get_data_features(
 #     dev_feature_labels_dataset = torch.utils.data.TensorDataset(dev_samples_tensor, dev_labels_tensor)
 #     return dev_feature_labels_dataset
 
-
-def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
-    """ This function turns raw text samples into encoded ones using the given word2id dict """
-    enc_input_samples = []
-    for sample in raw_samples:
-        enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
-        enc_input_samples.append(
-            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
-        )
-    return enc_input_samples
-
-
-def add_padding(tokens: list, maxlen: int) -> list:
-    """ Provide padding of the encoded tokens to the maxlen; if length of tokens > maxlen, reduce it to maxlen """
-    padded_tokens = [0] * maxlen
-    for token in range(0, min(len(tokens), maxlen)):
-        padded_tokens[token] = tokens[token]
-    return padded_tokens
