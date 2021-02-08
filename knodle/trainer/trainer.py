@@ -33,7 +33,6 @@ class Trainer(ABC):
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
-
         if trainer_config is None:
             self.trainer_config = TrainerConfig(model)
 

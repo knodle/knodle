@@ -13,16 +13,14 @@ from torch.utils.data import TensorDataset
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
-from knodle.trainer.trainer import Trainer
+from knodle.trainer.baseline.mixed import MajorityTrainer
 from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
-from knodle.trainer.utils import log_section
 from knodle.trainer.utils.denoise import activate_neighbors
-from knodle.trainer.utils.utils import accuracy_of_probs
 
 logger = logging.getLogger(__name__)
 
 
-class KnnTfidfSimilarity(Trainer):
+class KnnTfidfSimilarity(MajorityTrainer):
     def __init__(
             self,
             model: Module,
@@ -40,9 +38,8 @@ class KnnTfidfSimilarity(Trainer):
 
         if trainer_config is None:
             trainer_config = KNNConfig(self.model)
-
         super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )
 
     def train(self):
@@ -69,64 +66,66 @@ class KnnTfidfSimilarity(Trainer):
             dev_feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
             dev_feature_label_dataloader = self._make_dataloader(dev_feature_label_dataset)
 
-        log_section("Training starts", logger)
+        self.train_loop(feature_label_dataloader)
 
-        self.model.train()
-        for current_epoch in range(self.trainer_config.epochs):
-            epoch_loss, epoch_acc = 0.0, 0.0
-            logger.info("Epoch: {}".format(current_epoch))
-
-            for step, (feature_batch, label_batch) in enumerate(feature_label_dataloader):
-                feature_batch = feature_batch.to(self.trainer_config.device)
-                label_batch = label_batch.to(self.trainer_config.device)
-
-                self.model.zero_grad()
-                predictions = self.model(feature_batch)
-                loss = self.trainer_config.criterion(predictions, label_batch)
-
-                loss.backward()
-                self.trainer_config.optimizer.step()
-
-                acc = accuracy_of_probs(predictions, label_batch)
-                epoch_loss += loss.detach()
-                epoch_acc += acc.item()
-
-            avg_loss = epoch_loss / len(feature_label_dataloader)
-            avg_acc = epoch_acc / len(feature_label_dataloader)
-
-            log_section(
-                "Training Stats",
-                logger,
-                {"Epoch_accuracy": avg_acc, "Epoch_loss": avg_loss},
-            )
-
-            if self.dev_rule_matches_z is not None:
-                val_loss, val_acc = self.validation(dev_feature_label_dataloader)
-                log_section(
-                    "Validation Stats", logger, {"Accuracy": val_acc, "Loss": val_loss}
-                )
-
-        log_section("Training done", logger)
-
-    def validation(self, validation_dataloader):
-        epoch_loss, epoch_acc = 0.0, 0.0
-        self.model.eval()
-
-        with torch.no_grad():
-            for feature_batch, label_batch in validation_dataloader:
-                feature_batch = feature_batch.to(self.trainer_config.device)
-                label_batch = label_batch.to(self.trainer_config.device)
-                predictions = self.model(feature_batch)
-
-                loss = self.trainer_config.criterion(predictions, label_batch)
-                acc = accuracy_of_probs(predictions, label_batch)
-
-                epoch_loss += loss.item()
-                epoch_acc += acc.item()
-
-        return epoch_loss / len(validation_dataloader), epoch_acc / len(
-            validation_dataloader
-        )
+    #     log_section("Training starts", logger)
+    #
+    #     self.model.train()
+    #     for current_epoch in range(self.trainer_config.epochs):
+    #         epoch_loss, epoch_acc = 0.0, 0.0
+    #         logger.info("Epoch: {}".format(current_epoch))
+    #
+    #         for step, (feature_batch, label_batch) in enumerate(feature_label_dataloader):
+    #             feature_batch = feature_batch.to(self.trainer_config.device)
+    #             label_batch = label_batch.to(self.trainer_config.device)
+    #
+    #             self.model.zero_grad()
+    #             predictions = self.model(feature_batch)
+    #             loss = self.trainer_config.criterion(predictions, label_batch)
+    #
+    #             loss.backward()
+    #             self.trainer_config.optimizer.step()
+    #
+    #             acc = accuracy_of_probs(predictions, label_batch)
+    #             epoch_loss += loss.detach()
+    #             epoch_acc += acc.item()
+    #
+    #         avg_loss = epoch_loss / len(feature_label_dataloader)
+    #         avg_acc = epoch_acc / len(feature_label_dataloader)
+    #
+    #         log_section(
+    #             "Training Stats",
+    #             logger,
+    #             {"Epoch_accuracy": avg_acc, "Epoch_loss": avg_loss},
+    #         )
+    #
+    #         if self.dev_rule_matches_z is not None:
+    #             val_loss, val_acc = self.validation(dev_feature_label_dataloader)
+    #             log_section(
+    #                 "Validation Stats", logger, {"Accuracy": val_acc, "Loss": val_loss}
+    #             )
+    #
+    #     log_section("Training done", logger)
+    #
+    # def validation(self, validation_dataloader):
+    #     epoch_loss, epoch_acc = 0.0, 0.0
+    #     self.model.eval()
+    #
+    #     with torch.no_grad():
+    #         for feature_batch, label_batch in validation_dataloader:
+    #             feature_batch = feature_batch.to(self.trainer_config.device)
+    #             label_batch = label_batch.to(self.trainer_config.device)
+    #             predictions = self.model(feature_batch)
+    #
+    #             loss = self.trainer_config.criterion(predictions, label_batch)
+    #             acc = accuracy_of_probs(predictions, label_batch)
+    #
+    #             epoch_loss += loss.item()
+    #             epoch_acc += acc.item()
+    #
+    #     return epoch_loss / len(validation_dataloader), epoch_acc / len(
+    #         validation_dataloader
+    #     )
 
     def _denoise_rule_matches(self) -> np.ndarray:
         """

@@ -37,7 +37,7 @@ class MajorityTrainer(Trainer):
         if trainer_config is None:
             trainer_config = MajorityConfig(model=model)
         super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )
 
         self.dev_model_input_x = dev_model_input_x
@@ -50,18 +50,7 @@ class MajorityTrainer(Trainer):
 
         return input_batch, label_batch
 
-    def train(self):
-        """
-        This function gets final labels with a majority vote approach and trains the provided model.
-        """
-        model_input_x, label_probs = input_to_majority_vote_input(
-            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
-            filter_empty_z_rows=self.trainer_config.filter_emtpy_z_rows
-        )
-
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
-
+    def train_loop(self, feature_label_dataloader):
         log_section("Training starts", logger)
 
         self.model.to(self.trainer_config.device)
@@ -108,6 +97,20 @@ class MajorityTrainer(Trainer):
         log_section("Training done", logger)
 
         self.model.eval()
+
+    def train(self):
+        """
+        This function gets final labels with a majority vote approach and trains the provided model.
+        """
+        model_input_x, label_probs = input_to_majority_vote_input(
+            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+            filter_empty_z_rows=self.trainer_config.filter_emtpy_z_rows
+        )
+
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset)
+
+        self.train_loop(feature_label_dataloader)
 
     def test(self, features_dataset: TensorDataset, labels: TensorDataset):
 
