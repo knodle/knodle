@@ -104,7 +104,6 @@ class CrossWeigh(Trainer):
             dev_losses, dev_acc = [], []
 
         train_losses, train_acc = [], []
-
         self.model.train()
         for curr_epoch in range(self.trainer_config.epochs):
             logger.info(f"Epoch {curr_epoch}")
@@ -176,7 +175,10 @@ class CrossWeigh(Trainer):
                                                           labels,
                                                           weight=self.trainer_config.class_weights,
                                                           reduction="none")
-        return (loss_no_reduction * weights).sum() / self.trainer_config.class_weights[labels].sum()
+        return (loss_no_reduction * weights).mean()
+        # normalisation of the sample weights so that the range of the loss will approx. have the same range and
+        # won’t depend on the current sample distribution in the batch.
+        # return (loss_no_reduction * weights / weights.sum()).sum()
 
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""

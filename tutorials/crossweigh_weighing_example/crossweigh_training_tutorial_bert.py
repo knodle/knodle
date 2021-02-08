@@ -33,16 +33,17 @@ def train_crossweigh(
         path_t: str,
         path_train_samples: str,
         path_z: str,
-        path_labels: str,
         path_sample_weights: str = None,
         path_dev_features_labels: str = None,
-        path_test_features_labels: str = None
+        path_test_features_labels: str = None,
+        path_labels: str = None
 ) -> None:
 
     os.makedirs(path_sample_weights, exist_ok=True)
     path_sample_weights = os.path.join(path_sample_weights, "0.8_2_15_2_0.3_2.0_True")
 
-    labels2ids = read_labels_from_file(path_labels, "no_relation")
+    if path_labels:
+        labels2ids = read_labels_from_file(path_labels, "no_relation")
 
     rule_matches_z = load(path_z)
     rule_assignments_t = load(path_t)
@@ -74,9 +75,9 @@ def train_crossweigh(
     custom_crossweigh_trainer_config = CrossWeighTrainerConfig(
         model=model,
         class_weights=CLASS_WEIGHTS,
-        lr=0.01,
+        lr=1.0,
         output_classes=NUM_CLASSES,
-        optimizer_=AdamW(model.parameters(), lr=0.1)
+        optimizer_=AdamW(model.parameters(), lr=0.01)
     )
 
     trainer = CrossWeigh(
@@ -128,17 +129,17 @@ if __name__ == "__main__":
     parser.add_argument("--rule_assignments_t", help="")
     parser.add_argument("--path_train_samples", help="")
     parser.add_argument("--rule_matches_z", help="")
-    parser.add_argument("--path_labels", help="")
     parser.add_argument("--sample_weights", help="")
     parser.add_argument("--dev_features_labels", help="")
     parser.add_argument("--test_features_labels", help="")
+    parser.add_argument("--path_labels", help="")
 
     args = parser.parse_args()
 
     train_crossweigh(args.rule_assignments_t,
                      args.path_train_samples,
                      args.rule_matches_z,
-                     args.path_labels,
                      args.sample_weights,
                      args.dev_features_labels,
-                     args.test_features_labels)
+                     args.test_features_labels,
+                     args.path_labels)

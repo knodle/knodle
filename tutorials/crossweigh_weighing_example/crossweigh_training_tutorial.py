@@ -11,12 +11,11 @@ from joblib import load
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
+from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors, test_tacred_dataset
 
 NUM_CLASSES = 42
 MAXLEN = 50
@@ -107,7 +106,7 @@ def train_crossweigh(
 
     trainer.train()
     print("Testing on the test dataset....")
-    metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
+    metrics = test_tacred_dataset(model, trainer, test_dataset, test_labels, labels2ids)
     print(metrics)
 
 
@@ -173,27 +172,27 @@ def add_padding(tokens: list, maxlen: int) -> list:
     return padded_tokens
 
 
-def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
-    feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
-    feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
-
-    model.eval()
-    all_predictions, all_labels = torch.Tensor(), torch.Tensor()
-    for features, labels in feature_labels_dataloader:
-        outputs = model(features)
-        _, predicted = torch.max(outputs, 1)
-        all_predictions = torch.cat([all_predictions, predicted])
-        all_labels = torch.cat([all_labels, labels])
-
-    predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
-                                        all_labels.detach().type(torch.IntTensor).tolist())
-
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in test_labels_idx]
-
-    return score(test_labels, predictions, verbose=True)
+# def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
+#     feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
+#     feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
+#
+#     model.eval()
+#     all_predictions, all_labels = torch.Tensor(), torch.Tensor()
+#     for features, labels in feature_labels_dataloader:
+#         outputs = model(features)
+#         _, predicted = torch.max(outputs, 1)
+#         all_predictions = torch.cat([all_predictions, predicted])
+#         all_labels = torch.cat([all_labels, labels])
+#
+#     predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
+#                                         all_labels.detach().type(torch.IntTensor).tolist())
+#
+#     idx2labels = dict([(value, key) for key, value in labels2ids.items()])
+#
+#     predictions = [idx2labels[p] for p in predictions_idx]
+#     test_labels = [idx2labels[p] for p in test_labels_idx]
+#
+#     return score(test_labels, predictions, verbose=True)
 
 
 if __name__ == "__main__":

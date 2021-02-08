@@ -4,6 +4,7 @@ from typing import Dict
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.evaluation import tacred_metrics
@@ -154,21 +155,25 @@ def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, la
     return tacred_metrics.score(test_labels, predictions, verbose=True)
 
 
-def build_bert_feature_labels_dataloader(features, labels, batch_size: int, shuffle=True):
+def build_bert_feature_labels_dataloader(
+        features: TensorDataset, labels: Tensor, batch_size: int, shuffle: bool = True
+):
     dataset = TensorDataset(
         features.tensors[0],
         features.tensors[1],
-        torch.LongTensor(labels)
+        labels      # long type since labels for dev/test are ints
     )
     return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
 
 
-def build_bert_feature_labels_weights_dataloader(features, labels, sample_weights, batch_size: int, shuffle=True):
+def build_bert_feature_labels_weights_dataloader(
+        features: TensorDataset, labels: np.ndarray, sample_weights: Tensor, batch_size: int, shuffle: bool = True
+):
     dataset = TensorDataset(
         features.tensors[0],
         features.tensors[1],
-        torch.FloatTensor(sample_weights),
-        torch.LongTensor(labels),
+        torch.Tensor(sample_weights).float(),
+        torch.Tensor(labels).float(),      # float type here since labels for training are probs
     )
     return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
 
@@ -177,7 +182,7 @@ def build_bert_features_labels_ids_dataloader(features, labels, idx, batch_size:
     dataset = TensorDataset(
         features.tensors[0],
         features.tensors[1],
-        torch.LongTensor(labels),
-        torch.LongTensor(idx)
+        torch.Tensor(labels).float(),
+        torch.Tensor(idx).long()
     )
     return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)

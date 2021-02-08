@@ -1,10 +1,13 @@
 import logging
-from typing import Union, Tuple
+from typing import Union, Tuple, Dict
 
 import numpy as np
 import pandas as pd
 import torch
+from torch import Tensor
 from torch.utils.data import TensorDataset
+from knodle.evaluation.tacred_metrics import score
+# from tutorials.crossweigh_weighing_example.crossweigh_training_tutorial import encode_samples
 
 logger = logging.getLogger(__name__)
 
@@ -38,34 +41,56 @@ def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
     return word2id, word_embedding_matrix
 
 
-def get_data_features(
-        input_data: pd.Series,
-        word2id: dict,
-        maxlen: int,
-        samples_column: int,
-        labels_column: int = None,
-) -> Union[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
-    """
-    This function reads the input data saved as a DataFrame and encode sentences with words ids.
-    :param path_train_data: path to .csv file with input data
-    :param word2id: dictionary of words to their ids that corresponds to pretrained embeddings
-    :param column_num: number of a column in DataFrame with input data where samples are stored
-    :param maxlen: maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
-    :return:
-    """
-    enc_input_samples = encode_samples(
-        list(input_data.iloc[:, samples_column]), word2id, maxlen
-    )
-    # inputs_x_tensor = torch.LongTensor(enc_input_samples)
-    # inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
+# def get_data_features(
+#         input_data: pd.Series,
+#         word2id: dict,
+#         maxlen: int,
+#         samples_column: int,
+#         labels_column: int = None,
+# ) -> Union[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
+#     """
+#     This function reads the input data saved as a DataFrame and encode sentences with words ids.
+#     :param path_train_data: path to .csv file with input data
+#     :param word2id: dictionary of words to their ids that corresponds to pretrained embeddings
+#     :param column_num: number of a column in DataFrame with input data where samples are stored
+#     :param maxlen: maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
+#     :return:
+#     """
+#     enc_input_samples = encode_samples(
+#         list(input_data.iloc[:, samples_column]), word2id, maxlen
+#     )
+#     # inputs_x_tensor = torch.LongTensor(enc_input_samples)
+#     # inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
+#
+#     if labels_column:
+#         labels_tensor = torch.LongTensor(list(input_data.iloc[:, labels_column]))
+#         # labels_dataset = torch.utils.data.TensorDataset(labels_tensor)
+#         return enc_input_samples, labels_tensor
+#
+#     return enc_input_samples
 
-    if labels_column:
-        labels_tensor = torch.LongTensor(list(input_data.iloc[:, labels_column]))
-        # labels_dataset = torch.utils.data.TensorDataset(labels_tensor)
-        return enc_input_samples, labels_tensor
 
-    return enc_input_samples
+def test_tacred_dataset(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
+    feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
+    feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
 
+    model.eval()
+    all_predictions, all_labels = torch.Tensor(), torch.Tensor()
+    for features, labels in feature_labels_dataloader:
+        outputs = model(features)
+        _, predicted = torch.max(outputs, 1)
+        all_predictions = torch.cat([all_predictions, predicted])
+        all_labels = torch.cat([all_labels, labels])
+
+    predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
+                                        all_labels.detach().type(torch.IntTensor).tolist())
+
+    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
+
+    predictions = [idx2labels[p] for p in predictions_idx]
+    test_labels = [idx2labels[p] for p in test_labels_idx]
+
+    return score(test_labels, predictions, verbose=True)
 
 # def get_dev_data(path_dev_feature_labels: str, word2id: dict, maxlen: int) -> TensorDataset:
 #     """ Read dev data with gold labels and turn it into TensorDataset(features, labels)"""
