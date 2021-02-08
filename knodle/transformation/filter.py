@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import TensorDataset
 
 
-def filter_empty_probabilities(input_data_x: TensorDataset, class_probas_y: np.array):
+def filter_empty_probabilities(input_data_x: TensorDataset, class_probas_y: np.ndarray):
     """Delete rows of TensorDataset's where the cumulative probability equals 0.
 
     Args:
@@ -10,7 +10,6 @@ def filter_empty_probabilities(input_data_x: TensorDataset, class_probas_y: np.a
         class_probas_y: Array, holding class probabilities, shape=num_samples, num_classes
     :return: Modified TensorDataset's
     """
-
     if len(class_probas_y.shape) != 2:
         raise ValueError("y_probs needs to be a matrix of dimensions num_samples x num_classes")
 
@@ -22,4 +21,5 @@ def filter_empty_probabilities(input_data_x: TensorDataset, class_probas_y: np.a
         new_tensors.append(input_data_x.tensors[i][non_zeros])
 
     new_x = TensorDataset(*new_tensors)
+
     return new_x, class_probas_y[non_zeros]

@@ -11,3 +11,6 @@ pandas
 scikit-learn
 torch
 snorkel
+
+# graphics
+matplotlib

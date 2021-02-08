@@ -98,7 +98,7 @@ class Trainer(ABC):
         return predictions_list
 
     def _make_dataloader(
-            self, dataset: TensorDataset, shuffle: bool = False
+            self, dataset: TensorDataset, shuffle: bool = True
     ) -> DataLoader:
         dataloader = DataLoader(
             dataset,
