@@ -30,7 +30,6 @@ TEST_SAMPLES_OUTPUT = "test_samples.csv"
 
 # the label for no match samples as it is in dataset; id for it will be calculated as follows: max(label_ids) + 1
 OTHER_CLASS = "no_relation"
-OTHER_CLASS_ID = 41
 
 
 def preprocess_data(
