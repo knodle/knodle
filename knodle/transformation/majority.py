@@ -7,13 +7,15 @@ from knodle.transformation.filter import filter_empty_probabilities
 def probabilies_to_majority_vote(
         probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None
 ) -> int:
-    """Tranforms a vector of probabilites to its majority vote.
-
-    :param probs: Vector of probabilites for 1 sample
-    :param choose_random_label: Choose a random label, if there's no clear majority. If there exists a
-        probability > 0, takes preference over other_class_id, otherwise other_class_id
-    :param other_class_id: Class ID being used, if there's no clear majority
-    :return:
+    """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
+    If there are more than one class with equal probabilities: either select one of the classes randomly or assign to
+    the sample the other class id.
+ 
+    Args:
+        probs: Vector of probabilities for 1 sample. Shape: classes x 1
+        choose_random_label: Choose a random label, if there's no clear majority.
+        other_class_id: Class ID being used, if there's no clear majority
+    Returns: An array of classes.
     """
     if choose_random_label and other_class_id is not None:
         raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
