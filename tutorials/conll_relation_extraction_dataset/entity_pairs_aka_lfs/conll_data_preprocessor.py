@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import logging
 from typing import Tuple, Dict, Union
+
+from scipy import sparse
 from joblib import dump
 
 import numpy as np
@@ -103,8 +105,9 @@ def get_train_data(
     rule_assignments_t = get_t_matrix(relation2rules)
     rule_matches_z = get_z_matrix(train_data)
 
-    dump(rule_assignments_t, os.path.join(path_output, t_matrix))
-    dump(rule_matches_z, os.path.join(path_output, z_matrix))
+    dump(sparse.csr_matrix(rule_assignments_t), os.path.join(path_output, t_matrix))
+    dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
+
     train_data.to_csv(os.path.join(path_output, samples),
                       columns=["samples", "rules", "enc_rules", "labels"])
     save_dict(relation2rules, os.path.join(path_output, "relation2rules.json"))
@@ -122,7 +125,7 @@ def get_dev_test_data(path_data: str, path_output: str, labels2ids: dict, z_matr
     val_data, _, _ = get_conll_data_with_ent_pairs(path_data, labels2ids)
 
     rule_matches_z = get_z_matrix(val_data)
-    dump(rule_matches_z, os.path.join(path_output, z_matrix))
+    dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
     val_data.to_csv(os.path.join(path_output, samples), columns=["samples", "rules", "enc_rules", "labels"])
     logger.info("Processing of eval data has finished")
 
