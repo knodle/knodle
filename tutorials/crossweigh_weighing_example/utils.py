@@ -37,33 +37,33 @@ def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
     return word2id, word_embedding_matrix
 
 
-def get_data_features(
-        input_data: pd.Series,
-        word2id: dict,
-        maxlen: int,
-        samples_column: int,
-        labels_column: int = None,
-) -> Union[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
-    """
-    This function reads the input data saved as a DataFrame and encode sentences with words ids.
-    :param path_train_data: path to .csv file with input data
-    :param word2id: dictionary of words to their ids that corresponds to pretrained embeddings
-    :param column_num: number of a column in DataFrame with input data where samples are stored
-    :param maxlen: maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
-    :return:
-    """
-    enc_input_samples = encode_samples(
-        list(input_data.iloc[:, samples_column]), word2id, maxlen
-    )
-    # inputs_x_tensor = torch.LongTensor(enc_input_samples)
-    # inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
-
-    if labels_column:
-        labels_tensor = torch.LongTensor(list(input_data.iloc[:, labels_column]))
-        # labels_dataset = torch.utils.data.TensorDataset(labels_tensor)
-        return enc_input_samples, labels_tensor
-
-    return enc_input_samples
+# def get_data_features(
+#         input_data: pd.Series,
+#         word2id: dict,
+#         maxlen: int,
+#         samples_column: int,
+#         labels_column: int = None,
+# ) -> Union[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
+#     """
+#     This function reads the input data saved as a DataFrame and encode sentences with words ids.
+#     :param path_train_data: path to .csv file with input data
+#     :param word2id: dictionary of words to their ids that corresponds to pretrained embeddings
+#     :param column_num: number of a column in DataFrame with input data where samples are stored
+#     :param maxlen: maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
+#     :return:
+#     """
+#     enc_input_samples = encode_samples(
+#         list(input_data.iloc[:, samples_column]), word2id, maxlen
+#     )
+#     # inputs_x_tensor = torch.LongTensor(enc_input_samples)
+#     # inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
+#
+#     if labels_column:
+#         labels_tensor = torch.LongTensor(list(input_data.iloc[:, labels_column]))
+#         # labels_dataset = torch.utils.data.TensorDataset(labels_tensor)
+#         return enc_input_samples, labels_tensor
+#
+#     return enc_input_samples
 
 
 # def get_dev_data(path_dev_feature_labels: str, word2id: dict, maxlen: int) -> TensorDataset:
