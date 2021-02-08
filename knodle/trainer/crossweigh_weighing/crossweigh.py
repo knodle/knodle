@@ -12,6 +12,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
+from knodle.trainer.utils.filter import filter_empty_probabilities, filter_empty_probabilities_x_y_z
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
@@ -80,18 +81,24 @@ class CrossWeigh(Trainer):
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
 
-        sample_weights = self._get_sample_weights() if self.use_weights \
-            else torch.FloatTensor([1] * len(self.model_input_x))
-
         if not self.run_classifier:
             logger.info("No classifier should be trained")
             return
 
-        logger.info("Classifier training is started")
-
         train_labels = get_labels(
             self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
-        train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)
+
+        if self.trainer_config.filter_empty_probs:
+            self.inputs_x, self.rule_matches_z, train_labels = filter_empty_probabilities_x_y_z(
+                self.inputs_x, train_labels, self.rule_matches_z
+            )
+
+        sample_weights = self._get_sample_weights() if self.use_weights \
+            else torch.FloatTensor([1] * len(self.inputs_x))
+
+        logger.info("Classifier training is started")
+
+        train_loader = self._get_feature_label_dataloader(self.inputs_x, train_labels, sample_weights)
         train_losses, train_acc = [], []
 
         if self.dev_features is not None:

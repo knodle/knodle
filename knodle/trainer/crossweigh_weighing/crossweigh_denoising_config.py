@@ -28,6 +28,7 @@ class CrossWeighDenoisingConfig:
             seed: int = "12345",
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
+            filter_empty_probs: bool = False,
             no_match_class_label: int = None):
 
         self.cw_partitions = crossweigh_partitions
@@ -44,6 +45,7 @@ class CrossWeighDenoisingConfig:
         self.seed = seed
         self.use_grad_clipping = use_grad_clipping
         self.grad_clipping = grad_clipping
+        self.filter_empty_probs = filter_empty_probs
         self.no_match_class_label = no_match_class_label
         self.device = check_and_return_device()
 

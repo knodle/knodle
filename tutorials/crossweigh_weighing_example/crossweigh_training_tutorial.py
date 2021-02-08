@@ -23,7 +23,7 @@ MAXLEN = 50
 CLASS_WEIGHTS = torch.FloatTensor([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.0])
-
+NO_RELATION_LABEL=41
 
 def train_crossweigh(
         path_t: str,
@@ -77,7 +77,9 @@ def train_crossweigh(
         samples_start_weights=3.0,
         lr=0.8,
         optimizer_=torch.optim.Adam(model.parameters()),
-        output_classes=NUM_CLASSES
+        output_classes=NUM_CLASSES,
+        filter_empty_probs=False,
+        no_match_class_label=NO_RELATION_LABEL
     )
 
     custom_crossweigh_trainer_config = CrossWeighTrainerConfig(
@@ -86,7 +88,9 @@ def train_crossweigh(
         lr=2.0,
         output_classes=NUM_CLASSES,
         optimizer_=torch.optim.Adam(model.parameters()),
-        epochs=3
+        epochs=3,
+        filter_empty_probs=False,
+        no_match_class_label=NO_RELATION_LABEL
     )
 
     trainer = CrossWeigh(

@@ -11,8 +11,13 @@ from knodle.model.logistic_regression.logistic_regression_model import (
 )
 
 logger = logging.getLogger()
-handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s")
+
+file_log_handler = logging.FileHandler('logfile.log')
+file_log_handler.setFormatter(formatter)
+logger.addHandler(file_log_handler)
+
+handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
