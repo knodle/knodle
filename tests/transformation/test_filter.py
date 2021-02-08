@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.utils.filter import filter_empty_probabilities
+from knodle.transformation.filter import filter_empty_probabilities
 
 
 def test_filter_empty_probabilities():

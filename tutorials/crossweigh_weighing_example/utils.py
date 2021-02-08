@@ -4,7 +4,6 @@ from typing import Union, Tuple
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import TensorDataset
 
 logger = logging.getLogger(__name__)
 

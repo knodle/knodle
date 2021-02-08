@@ -6,8 +6,8 @@ import numpy as np
 import torch
 
 from knodle.evaluation import tacred_metrics
-from knodle.trainer.utils.denoise import get_majority_vote_probs, get_majority_vote_probs_with_no_rel
-
+from knodle.trainer.utils.denoise import get_majority_vote_probs_with_no_rel
+from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 logger = logging.getLogger(__name__)
 
 
@@ -142,7 +142,7 @@ def get_labels(
             raise RuntimeError("Label for negative samples is probably already assigned to some other class")
         return get_majority_vote_probs_with_no_rel(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
-        return get_majority_vote_probs(rule_matches_z, rule_assignments_t)
+        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
 
 
 def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
