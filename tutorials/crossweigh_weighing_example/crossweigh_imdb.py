@@ -72,15 +72,15 @@ def train_crossweigh(
     dev_labels = torch.LongTensor(dev_df.label_id.values)
 
     parameters = dict(
-        use_weights=[False],
+        use_weights=[True],
         lr=[0.1, 2.0, 0.8],  # 0.1, 0.8, 1.0
         cw_lr=[0.8],  # 0.01,
         epochs=[1],  # 25, 35, 50, 100
-        cw_partitions=[0],
-        cw_folds=[0],  # 7,
-        cw_epochs=[0],  # 1,
-        weight_reducing_rate=[0],  # 0.5, 0.7
-        samples_start_weights=[0],  # 2.0, 3.0, 4.0
+        cw_partitions=[1],
+        cw_folds=[3],  # 7,
+        cw_epochs=[1],  # 1,
+        weight_reducing_rate=[0.7],  # 0.5, 0.7
+        samples_start_weights=[3.0],  # 2.0, 3.0, 4.0
     )
     param_values = [v for v in parameters.values()]
 
@@ -149,13 +149,9 @@ def train_crossweigh(
              "weight_reducing_rate": weight_rr,
              "samples_start_weights": start_weights,
              "use_sample_weights": use_weights},
-            {"weighted_avg_precision": clf_report["weighted avg"]["precision"],
-             "weighted_avg_recall": clf_report["weighted avg"]["recall"],
-             "weighted_avg_f1": clf_report["weighted avg"]["f1-score"],
-             "accuracy": clf_report["accuracy"],
-             "micro_avg_precision": clf_report["micro avg"]["precision"],
-             "micro_avg_recall": clf_report["micro avg"]["recall"],
-             "micro_avg_f1": clf_report["micro avg"]["f1-score"]}
+            {"macro_avg_precision": clf_report["macro avg"]["precision"],
+             "macro_avg_recall": clf_report["macro avg"]["recall"],
+             "macro_avg_f1": clf_report["macro avg"]["f1-score"]}
         )
 
         tb.close()

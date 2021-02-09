@@ -74,6 +74,7 @@ class CrossWeighWeightsCalculator:
                         f"=============")
 
             shuffled_rules_ids, no_match_ids = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
+            # todo: clarify with no_match_ids! smth is maybe wrong here
 
             for fold in range(self.denoising_config.cw_folds):
                 # for each fold the model is trained from scratch
