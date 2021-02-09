@@ -1,6 +1,7 @@
 from typing import Callable
 
 from snorkel.classification import cross_entropy_with_probs
+import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.optim import SGD, optimizer
@@ -18,6 +19,7 @@ class TrainerConfig:
         output_classes: int = 2,
         lr: float = 0.01,
         epochs: int = 35,
+        seed: int = 42
     ):
         self.criterion = criterion
         self.batch_size = batch_size
@@ -32,3 +34,5 @@ class TrainerConfig:
             self.optimizer = optimizer_
         self.output_classes = output_classes
         self.device = check_and_return_device()
+        self.seed = seed
+        torch.manual_seed(self.seed)

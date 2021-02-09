@@ -11,8 +11,7 @@ from knodle.evaluation.tacred_metrics import score
 
 logger = logging.getLogger(__name__)
 
-SPECIAL_TOKENS = ['<PAD>', '<UNK>']
-MAXLEN = 50         # maximum length of encoded samples: if length of tokens > maxlen, reduce it to maxlen, else padding
+SPECIAL_TOKENS = ["<PAD>", "<UNK>"]
 
 
 def vocab_and_vectors(filename: str) -> (dict, np.ndarray):
