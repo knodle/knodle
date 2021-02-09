@@ -98,7 +98,7 @@ class CrossWeigh(Trainer):
 
         logger.info("Classifier training is started")
 
-        train_loader = self._get_feature_label_dataloader(self.inputs_x, train_labels, sample_weights)
+        train_loader = self._get_feature_label_dataloader(self.inputs_x, Tensor(train_labels), sample_weights)
         train_losses, train_acc = [], []
 
         if self.dev_features is not None:
@@ -162,10 +162,11 @@ class CrossWeigh(Trainer):
         return sample_weights
 
     def _get_feature_label_dataloader(
-            self, samples: TensorDataset, labels: Union[Tensor, np.ndarray], sample_weights: np.ndarray = None, shuffle: bool = True
+            self, samples: TensorDataset, labels: Tensor, sample_weights: np.ndarray = None,
+            shuffle: bool = True
     ) -> DataLoader:
         """ Converts encoded samples and labels to dataloader. Optionally: add sample_weights as well """
-        tensor_target = torch.LongTensor(labels).to(self.trainer_config.device)
+        tensor_target = labels.float().to(self.trainer_config.device)
         tensor_samples = samples.tensors[0].to(self.trainer_config.device)
 
         if sample_weights is not None:
@@ -182,7 +183,8 @@ class CrossWeigh(Trainer):
                                                           labels,
                                                           weight=self.trainer_config.class_weights,
                                                           reduction="none")
-        return (loss_no_reduction * weights).sum() / self.trainer_config.class_weights[labels].sum()
+        # return (loss_no_reduction * weights).sum() / self.trainer_config.class_weights[labels].sum()
+        return (loss_no_reduction * weights).mean()
 
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""

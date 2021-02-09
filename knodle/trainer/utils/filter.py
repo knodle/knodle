@@ -44,7 +44,5 @@ def filter_empty_probabilities_x_y_z(input_data_x: TensorDataset, class_probas_y
     for i in range(len(input_data_x.tensors)):
         new_tensors.append(input_data_x.tensors[i][non_zeros])
 
-    new_z = rule_matches_z[non_zeros]
-
     new_x = TensorDataset(*new_tensors)
-    return new_x, new_z, class_probas_y[non_zeros]
+    return new_x, rule_matches_z[non_zeros], class_probas_y[non_zeros]

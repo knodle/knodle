@@ -18,6 +18,7 @@ from knodle.model.logistic_regression.logistic_regression_model import LogisticR
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
+from tutorials.ImdbDataset.utils import read_train_dev_test
 from tutorials.crossweigh_weighing_example import utils
 from torch.utils.data import TensorDataset
 from sklearn.model_selection import train_test_split
@@ -30,12 +31,8 @@ NUM_CLASSES = 2
 
 
 def train_crossweigh(
-        path_t: str,
-        path_train_samples: str,
-        path_z: str,
+        path_to_data: str,
         path_sample_weights: str = None,
-        path_dev_features_labels: str = None,
-        path_test_features_labels: str = None
 ) -> None:
     """
     Training the model with CrossWeigh model denoising
@@ -46,18 +43,21 @@ def train_crossweigh(
     :param path_word_emb_file: path to file with pretrained embeddings
     """
 
-    train_data = pd.read_csv(path_train_samples)
-    rule_matches_z = load(path_z)
+    train_df, dev_df, test_df, rule_matches_z, _, _, imdb_dataset, rule_assignments_t = read_train_dev_test(
+        path_to_data)
+
+    # train_data = pd.read_csv(path_train_samples)
+    # rule_matches_z = load(path_z)
     rule_matches_z = rule_matches_z.toarray() if scipy.sparse.issparse(rule_matches_z) else rule_matches_z
 
-    mapping_rules_labels_t = load(path_t)
-    dev_data = load(path_dev_features_labels)
-    test_data = load(path_test_features_labels)
+    mapping_rules_labels_t = rule_assignments_t
+    # dev_data = load(path_dev_features_labels)
+    # test_data = load(path_test_features_labels)
 
     train_tfidf_sparse, dev_tfidf_sparse, test_tfidf_sparse = create_tfidf_values(
-        train_data.reviews_preprocessed.values,
-        dev_data.reviews_preprocessed.values,
-        test_data.reviews_preprocessed.values
+        train_df.reviews_preprocessed.values,
+        dev_df.reviews_preprocessed.values,
+        test_df.reviews_preprocessed.values
     )
 
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
@@ -65,17 +65,17 @@ def train_crossweigh(
 
     test_tfidf = Tensor(test_tfidf_sparse.toarray())
     test_dataset = TensorDataset(test_tfidf)
-    test_labels = torch.LongTensor(test_data.label_id.values)
+    test_labels = torch.LongTensor(test_df.label_id.values)
 
     dev_tfidf = Tensor(dev_tfidf_sparse.toarray())
     dev_dataset = TensorDataset(dev_tfidf)
-    dev_labels = torch.LongTensor(dev_data.label_id.values)
+    dev_labels = torch.LongTensor(dev_df.label_id.values)
 
     parameters = dict(
         use_weights=[False],
         lr=[0.1, 2.0, 0.8],  # 0.1, 0.8, 1.0
         cw_lr=[0.8],  # 0.01,
-        epochs=[5, 10, 25, 50, 100],  # 25, 35, 50, 100
+        epochs=[1],  # 25, 35, 50, 100
         cw_partitions=[0],
         cw_folds=[0],  # 7,
         cw_epochs=[0],  # 1,
@@ -153,9 +153,9 @@ def train_crossweigh(
              "weighted_avg_recall": clf_report["weighted avg"]["recall"],
              "weighted_avg_f1": clf_report["weighted avg"]["f1-score"],
              "accuracy": clf_report["accuracy"],
-             "macro_avg_precision": clf_report["macro avg"]["precision"],
-             "macro_avg_recall": clf_report["macro avg"]["recall"],
-             "macro_avg_f1": clf_report["macro avg"]["f1-score"]}
+             "micro_avg_precision": clf_report["micro avg"]["precision"],
+             "micro_avg_recall": clf_report["micro avg"]["recall"],
+             "micro_avg_f1": clf_report["micro avg"]["f1-score"]}
         )
 
         tb.close()
@@ -181,18 +181,10 @@ def create_tfidf_values(train_data: [str], dev_data: [str], test_data: [str]):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
-    parser.add_argument("--rule_assignments_t", help="")
-    parser.add_argument("--path_train_samples", help="")
-    parser.add_argument("--rule_matches_z", help="")
+    parser.add_argument("--path_to_data", help="")
     parser.add_argument("--sample_weights", help="If there are pretrained samples sample_weights")
-    parser.add_argument("--dev_features_labels", help="")
-    parser.add_argument("--test_features_labels", help="")
 
     args = parser.parse_args()
 
-    train_crossweigh(args.rule_assignments_t,
-                     args.path_train_samples,
-                     args.rule_matches_z,
-                     args.sample_weights,
-                     args.dev_features_labels,
-                     args.test_features_labels)
+    train_crossweigh(args.path_to_data,
+                     args.sample_weights)
