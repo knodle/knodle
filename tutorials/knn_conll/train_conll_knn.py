@@ -8,8 +8,8 @@ from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer import TrainerConfig
-from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
-    KnnTfidfSimilarity,
+from knodle.trainer.knn_denoising.knn_denoising import (
+    KnnDenoisingTrainer,
 )
 from torch import Tensor
 from torch.utils.data import TensorDataset
@@ -183,7 +183,7 @@ def train(train_tfidf, train_rule_matches_z, mapping_rules_labels_t, tfidf_value
 
     custom_model_config = TrainerConfig(model=model, epochs=25)
 
-    trainer = KnnTfidfSimilarity(
+    trainer = KnnDenoisingTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=train_tfidf,

@@ -11,9 +11,9 @@ from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer.knn_tfidf_similarities.knn_config import KNNConfig
-from knodle.trainer.knn_tfidf_similarities.knn_tfidf_similarity import (
-    KnnTfidfSimilarity,
+from knodle.trainer.knn_denoising.knn_config import KNNConfig
+from knodle.trainer.knn_denoising.knn_denoising import (
+    KnnDenoisingTrainer,
 )
 from tutorials.ImdbDataset.utils import read_train_dev_test, create_tfidf_values, init_logger
 
@@ -57,7 +57,7 @@ def train_knn_model():
             k=k
         )
 
-        trainer = KnnTfidfSimilarity(
+        trainer = KnnDenoisingTrainer(
             model,
             mapping_rules_labels_t=mapping_rules_labels_t,
             model_input_x=train_dataset,
