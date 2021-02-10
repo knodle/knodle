@@ -12,12 +12,13 @@ from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.utils import set_seed, check_splitting, return_unique, get_labels
-from knodle.trainer.utils.filter import filter_empty_probabilities
+from knodle.trainer.crossweigh_weighing.utils import set_seed, check_splitting, return_unique, get_labels, \
+    build_features_ids_labels_dataloader, build_feature_labels_dataloader
+from knodle.trainer.utils import log_section
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
-NO_RELATION_CLASS = 41
+# NO_RELATION_CLASS = 41
 
 
 class CrossWeighWeightsCalculator:
@@ -64,14 +65,10 @@ class CrossWeighWeightsCalculator:
 
         labels = get_labels(self.rule_matches_z, self.rule_assignments_t)
 
-        if self.denoising_config.filter_empty_probs:
-            self.inputs_x, labels = filter_empty_probabilities(self.inputs_x, labels)
-
         rules_samples_ids_dict = self._get_rules_samples_ids_dict()
 
         for partition in range(self.denoising_config.cw_partitions):
-            logger.info(f"============= CrossWeigh Partition {partition + 1}/{self.denoising_config.cw_partitions}: "
-                        f"=============")
+            log_section(f"CrossWeigh Partition {partition + 1}/{self.denoising_config.cw_partitions}:", logger)
 
             shuffled_rules_ids, no_match_ids = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
             # todo: clarify with no_match_ids! smth is maybe wrong here
@@ -85,7 +82,7 @@ class CrossWeighWeightsCalculator:
                 self.cw_train(train_loader)
                 self.cw_test(test_loader)
 
-            logger.info("============ CrossWeigh Partition {} is done ============".format(partition + 1))
+            log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
         dump(self.sample_weights, os.path.join(self.output_dir, "sample_weights.lib"))
         logger.info("======= Denoising with CrossWeigh is completed =======")
@@ -159,17 +156,24 @@ class CrossWeighWeightsCalculator:
         train_rules_idx, test_rules_idx = self.calculate_rules_indices(rules_ids, no_match_rule_ids, fold)
 
         # select train and test samples and labels according to the selected rules idx
-        test_samples, test_labels, test_idx = self._get_cw_samples_labels_idx(labels, test_rules_idx,
-                                                                              rules_samples_ids_dict)
-        train_samples, train_labels, train_idx = self._get_cw_samples_labels_idx(labels, train_rules_idx,
-                                                                                 rules_samples_ids_dict, test_idx)
+        test_samples, test_labels, test_idx = self._get_cw_samples_labels_idx(
+            labels, test_rules_idx, rules_samples_ids_dict
+        )
+
+        train_samples, train_labels, train_idx = self._get_cw_samples_labels_idx(
+            labels, train_rules_idx, rules_samples_ids_dict, test_idx
+        )
 
         # debug: check that splitting was done correctly
         check_splitting(train_samples, train_labels, train_idx, self.inputs_x.tensors[0], labels)
         check_splitting(test_samples, test_labels, test_idx, self.inputs_x.tensors[0], labels)
 
-        test_loader = self.cw_convert2tensor(test_samples, test_labels, test_idx, shuffle=True)
-        train_loader = self.cw_convert2tensor(train_samples, train_labels, train_idx, shuffle=True)
+        test_loader = build_features_ids_labels_dataloader(
+            test_samples, test_idx, test_labels, self.denoising_config.batch_size, shuffle=True
+        )
+        train_loader = build_feature_labels_dataloader(
+            train_samples, torch.Tensor(train_labels), self.denoising_config.batch_size, shuffle=True
+        )
 
         logger.info(f"Fold {fold}/{self.denoising_config.cw_folds}  Rules in training set: {len(train_rules_idx)}, "
                     f"rules in test set: {len(test_rules_idx)}, samples in training set: {len(train_samples)}, "
@@ -194,25 +198,10 @@ class CrossWeighWeightsCalculator:
         if check_intersections is not None:
             sample_ids = return_unique(np.array(sample_ids), check_intersections)
         # cw_samples = torch.LongTensor(self.inputs_x.tensors[0][sample_ids])
-        cw_samples = torch.Tensor(self.inputs_x.tensors[0][sample_ids])
+        cw_samples_dataset = TensorDataset(torch.Tensor(self.inputs_x.tensors[0][sample_ids]))
         cw_labels = np.array(labels[sample_ids])
         cw_samples_idx = np.array(sample_ids)
-        return cw_samples, cw_labels, cw_samples_idx
-
-    def cw_convert2tensor(
-            self, samples: torch.Tensor, labels: np.ndarray, idx: np.ndarray, shuffle: bool = True
-    ) -> DataLoader:
-        """
-        Turns the input data (encoded samples, encoded labels, indices in the original matrices) to a DataLoader
-        which could be used for further model training or testing
-        """
-        tensor_words = samples.to(self.denoising_config.device)
-        # tensor_target = torch.LongTensor(labels).to(self.denoising_config.device)
-        tensor_target = torch.FloatTensor(labels).to(self.denoising_config.device)
-        tensor_idx = torch.LongTensor(idx).to(self.denoising_config.device)
-
-        dataset = torch.utils.data.TensorDataset(tensor_words, tensor_target, tensor_idx)
-        return torch.utils.data.DataLoader(dataset, batch_size=self.denoising_config.batch_size, shuffle=shuffle)
+        return cw_samples_dataset, cw_labels, cw_samples_idx
 
     def cw_train(self, train_loader: DataLoader):
         """
@@ -220,14 +209,12 @@ class CrossWeighWeightsCalculator:
         :param train_loader: loader with the data which is used for training (k-1 folds)
         """
         self.crossweigh_model.train()
-        for _ in tqdm(range(self.denoising_config.cw_epochs)):
-            for tokens, labels, _ in train_loader:
+        for curr_epoch in range(self.denoising_config.cw_epochs):
+            for tokens, labels in train_loader:
                 self.denoising_config.optimizer.zero_grad()
-                output = self.crossweigh_model(tokens)
 
-                loss = self.denoising_config.criterion(
-                    output, labels, weight=self.denoising_config.class_weights
-                )
+                predictions = self.crossweigh_model(tokens)
+                loss = self.denoising_config.criterion(predictions, labels, weight=self.denoising_config.class_weights)
 
                 loss.backward()
                 if self.denoising_config.use_grad_clipping:
@@ -244,7 +231,7 @@ class CrossWeighWeightsCalculator:
         correct_predictions, wrong_predictions = 0, 0
 
         with torch.no_grad():
-            for tokens, labels, idx in test_loader:
+            for tokens, idx, labels in test_loader:
                 outputs = self.crossweigh_model(tokens)
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()

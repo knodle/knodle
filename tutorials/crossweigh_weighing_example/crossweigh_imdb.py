@@ -14,7 +14,7 @@ from torchtext.vocab import GloVe
 from torch.utils.tensorboard import SummaryWriter
 
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
+from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
@@ -72,30 +72,29 @@ def train_crossweigh(
     dev_labels = torch.LongTensor(dev_df.label_id.values)
 
     parameters = dict(
-        use_weights=[True],
-        lr=[0.1, 2.0, 0.8],  # 0.1, 0.8, 1.0
+        # use_weights=[True],
+        lr=[0.8],  # 0.1, 0.8, 1.0
         cw_lr=[0.8],  # 0.01,
         epochs=[1],  # 25, 35, 50, 100
-        cw_partitions=[1],
-        cw_folds=[3],  # 7,
-        cw_epochs=[1],  # 1,
-        weight_reducing_rate=[0.7],  # 0.5, 0.7
-        samples_start_weights=[3.0],  # 2.0, 3.0, 4.0
+        cw_partitions=[2],
+        cw_folds=[5, 10],  # 7,
+        cw_epochs=[2],  # 1,
+        weight_reducing_rate=[0.3, 0.7],  # 0.5, 0.7
+        samples_start_weights=[2.0, 4.0],  # 2.0, 3.0, 4.0
     )
     param_values = [v for v in parameters.values()]
 
-    tb = SummaryWriter('runs_baselines')
+    tb = SummaryWriter('runs_new_new_new')
 
-    for run_id, (use_weights, lr, cw_lr, epochs, cw_part, cw_folds, cw_epochs, weight_rr, start_weights) in \
+    for run_id, (lr, cw_lr, epochs, cw_part, cw_folds, cw_epochs, weight_rr, start_weights) in \
             enumerate(product(*param_values)):
-        comment = f' lr = {lr} cw_lr = {cw_lr} epochs = {epochs} cw_partitions = {cw_part} cw_folds = {cw_folds} ' \
-                  f'cw_epochs = {cw_epochs} weight_reducing_rate = {weight_rr} samples_start_weights {start_weights} ' \
-                  f'use_weights = {use_weights}'
+        comment = f' lr = {lr} cw_lr = {cw_lr} cw_partitions = {cw_part} cw_folds = {cw_folds} ' \
+                  f'cw_epochs = {cw_epochs} weight_reducing_rate = {weight_rr} samples_start_weights {start_weights}'
 
         print("Parameters: {}".format(comment))
         tb = SummaryWriter(comment=comment)
 
-        folder_prefix = f'{cw_lr}_{cw_part}_{cw_folds}_{cw_epochs}_{weight_rr}_{start_weights}_{use_weights}'
+        folder_prefix = f'{cw_lr}_{cw_part}_{cw_folds}_{cw_epochs}_{weight_rr}_{start_weights}'
         print("Weights will be saved to/loaded from {}".format(folder_prefix))
 
         path_to_weights = os.path.join(path_sample_weights, folder_prefix)
@@ -133,8 +132,7 @@ def train_crossweigh(
             path_to_weights=path_to_weights,
             denoising_config=custom_crossweigh_denoising_config,
             trainer_config=custom_crossweigh_trainer_config,
-            run_classifier=True,
-            use_weights=use_weights
+            run_classifier=False
         )
         trainer.train()
         clf_report = trainer.test(test_dataset, TensorDataset(test_labels))
@@ -147,8 +145,7 @@ def train_crossweigh(
              "cw_folds": cw_folds,
              "cw_epochs": cw_epochs,
              "weight_reducing_rate": weight_rr,
-             "samples_start_weights": start_weights,
-             "use_sample_weights": use_weights},
+             "samples_start_weights": start_weights},
             {"macro_avg_precision": clf_report["macro avg"]["precision"],
              "macro_avg_recall": clf_report["macro avg"]["recall"],
              "macro_avg_f1": clf_report["macro avg"]["f1-score"]}

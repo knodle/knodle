@@ -12,22 +12,27 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
-from knodle.trainer.utils.filter import filter_empty_probabilities, filter_empty_probabilities_x_y_z
+from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
-    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics
+    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics, build_bert_feature_labels_dataloader,
+    build_feature_weights_labels_dataloader, build_feature_labels_dataloader
 )
-from knodle.trainer.trainer import Trainer
+
+from knodle.transformation.filter import filter_empty_probabilities_x_y_z
 from knodle.trainer.utils.utils import accuracy_of_probs
 
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
+PRINT_EVERY = 300
+SAVE_DIR = "/Users/asedova/PycharmProjects/knodle/knodle/trainer/crossweigh_weighing/bert/run_10_02"
 
-class CrossWeigh(Trainer):
+
+class CrossWeigh(NoDenoisingTrainer):
 
     def __init__(
             self,
@@ -76,14 +81,10 @@ class CrossWeigh(Trainer):
             self.trainer_config = trainer_config
             logger.info("Initalized trainer with custom model config: {}".format(self.trainer_config.__dict__))
 
-        set_seed(self.trainer_config.seed)
-
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
 
-        if not self.run_classifier:
-            logger.info("No classifier should be trained")
-            return
+        set_seed(self.trainer_config.seed)
 
         train_labels = get_labels(
             self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
@@ -96,24 +97,40 @@ class CrossWeigh(Trainer):
         sample_weights = self._get_sample_weights() if self.use_weights \
             else torch.FloatTensor([1] * len(self.inputs_x))
 
+        if not self.run_classifier:
+            logger.info("No classifier should be trained")
+            return
         logger.info("Classifier training is started")
 
-        train_loader = self._get_feature_label_dataloader(self.inputs_x, Tensor(train_labels), sample_weights)
-        train_losses, train_acc = [], []
+        train_loader = build_feature_weights_labels_dataloader(
+            self.inputs_x, sample_weights, train_labels, self.trainer_config.batch_size
+        )
 
         if self.dev_features is not None:
-            dev_loader = self._get_feature_label_dataloader(self.dev_features, self.dev_labels)
+            dev_loader = build_feature_labels_dataloader(
+                self.dev_features, self.dev_labels, self.trainer_config.batch_size
+            )
             dev_losses, dev_acc = [], []
 
+        train_losses, train_acc = [], []
         self.model.train()
-        for curr_epoch in tqdm(range(self.trainer_config.epochs)):
+        for curr_epoch in range(self.trainer_config.epochs):
             logger.info(f"Epoch {curr_epoch}")
+
+            os.makedirs(SAVE_DIR, exist_ok=True)
+            path_to_saved_model = os.path.join(SAVE_DIR, 'model_epoch_{}.pth'.format(curr_epoch))
+            steps = 0
+
             running_loss, epoch_acc = 0.0, 0.0
-            batch_losses = []
-            for features, labels, weights in train_loader:
+            for features, weights, labels in tqdm(train_loader):
+                steps += 1
+                features, weights, labels = features.to(self.trainer_config.device), \
+                                            weights.to(self.trainer_config.device), \
+                                            labels.to(self.trainer_config.device)
+
                 self.model.zero_grad()
                 predictions = self.model(features)
-                loss = self._get_loss_with_sample_weights(predictions, labels, weights)
+                loss = self._get_loss_with_sample_weights(predictions, weights, labels)
                 loss.backward()
                 if self.trainer_config.use_grad_clipping:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
@@ -121,8 +138,12 @@ class CrossWeigh(Trainer):
                 acc = accuracy_of_probs(predictions, labels)
 
                 running_loss += loss.detach()
-                batch_losses.append(running_loss)
                 epoch_acc += acc.item()
+
+                if steps % PRINT_EVERY == 0 and self.dev_features:
+                    dev_loss, dev_metrics = self._evaluate(dev_loader)
+                    logger.info(f"Train loss: {running_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}, "
+                                f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
             avg_loss = running_loss / len(train_loader)
             avg_acc = epoch_acc / len(train_loader)
@@ -130,14 +151,18 @@ class CrossWeigh(Trainer):
             train_acc.append(avg_acc)
             logger.info(f"Train loss: {avg_loss:.7f}, train accuracy: {avg_acc * 100:.2f}%")
 
-            if self.dev_features is not None:
+            if self.dev_features:
                 dev_loss, dev_metrics = self._evaluate(dev_loader)
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_metrics["precision"])
                 logger.info(f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
-        if self.dev_features is not None:
-            draw_loss_accuracy_plot({"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
+            torch.save(self.model.cpu().state_dict(), path_to_saved_model)  # saving model
+            self.model.to(self.trainer_config.device)
+
+        if self.dev_features:
+            draw_loss_accuracy_plot(
+                {"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
         else:
             draw_loss_accuracy_plot({"train loss": train_losses, "tran acc": train_acc})
 
@@ -161,23 +186,8 @@ class CrossWeigh(Trainer):
             logger.info(f"Sample weights are calculated and saved to {self.path_to_weights} file")
         return sample_weights
 
-    def _get_feature_label_dataloader(
-            self, samples: TensorDataset, labels: Tensor, sample_weights: np.ndarray = None,
-            shuffle: bool = True
-    ) -> DataLoader:
-        """ Converts encoded samples and labels to dataloader. Optionally: add sample_weights as well """
-        tensor_target = labels.float().to(self.trainer_config.device)
-        tensor_samples = samples.tensors[0].to(self.trainer_config.device)
-
-        if sample_weights is not None:
-            sample_weights = torch.FloatTensor(sample_weights).to(self.trainer_config.device)
-            dataset = torch.utils.data.TensorDataset(tensor_samples, tensor_target, sample_weights)
-        else:
-            dataset = torch.utils.data.TensorDataset(tensor_samples, tensor_target)
-
-        return self._make_dataloader(dataset, shuffle=shuffle)
-
-    def _get_loss_with_sample_weights(self, output: Tensor, labels: Tensor, weights: Tensor) -> Tensor:
+    # todo: move to utils
+    def _get_loss_with_sample_weights(self, output: Tensor, weights: Tensor, labels: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
         loss_no_reduction = self.trainer_config.criterion(output,
                                                           labels,
@@ -189,11 +199,14 @@ class CrossWeigh(Trainer):
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""
         self.model.eval()
-        all_predictions, all_labels = torch.Tensor(), torch.Tensor()
+        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), torch.Tensor().to(self.trainer_config.device)
 
         with torch.no_grad():
             dev_loss, dev_acc = 0.0, 0.0
             for features, labels in dev_dataloader:
+                features, labels = features.to(self.trainer_config.device), labels.to(self.trainer_config.device)
+
+                self.model.zero_grad()
                 predictions = self.model(features)
                 dev_loss += self.calculate_dev_loss(predictions, labels.long())
 
@@ -201,7 +214,7 @@ class CrossWeigh(Trainer):
                 all_predictions = torch.cat([all_predictions, predicted])
                 all_labels = torch.cat([all_labels, labels.long()])
 
-            predictions, gold_labels = (all_predictions.detach().numpy(), all_labels.detach().numpy())
+            predictions, gold_labels = (all_predictions.cpu().detach().numpy(), all_labels.cpu().detach().numpy())
             dev_metrics = self.calculate_dev_metrics(predictions, gold_labels)
         return dev_loss / len(dev_dataloader), dev_metrics
 

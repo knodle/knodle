@@ -13,12 +13,14 @@ from joblib import dump
 from tqdm import tqdm
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import (
-    set_seed, check_splitting, return_unique, get_labels, build_bert_features_labels_ids_dataloader
+    set_seed, check_splitting, return_unique, get_labels, build_bert_features_labels_ids_dataloader, \
+    build_bert_feature_labels_dataloader
 )
+from knodle.trainer.utils import log_section
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
-NO_RELATION_CLASS = 41
+# NO_RELATION_CLASS = 41
 
 
 class CrossWeighWeightsCalculator:
@@ -31,7 +33,7 @@ class CrossWeighWeightsCalculator:
             rule_matches_z: np.ndarray,
             output_dir: str,
             denoising_config: CrossWeighDenoisingConfig = None,
-            other_class_id: int = NO_RELATION_CLASS):
+            other_class_id: int = None):
 
         self.inputs_x = inputs_x
         self.rule_matches_z = rule_matches_z
@@ -67,8 +69,7 @@ class CrossWeighWeightsCalculator:
         rules_samples_ids_dict = self._get_rules_samples_ids_dict()
 
         for partition in range(self.denoising_config.cw_partitions):
-            logger.info(f"============= CrossWeigh Partition {partition + 1}/{self.denoising_config.cw_partitions}: "
-                        f"=============")
+            log_section(f"CrossWeigh Partition {partition + 1}/{self.denoising_config.cw_partitions}:", logger)
 
             shuffled_rules_ids, no_match_ids = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
 
@@ -81,7 +82,7 @@ class CrossWeighWeightsCalculator:
                 self.cw_train(train_loader)
                 self.cw_test(test_loader)
 
-            logger.info("============ CrossWeigh Partition {} is done ============".format(partition + 1))
+            log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
         dump(self.sample_weights, os.path.join(self.output_dir, "sample_weights.lib"))
         logger.info("======= Denoising with CrossWeigh is completed =======")
@@ -158,12 +159,15 @@ class CrossWeighWeightsCalculator:
         train_samples, train_labels, train_idx = self._get_cw_samples_labels_idx(
             labels, train_rules_idx, rules_samples_ids_dict, test_idx
         )
+        # debug: check that splitting was done correctly
+        # check_splitting(train_samples, train_labels, train_idx, self.inputs_x.tensors[0], labels)
+        # check_splitting(test_samples, test_labels, test_idx, self.inputs_x.tensors[0], labels)
 
         test_loader = build_bert_features_labels_ids_dataloader(
             test_samples, test_idx, test_labels, self.denoising_config.batch_size
         )
-        train_loader = build_bert_features_labels_ids_dataloader(
-            train_samples, train_idx, train_labels, self.denoising_config.batch_size
+        train_loader = build_bert_feature_labels_dataloader(
+            train_samples, train_labels, self.denoising_config.batch_size
         )
 
         logger.info(f"Fold {fold}/{self.denoising_config.cw_folds}  Rules in training set: {len(train_rules_idx)}, "
@@ -172,8 +176,7 @@ class CrossWeighWeightsCalculator:
         return train_loader, test_loader
 
     def _get_cw_samples_labels_idx(
-            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict,
-            check_intersections: np.ndarray = None,
+            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict, check_intersections: np.ndarray = None,
     ) -> (TensorDataset, np.ndarray, np.ndarray):
         """
         Extracts the samples and labels from the original matrices by indices. If intersection is filled with
@@ -203,8 +206,8 @@ class CrossWeighWeightsCalculator:
         """
         self.crossweigh_model.train()
         for curr_epoch in range(self.denoising_config.cw_epochs):
-            logger.info(f"Epoch {curr_epoch}")
-            for input_ids_batch, attention_mask_batch, labels, _ in tqdm(train_loader):
+            logger.info("Epoch: {}".format(curr_epoch))
+            for input_ids_batch, attention_mask_batch, labels in tqdm(train_loader):
 
                 inputs = {
                     "input_ids": input_ids_batch.to(self.denoising_config.device),
@@ -217,6 +220,7 @@ class CrossWeighWeightsCalculator:
 
                 predictions = self.crossweigh_model(**inputs)
                 loss = self.denoising_config.criterion(predictions[0], labels, weight=self.denoising_config.class_weights)
+
                 loss.backward()
                 if self.denoising_config.use_grad_clipping:
                     nn.utils.clip_grad_norm_(self.crossweigh_model.parameters(), self.denoising_config.grad_clipping)
@@ -232,15 +236,18 @@ class CrossWeighWeightsCalculator:
         correct_predictions, wrong_predictions = 0, 0
 
         with torch.no_grad():
-            for tokens, labels, idx in test_loader:
+            for tokens, idx, labels in test_loader:
                 outputs = self.crossweigh_model(tokens)
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()
                 for curr_pred in range(len(predictions)):
                     gold = labels.tolist()[curr_pred]
-                    gold_classes = [idx for idx, value in enumerate(gold) if value > 0]
+                    # gold_classes = [idx for idx, value in enumerate(gold) if value > 0]
+                    # todo: it is corrected for IMDB dataset only!
+                    gold_classes = gold.index(max(gold))
                     guess = predictions[curr_pred]
-                    if guess not in gold_classes:
+                    if guess != gold_classes:
+                    # if guess not in gold_classes:
                         wrong_predictions += 1
                         curr_id = idx[curr_pred].tolist()
                         self.sample_weights[curr_id] *= self.denoising_config.weight_reducing_rate
@@ -248,5 +255,5 @@ class CrossWeighWeightsCalculator:
                         correct_predictions += 1
 
         logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
-            correct_predictions * 100 / (correct_predictions + wrong_predictions),
-            wrong_predictions * 100 / (correct_predictions + wrong_predictions)))
+            correct_predictions * 100/(correct_predictions+wrong_predictions),
+            wrong_predictions * 100/(correct_predictions+wrong_predictions)))
