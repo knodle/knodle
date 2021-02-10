@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.baseline.baseline import NoDenoisingTrainer
+from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 
 
 def test_train():

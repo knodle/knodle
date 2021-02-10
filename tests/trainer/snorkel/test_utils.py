@@ -1,5 +1,5 @@
 import numpy as np
-from knodle.trainer.snorkel.snorkel_trainer import z_t_matrix_to_snorkel_matrix
+from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 
 
 def test_z_t_matrix_to_snorkel_matrix():

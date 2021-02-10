@@ -4,8 +4,8 @@ import numpy as np
 def transform_rule_class_matrix_to_z_t(class_matrix: np.ndarray) -> [np.ndarray, np.ndarray]:
     """Takes a matrix in the "lambda format" and transforms it to z / t matrices.
     Lambda format:
-        - lambda_ij = -1, iff the rule doesn't apply
-        - lambda_ij = k, iff the rule labels class k
+        - class_matrix_ij = -1, iff the rule doesn't apply
+        - class_matrix_ij = k, iff the rule labels class k
 
     :param class_matrix: shape=(num_samples, num_weak_labellers)
     :return: Z, T matrix as described in the paper.

@@ -49,7 +49,6 @@ def z_t_matrices_to_majority_vote_probs(
         other_class: Class which is chosen, if no function is hitting.
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
-    print(rule_matches_z.shape, mapping_rules_labels_t.shape )
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
         raise ValueError("Dimensions mismatch!")
 
@@ -87,13 +86,13 @@ def z_t_matrices_to_majority_vote_labels(
 
 def input_to_majority_vote_input(
         input_data_x: TensorDataset, rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray,
-        filter_empty_z_rows: bool = True, other_class_id: int = None, use_probabilistic_labels: bool = True
+        filter_non_labelled: bool = True, other_class_id: int = None, use_probabilistic_labels: bool = True
 ):
-    if other_class_id is not None and filter_empty_z_rows:
+    if other_class_id is not None and filter_non_labelled:
         raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
 
     label_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
-    if filter_empty_z_rows:
+    if filter_non_labelled:
         input_data_x, label_probs = filter_empty_probabilities(input_data_x, label_probs)
 
     if not use_probabilistic_labels:
