@@ -13,7 +13,7 @@ from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
-from knodle.trainer.knn_denoising.knn_config import KNNConfig
+from knodle.trainer.knn_denoising.config import KNNConfig
 from knodle.trainer.utils.denoise import activate_neighbors
 
 logger = logging.getLogger(__name__)
@@ -26,12 +26,15 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
             mapping_rules_labels_t: np.ndarray,
             model_input_x: TensorDataset,
             rule_matches_z: np.ndarray,
+            knn_feature_matrix: np.ndarray = None,
             dev_rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None,
             trainer_config: KNNConfig = None
     ):
-        self.tfidf_values = csr_matrix(model_input_x.tensors[0].numpy())
-        self.tfidf_values = csr_matrix(model_input_x.tensors[0].numpy())
+        if knn_feature_matrix is None:
+            self.knn_feature_matrix = csr_matrix(model_input_x.tensors[0].numpy())
+        else:
+            self.knn_feature_matrix = knn_feature_matrix
         self.dev_rule_matches_z = dev_rule_matches_z
         self.dev_model_input_x = dev_model_input_x
 
@@ -46,7 +49,7 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
 
-        denoised_rule_matches_z = self._denoise_rule_matches()
+        denoised_rule_matches_z = self._knn_denoise_rule_matches()
 
         model_input_x, label_probs = input_to_majority_vote_input(
             self.model_input_x, denoised_rule_matches_z, self.mapping_rules_labels_t,
@@ -59,7 +62,7 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         self.train_loop(feature_label_dataloader)
 
 
-    def _denoise_rule_matches(self) -> np.ndarray:
+    def _knn_denoise_rule_matches(self) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
         Args:
@@ -82,11 +85,11 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
 
         # Set up data structure, to quickly find nearest neighbors
         if k is not None:
-            neighbors = NearestNeighbors(n_neighbors=k, n_jobs=-1).fit(self.tfidf_values)
-            distances, indices = neighbors.kneighbors(self.tfidf_values, n_neighbors=k)
+            neighbors = NearestNeighbors(n_neighbors=k, n_jobs=-1).fit(self.knn_feature_matrix)
+            distances, indices = neighbors.kneighbors(self.knn_feature_matrix, n_neighbors=k)
         else:
-            neighbors = NearestNeighbors(radius=self.trainer_config.radius, n_jobs=-1).fit(self.tfidf_values)
-            distances, indices = neighbors.radius_neighbors(self.tfidf_values)
+            neighbors = NearestNeighbors(radius=self.trainer_config.radius, n_jobs=-1).fit(self.knn_feature_matrix)
+            distances, indices = neighbors.radius_neighbors(self.knn_feature_matrix)
 
         # activate matches.
         denoised_rule_matches_z = activate_neighbors(self.rule_matches_z, indices)

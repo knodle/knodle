@@ -11,7 +11,7 @@ from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer.knn_denoising.knn_config import KNNConfig
+from knodle.trainer.knn_denoising.config import KNNConfig
 from knodle.trainer.knn_denoising.knn_denoising import (
     KnnDenoisingTrainer,
 )

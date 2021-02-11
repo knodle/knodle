@@ -1,14 +1,13 @@
-from knodle.trainer.config import TrainerConfig
+from knodle.trainer.config import MajorityConfig
 
 
-class KNNConfig(TrainerConfig):
+class KNNConfig(MajorityConfig):
     def __init__(
             self,
             k: int = None,
             radius: float = None,
             weighted_knn_activation: bool = False,
             caching_folder: str = None,  # if set to string, denoised data is cached
-            filter_non_labelled: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -16,7 +15,6 @@ class KNNConfig(TrainerConfig):
         self.radius = radius
         self.weighted_knn_activation = weighted_knn_activation
         self.caching_folder = caching_folder
-        self.filter_non_labelled = filter_non_labelled
 
         if self.k is not None and self.radius is not None:
             raise RuntimeError(
