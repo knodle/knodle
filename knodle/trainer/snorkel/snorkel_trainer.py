@@ -16,7 +16,7 @@ from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 class SnorkelTrainer(NoDenoisingTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer_=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
         super().__init__(**kwargs)
 
     def _snorkel_denoising(self, model_input_x, rule_matches_z):

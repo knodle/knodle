@@ -36,7 +36,7 @@ class NoDenoisingTrainer(Trainer):
             trainer_config: MajorityConfig = None,
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer_=SGD(model.parameters(), lr=0.001))
+            trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )
