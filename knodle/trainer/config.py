@@ -3,21 +3,17 @@ from typing import Callable
 from snorkel.classification import cross_entropy_with_probs
 import torch
 from torch import Tensor
-from torch.nn import Module
-from torch.optim import SGD, optimizer
-
+from torch.optim.optimizer import Optimizer
 from knodle.trainer.utils.utils import check_and_return_device
 
 
 class TrainerConfig:
     def __init__(
             self,
-            model: Module,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
-            optimizer_: optimizer = None,
+            optimizer: Optimizer = None,
             output_classes: int = 2,
-            lr: float = 0.01,
             epochs: int = 35,
             seed: int = 42
     ):
@@ -28,10 +24,10 @@ class TrainerConfig:
             raise ValueError("Epochs needs to be positive")
         self.epochs = epochs
 
-        if optimizer_ is None:
-            self.optimizer = SGD(model.parameters(), lr=lr)
+        if optimizer is None:
+            raise ValueError("An optimizer needs to be provided")
         else:
-            self.optimizer = optimizer_
+            self.optimizer = optimizer
         self.output_classes = output_classes
         self.device = check_and_return_device()
         self.seed = seed

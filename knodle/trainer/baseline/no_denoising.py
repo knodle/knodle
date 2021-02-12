@@ -5,6 +5,7 @@ from tqdm.auto import tqdm
 
 import torch
 import torch.nn as nn
+from torch.optim import SGD
 from torch.utils.data import TensorDataset
 from sklearn.metrics import classification_report
 
@@ -35,7 +36,7 @@ class NoDenoisingTrainer(Trainer):
             trainer_config: MajorityConfig = None,
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(model=model)
+            trainer_config = MajorityConfig(optimizer_=SGD(model.parameters(), lr=0.001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )

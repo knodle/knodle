@@ -30,6 +30,7 @@ class Trainer(ABC):
                 rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
                 trainer_config: Config for different parameters like loss function, optimizer, batch size.
         """
+        self.model = model
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
@@ -38,8 +39,6 @@ class Trainer(ABC):
 
         else:
             self.trainer_config = trainer_config
-
-        self.model = model.to(self.trainer_config.device)
 
     @abstractmethod
     def train(self):

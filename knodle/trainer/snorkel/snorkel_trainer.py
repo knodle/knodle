@@ -1,22 +1,23 @@
 import numpy as np
 from snorkel.labeling.model import LabelModel
 
+from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
+from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.knn_denoising.knn_denoising import KnnDenoisingTrainer
 
 from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
 from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 
 
-class SnorkelTrainer(SnorkelConfig):
+class SnorkelTrainer(NoDenoisingTrainer):
     def __init__(self, **kwargs):
-        trainer_config = kwargs.get("trainer_config", None)
-        if trainer_config is None:
-            trainer_config = SnorkelConfig(self.model)
-        super().__init__(trainer_config=trainer_config, **kwargs)
+        if kwargs.get("trainer_config", None) is None:
+            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer_=SGD(kwargs.get("model").parameters(), lr=0.001))
+        super().__init__(**kwargs)
 
     def _snorkel_denoising(self, model_input_x, rule_matches_z):
         non_zero_indices = np.where(rule_matches_z.sum(axis=1) != 0)[0]
@@ -53,10 +54,9 @@ class SnorkelTrainer(SnorkelConfig):
 
 class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
     def __init__(self, **kwargs):
-        trainer_config = kwargs.get("trainer_config", None)
-        if trainer_config is None:
-            trainer_config = SnorkelKNNConfig(self.model)
-        super().__init__(trainer_config=trainer_config, **kwargs)
+        if kwargs.get("trainer_config", None) is None:
+            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer_=SGD(kwargs.get("model").parameters(), lr=0.001))
+        super().__init__(**kwargs)
 
     def train(self):
         # Snorkel denoising

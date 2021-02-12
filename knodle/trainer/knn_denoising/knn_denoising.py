@@ -3,11 +3,10 @@ import logging
 
 import joblib
 import numpy as np
+
+from torch.optim import SGD
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-
-from torch.nn import Module
-from torch.utils.data import TensorDataset
 
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
@@ -22,27 +21,17 @@ logger = logging.getLogger(__name__)
 class KnnDenoisingTrainer(NoDenoisingTrainer):
     def __init__(
             self,
-            model: Module,
-            mapping_rules_labels_t: np.ndarray,
-            model_input_x: TensorDataset,
-            rule_matches_z: np.ndarray,
             knn_feature_matrix: np.ndarray = None,
-            dev_rule_matches_z: np.ndarray = None,
-            dev_model_input_x: TensorDataset = None,
-            trainer_config: KNNConfig = None
+            **kwargs
     ):
+        if kwargs.get("trainer_config") is None:
+            kwargs["trainer_config"] = KNNConfig(optimizer_=SGD(kwargs.get("model").parameters(), lr=0.001))
+        super().__init__(**kwargs)
+
         if knn_feature_matrix is None:
-            self.knn_feature_matrix = csr_matrix(model_input_x.tensors[0].numpy())
+            self.knn_feature_matrix = csr_matrix(self.model_input_x.tensors[0].numpy())
         else:
             self.knn_feature_matrix = knn_feature_matrix
-        self.dev_rule_matches_z = dev_rule_matches_z
-        self.dev_model_input_x = dev_model_input_x
-
-        if trainer_config is None:
-            trainer_config = KNNConfig(self.model)
-        super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
-        )
 
     def train(self):
         """
@@ -60,7 +49,6 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self.train_loop(feature_label_dataloader)
-
 
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """

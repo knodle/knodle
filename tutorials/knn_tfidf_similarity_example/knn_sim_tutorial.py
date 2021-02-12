@@ -63,7 +63,7 @@ def train_knn_model():
             model_input_x=train_dataset,
             rule_matches_z=train_rule_matches_z,
             dev_model_input_x=dev_dataset,
-            dev_rule_matches_z=dev_rule_matches_z,
+            dev_gold_labels_y=dev_rule_matches_z,
             trainer_config=custom_model_config,
         )
 
