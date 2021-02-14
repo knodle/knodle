@@ -24,13 +24,14 @@ logger = logging.getLogger(__name__)
 
 class DataProcessor:
 
-    def __init__(self,
-                 path_word_emb_file: str,
-                 path_train_data: str,
-                 path_dev_data: str,
-                 path_patterns: str,
-                 path_to_output: str
-                 ) -> None:
+    def __init__(
+            self,
+            path_word_emb_file: str,
+            path_train_data: str,
+            path_dev_data: str,
+            path_patterns: str,
+            path_to_output: str
+    ) -> None:
         """
         Processing the input train and dev data saved in conll format
         :param path_word_emb_file: path to file with pretrained word vectors (in our experiments: glove embeddings)

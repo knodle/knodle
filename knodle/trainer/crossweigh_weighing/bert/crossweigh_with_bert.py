@@ -28,8 +28,8 @@ torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
-PRINT_EVERY = 300
-SAVE_DIR = "/Users/asedova/PycharmProjects/knodle/knodle/trainer/crossweigh_weighing/bert/run_10_02"
+# PRINT_EVERY = 300
+# SAVE_DIR = "/Users/asedova/PycharmProjects/knodle/knodle/trainer/crossweigh_weighing/bert/run_10_02"
 
 
 class CrossWeigh(NoDenoisingTrainer):
@@ -117,13 +117,15 @@ class CrossWeigh(NoDenoisingTrainer):
         for curr_epoch in range(self.trainer_config.epochs):
             logger.info(f"Epoch {curr_epoch}")
 
-            os.makedirs(SAVE_DIR, exist_ok=True)
-            path_to_saved_model = os.path.join(SAVE_DIR, 'model_epoch_{}.pth'.format(curr_epoch))
-            steps = 0
+            path_to_saved_model = os.path.join(self.path_to_weights, "trained_models")
+            os.makedirs(self.path_to_weights, exist_ok=True)
+            path_to_saved_model = os.path.join(path_to_saved_model,  f'model_epoch_{curr_epoch}.pth')
+
+            # steps = 0
 
             running_loss, epoch_acc = 0.0, 0.0
             for input_ids_batch, attention_mask_batch, weights, labels in tqdm(train_loader):
-                steps += 1
+                # steps += 1
                 inputs = {
                     "input_ids": input_ids_batch.to(self.trainer_config.device),
                     "attention_mask": attention_mask_batch.to(self.trainer_config.device)
@@ -142,10 +144,10 @@ class CrossWeigh(NoDenoisingTrainer):
                 running_loss += loss.detach()
                 epoch_acc += acc.item()
 
-                if steps % PRINT_EVERY == 0 and self.dev_features:
-                    dev_loss, dev_metrics = self._evaluate(dev_loader)
-                    logger.info(f"Train loss: {running_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}, "
-                                f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
+                # if steps % PRINT_EVERY == 0 and self.dev_features:
+                #     dev_loss, dev_metrics = self._evaluate(dev_loader)
+                #     logger.info(f"Train loss: {running_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}, "
+                #                 f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
             avg_loss = running_loss / len(train_loader)
             avg_acc = epoch_acc / len(train_loader)
@@ -156,7 +158,7 @@ class CrossWeigh(NoDenoisingTrainer):
             if self.dev_features:
                 dev_loss, dev_metrics = self._evaluate(dev_loader)
                 dev_losses.append(dev_loss)
-                dev_acc.append(dev_metrics["precision"])
+                dev_acc.append(dev_metrics["accuracy"])
                 logger.info(f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
             torch.save(self.model.cpu().state_dict(), path_to_saved_model)  # saving model

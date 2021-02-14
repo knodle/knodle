@@ -155,6 +155,8 @@ class CrossWeighWeightsCalculator:
         """
         train_rules_idx, test_rules_idx = self.calculate_rules_indices(rules_ids, no_match_rule_ids, fold)
 
+        logging.info(test_rules_idx)
+
         # select train and test samples and labels according to the selected rules idx
         test_samples, test_labels, test_idx = self._get_cw_samples_labels_idx(
             labels, test_rules_idx, rules_samples_ids_dict
@@ -211,8 +213,10 @@ class CrossWeighWeightsCalculator:
         self.crossweigh_model.train()
         for curr_epoch in range(self.denoising_config.cw_epochs):
             for tokens, labels in train_loader:
+                tokens, labels = tokens.to(self.denoising_config.device), labels.to(self.denoising_config.device)
                 self.denoising_config.optimizer.zero_grad()
 
+                self.crossweigh_model.zero_grad()      # added: 11.01
                 predictions = self.crossweigh_model(tokens)
                 loss = self.denoising_config.criterion(predictions, labels, weight=self.denoising_config.class_weights)
 

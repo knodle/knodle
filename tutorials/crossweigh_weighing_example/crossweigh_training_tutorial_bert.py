@@ -89,7 +89,7 @@ def train_crossweigh(
         dev_labels=test_labels,
         # evaluation_method="tacred",
         # dev_labels_ids=labels2ids,
-        path_to_weights=path_sample_weights,
+        # path_to_weights=path_sample_weights,
         denoising_config=custom_crossweigh_denoising_config,
         trainer_config=custom_crossweigh_trainer_config,
         use_weights=False

@@ -5,13 +5,16 @@ from itertools import product
 from typing import Dict
 
 import pandas as pd
+import numpy as np
 import scipy
 import torch
 from joblib import load
+from sklearn.metrics import classification_report
 from torch import Tensor
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 # from torchtext.vocab import GloVe
+from tqdm import tqdm
 
 from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
@@ -162,7 +165,8 @@ def train_crossweigh(
                                  )
             trainer.train()
             print("Testing on the test dataset....")
-            metrics = _test(model, trainer, test_dataset, test_labels, labels2ids)
+            # metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
+            metrics = test(model, optimizer, features_dataset: TensorDataset, labels: TensorDataset, device)
 
             tb.add_hparams(
                 {"lr": lr,
@@ -209,29 +213,6 @@ def get_dev_data(path_dev_feature_labels: str, word2id: dict) -> TensorDataset:
     dev_samples_dataset = torch.utils.data.TensorDataset(torch.LongTensor(enc_dev_samples))
     dev_labels_tensor = torch.LongTensor(list(dev_data.iloc[:, 4]))
     return dev_samples_dataset, dev_labels_tensor
-
-
-def _test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict):
-    feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
-    feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
-
-    model.eval()
-    all_predictions, all_labels = torch.Tensor(), torch.Tensor()
-    for features, labels in feature_labels_dataloader:
-        outputs = model(features)
-        _, predicted = torch.max(outputs, 1)
-        all_predictions = torch.cat([all_predictions, predicted])
-        all_labels = torch.cat([all_labels, labels])
-
-    predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
-                                        all_labels.detach().type(torch.IntTensor).tolist())
-
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in test_labels_idx]
-
-    return score(test_labels, predictions, verbose=True)
 
 
 def read_labels_from_file(path_labels: str, negative_label: str) -> dict:

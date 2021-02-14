@@ -114,7 +114,7 @@ def get_analysed_conll_data(
 
 def encode_labels(label: str, label2id: dict) -> int:
     """ Encodes labels with corresponding labels id. If relation is unknown, returns special id for unknown relations"""
-    return label2id.get(label, UNKNOWN_RELATIONS_ID)
+    return label2id.get(label, "unk")
 
 
 def build_df(

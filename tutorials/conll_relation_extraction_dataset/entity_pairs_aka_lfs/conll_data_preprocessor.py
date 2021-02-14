@@ -31,7 +31,7 @@ DEV_SAMPLES_OUTPUT = "dev_samples.csv"
 TEST_SAMPLES_OUTPUT = "test_samples.csv"
 
 # the label for no match samples as it is in dataset; id for it will be calculated as follows: max(label_ids) + 1
-OTHER_CLASS = "no_relation"
+OTHER_CLASS_ID = 41
 
 
 def preprocess_data(
@@ -46,7 +46,7 @@ def preprocess_data(
     log_section("Data processing has started", logger)
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
-    labels2ids, other_class_id = get_labels(path_labels, OTHER_CLASS)
+    labels2ids, other_class_id = get_labels(path_labels, "no_relation")
 
     get_train_data(
         path_train_data,
@@ -83,12 +83,12 @@ def get_labels(path_labels: str, negative_label: str) -> Tuple[Dict, Union[int, 
         for line in file.readlines():
             relation, relation_enc = line.replace("\n", "").split(",")
             relation2ids[relation] = int(relation_enc)
-    # add no_match label
+    # add no_match label - todo: should be deleted!!!!!
     if negative_label:
         negative_label_id = max(list(relation2ids.values())) + 1
         relation2ids[negative_label] = negative_label_id
         return relation2ids, negative_label_id
-    return relation2ids, None
+    return relation2ids
 
 
 def get_train_data(
@@ -100,7 +100,7 @@ def get_train_data(
     """
     log_section("Processing of train data has started", logger)
     train_data, relation2rules, rule2id = get_conll_data_with_ent_pairs(
-        path_train_data, labels2ids, True, other_class_id
+        path_train_data, labels2ids, other_class_id
     )
     rule_assignments_t = get_t_matrix(relation2rules)
     rule_matches_z = get_z_matrix(train_data)
@@ -131,7 +131,7 @@ def get_dev_test_data(path_data: str, path_output: str, labels2ids: dict, z_matr
 
 
 def get_conll_data_with_ent_pairs(
-        conll_data: str, labels2ids: dict, filter_out_other: bool = False, other_class_id: int = None
+        conll_data: str, labels2ids: dict, other_class_id: int = None, filter_out_other: bool = False
 ) -> Tuple[pd.DataFrame, dict, dict]:
     """
     Processing of TACRED dataset. The function reads the .conll input file, extract the samples and the labels as well
@@ -163,11 +163,14 @@ def get_conll_data_with_ent_pairs(
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
 
-                if filter_out_other and label == other_class_id:
+                if not filter_out_other and label == other_class_id:
                     samples.append(sample)
                     labels.append(label)
                     rules.append(None)
                     enc_rules.append(None)
+
+                elif filter_out_other:      # todo: check it! is it correct?
+                    continue
 
                 elif label != "unk":
                     samples.append(sample)
@@ -209,6 +212,8 @@ def get_t_matrix(relation2rules: dict) -> np.ndarray:
     for label, rules in relation2rules.items():
         for rule in rules:
             rule_assignments_t[rule, label] = 1
+
+    rule_assignments_t = rule_assignments_t[:, :-1]     # todo: workaround! no_relation column should be removed from t
     return rule_assignments_t
 
 

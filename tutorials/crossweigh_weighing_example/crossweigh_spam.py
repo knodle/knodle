@@ -1,33 +1,26 @@
+import logging
 import argparse
 import os
 import sys
+from itertools import product
 
 import scipy
 import torch
-from joblib import load
 import pandas as pd
-import numpy as np
+from joblib import load
 from sklearn.feature_extraction.text import TfidfVectorizer
-
 from torch import Tensor
-from torchtext.vocab import GloVe
+from torch.utils.data import TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 
-from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.model.logistic_regression_model import LogisticRegressionModel
+from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
-from tutorials.ImdbDataset.utils import read_train_dev_test
 from tutorials.crossweigh_weighing_example import utils
-from torch.utils.data import TensorDataset
-from sklearn.model_selection import train_test_split
-# from tutorials.crossweigh_weighing_example.utils import encode_samples
-from itertools import product
-
-# from tutorials.knn_tfidf_similarity_example.knn_sim_tutorial_with_tacred import read_evaluation_data
 
 NUM_CLASSES = 2
+logger = logging.getLogger(__name__)
 
 
 def train_crossweigh(
@@ -43,21 +36,13 @@ def train_crossweigh(
     :param path_word_emb_file: path to file with pretrained embeddings
     """
 
-    train_df, dev_df, test_df, rule_matches_z, _, _, imdb_dataset, rule_assignments_t = read_train_dev_test(
-        path_to_data)
+    train_df, test_df, rule_matches_z, test_rule_matches_z, mapping_rules_labels_t, y_test = read_train_dev_test(
+        path_to_data
+    )
 
-    # train_data = pd.read_csv(path_train_samples)
-    # rule_matches_z = load(path_z)
-    rule_matches_z = rule_matches_z.toarray() if scipy.sparse.issparse(rule_matches_z) else rule_matches_z
-
-    mapping_rules_labels_t = rule_assignments_t
-    # dev_data = load(path_dev_features_labels)
-    # test_data = load(path_test_features_labels)
-
-    train_tfidf_sparse, dev_tfidf_sparse, test_tfidf_sparse = create_tfidf_values(
-        train_df.reviews_preprocessed.values,
-        dev_df.reviews_preprocessed.values,
-        test_df.reviews_preprocessed.values
+    train_tfidf_sparse, test_tfidf_sparse = create_tfidf_values(
+        train_df.text.values,
+        test_df.text.values
     )
 
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
@@ -65,26 +50,22 @@ def train_crossweigh(
 
     test_tfidf = Tensor(test_tfidf_sparse.toarray())
     test_dataset = TensorDataset(test_tfidf)
-    test_labels = torch.LongTensor(test_df.label_id.values)
-
-    dev_tfidf = Tensor(dev_tfidf_sparse.toarray())
-    dev_dataset = TensorDataset(dev_tfidf)
-    dev_labels = torch.LongTensor(dev_df.label_id.values)
+    test_labels = TensorDataset(Tensor(y_test))
 
     parameters = dict(
         # use_weights=[True],
-        lr=[0.8, 2.0],  # 0.1, 0.8, 1.0
-        cw_lr=[0.8],  # 0.01,
-        epochs=[1],  # 25, 35, 50, 100
-        cw_partitions=[2],
-        cw_folds=[5, 10, 25, 50],  # 7,
-        cw_epochs=[2],  # 1,
-        weight_reducing_rate=[0.3, 0.7],  # 0.5, 0.7
-        samples_start_weights=[2.0, 4.0],  # 2.0, 3.0, 4.0
+        lr=[1e-4],  # 0.1, 0.8, 1.0
+        cw_lr=[0.0],  # 0.01,
+        epochs=[2],  # 25, 35, 50, 100
+        cw_partitions=[0],
+        cw_folds=[0],  # 7,
+        cw_epochs=[0],  # 1,
+        weight_reducing_rate=[0],  # 0.5, 0.7
+        samples_start_weights=[0],  # 2.0, 3.0, 4.0
     )
     param_values = [v for v in parameters.values()]
 
-    tb = SummaryWriter('runs_new_new_new')
+    tb = SummaryWriter('runs')
 
     for run_id, (lr, cw_lr, epochs, cw_part, cw_folds, cw_epochs, weight_rr, start_weights) in \
             enumerate(product(*param_values)):
@@ -108,7 +89,6 @@ def train_crossweigh(
             crossweigh_epochs=cw_epochs,
             weight_reducing_rate=weight_rr,
             samples_start_weights=start_weights,
-            # lr=cw_lr,
             optimizer_=torch.optim.Adam(model.parameters(), lr=cw_lr),
             output_classes=NUM_CLASSES,
             filter_empty_probs=True
@@ -126,15 +106,15 @@ def train_crossweigh(
             rule_assignments_t=mapping_rules_labels_t,
             inputs_x=train_dataset,
             rule_matches_z=rule_matches_z,
-            dev_features=dev_dataset,
-            dev_labels=dev_labels,
             path_to_weights=path_to_weights,
             denoising_config=custom_crossweigh_denoising_config,
             trainer_config=custom_crossweigh_trainer_config,
-            run_classifier=False
+            use_weights=False,
+            run_classifier=True
         )
         trainer.train()
-        clf_report = trainer.test(test_dataset, TensorDataset(test_labels))
+        clf_report = trainer.test(test_dataset, test_labels)
+        logger.info(clf_report)
 
         tb.add_hparams(
             {"lr": lr,
@@ -157,18 +137,23 @@ def train_crossweigh(
         print("========================================================================")
 
 
-def create_tfidf_values(train_data: [str], dev_data: [str], test_data: [str]):
-    # if os.path.exists("/Users/asedova/PycharmProjects/knodle/tutorials/ImdbDataset/data/tfidf.lib"):
-    #     cached_data = load("/Users/asedova/PycharmProjects/knodle/tutorials/ImdbDataset/data/tfidf.lib")
-    #     if cached_data.shape == text_data.shape:
-    #         return cached_data
-
+def create_tfidf_values(train_data: [str], test_data: [str]):
     vectorizer = TfidfVectorizer()
     train_transformed_data = vectorizer.fit_transform(train_data)
-    dev_transformed_data = vectorizer.transform(dev_data)
     test_transformed_data = vectorizer.transform(test_data)
     # dump(transformed_data, "/Users/asedova/PycharmProjects/knodle/tutorials/conll_relation_extraction_dataset/output_data_with_added_arg_types/tfidf.lib")
-    return train_transformed_data, dev_transformed_data, test_transformed_data
+    return train_transformed_data, test_transformed_data
+
+
+def read_train_dev_test(target_path: str):
+    train_df = load(os.path.join(target_path, 'df_train.lib'))
+    test_df = load(os.path.join(target_path, 'df_test.lib'))
+    train_rule_matches_z = load(os.path.join(target_path, 'train_rule_matches_z.lib'))
+    test_rule_matches_z = load(os.path.join(target_path, 'test_rule_matches_z.lib'))
+    mapping_rules_labels_t = load(os.path.join(target_path, 'mapping_rules_labels.lib'))
+    y_test = load(os.path.join(target_path, 'Y_test.lib'))
+
+    return train_df, test_df, train_rule_matches_z, test_rule_matches_z, mapping_rules_labels_t, y_test
 
 
 if __name__ == "__main__":
