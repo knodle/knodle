@@ -16,7 +16,7 @@ from tutorials.conll_relation_extraction_dataset.utils import count_file_lines, 
 
 logger = logging.getLogger(__name__)
 PRINT_EVERY = 100000
-Z_MATRIX_OUTPUT_TRAIN = "train_rule_matches_z.lib.lib"
+Z_MATRIX_OUTPUT_TRAIN = "train_rule_matches_z.lib"
 Z_MATRIX_OUTPUT_DEV = "dev_rule_matches_z.lib"
 Z_MATRIX_OUTPUT_TEST = "test_rule_matches_z.lib"
 
