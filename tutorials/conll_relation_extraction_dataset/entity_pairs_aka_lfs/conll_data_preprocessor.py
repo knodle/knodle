@@ -16,15 +16,15 @@ from tutorials.conll_relation_extraction_dataset.utils import count_file_lines, 
 
 logger = logging.getLogger(__name__)
 PRINT_EVERY = 100000
-Z_MATRIX_OUTPUT_TRAIN = "z_matrix_train.lib"
-Z_MATRIX_OUTPUT_DEV = "z_matrix_dev.lib"
-Z_MATRIX_OUTPUT_TEST = "z_matrix_test.lib"
+Z_MATRIX_OUTPUT_TRAIN = "train_rule_matches_z.lib.lib"
+Z_MATRIX_OUTPUT_DEV = "dev_rule_matches_z.lib"
+Z_MATRIX_OUTPUT_TEST = "test_rule_matches_z.lib"
 
-T_MATRIX_OUTPUT_TRAIN = "t_matrix_train.lib"
+T_MATRIX_OUTPUT_TRAIN = "mapping_rules_labels.lib"
 
-TRAIN_SAMPLES_OUTPUT = "train_samples.csv"
-DEV_SAMPLES_OUTPUT = "dev_samples.csv"
-TEST_SAMPLES_OUTPUT = "test_samples.csv"
+TRAIN_SAMPLES_OUTPUT = "df_train.lib"
+DEV_SAMPLES_OUTPUT = "df_dev.lib"
+TEST_SAMPLES_OUTPUT = "df_test.lib"
 
 
 def preprocess_data(
@@ -96,8 +96,8 @@ def get_train_data(
 
     dump(sparse.csr_matrix(rule_assignments_t), os.path.join(path_output, t_matrix))
     dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
+    dump(train_data, os.path.join(path_output, samples))
 
-    train_data.to_csv(os.path.join(path_output, samples), columns=["samples", "rules", "enc_rules"])
     logger.info("Processing of train data has finished")
 
 
@@ -114,7 +114,7 @@ def get_dev_test_data(
     rule_matches_z = get_z_matrix(val_data, lfs)
 
     dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
-    val_data.to_csv(os.path.join(path_output, samples), columns=["samples", "rules", "enc_rules", "labels"])
+    dump(val_data, os.path.join(path_output, samples))
 
     logger.info("Processing of eval data has finished")
 
