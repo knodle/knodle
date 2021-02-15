@@ -26,7 +26,6 @@ def reconstruct_arg_pairs_lfs(
         writer = csv.DictWriter(csvfile, fieldnames=["rule", "rule_id", "label", "label_id"])
         writer.writeheader()
         writer = csv.writer(csvfile)
-        # writer.writerows([x.split(',') for x in rules])
         writer.writerows(rules)
 
 

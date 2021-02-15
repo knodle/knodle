@@ -5,17 +5,16 @@ from pathlib import Path
 import logging
 from typing import Dict
 
-from scipy import sparse
-from joblib import dump
-
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
+from joblib import dump
 
 from knodle.trainer.utils import log_section
 from tutorials.conll_relation_extraction_dataset.utils import count_file_lines, encode_labels
 
 logger = logging.getLogger(__name__)
-PRINT_EVERY = 100000
+PRINT_EVERY = 1000000
 Z_MATRIX_OUTPUT_TRAIN = "train_rule_matches_z.lib"
 Z_MATRIX_OUTPUT_DEV = "dev_rule_matches_z.lib"
 Z_MATRIX_OUTPUT_TEST = "test_rule_matches_z.lib"
@@ -41,13 +40,19 @@ def preprocess_data(
 
     labels2ids = get_labels(path_labels)
     other_class_id = max(labels2ids.values()) + 1       # used for dev and test sets
+
     lfs = pd.read_csv(path_lfs)
+    rule2rule_id = dict(zip(lfs.rule, lfs.rule_id))
+    num_lfs = max(lfs.rule_id.values) + 1
+
+    rule_assignments_t = get_t_matrix(lfs)
+    dump(sp.csr_matrix(rule_assignments_t), os.path.join(path_output, T_MATRIX_OUTPUT_TRAIN))
 
     get_train_data(
         path_train_data,
         path_output,
-        lfs,
-        T_MATRIX_OUTPUT_TRAIN,
+        rule2rule_id,
+        num_lfs,
         Z_MATRIX_OUTPUT_TRAIN,
         TRAIN_SAMPLES_OUTPUT
     )
@@ -56,7 +61,8 @@ def preprocess_data(
         path_dev_data,
         path_output,
         labels2ids,
-        lfs,
+        rule2rule_id,
+        num_lfs,
         Z_MATRIX_OUTPUT_DEV,
         DEV_SAMPLES_OUTPUT,
         other_class_id
@@ -66,7 +72,8 @@ def preprocess_data(
         path_test_data,
         path_output,
         labels2ids,
-        lfs,
+        rule2rule_id,
+        num_lfs,
         Z_MATRIX_OUTPUT_TEST,
         TEST_SAMPLES_OUTPUT,
         other_class_id
@@ -84,42 +91,39 @@ def get_labels(path_labels: str) -> Dict:
 
 
 def get_train_data(
-        path_train_data: str, path_output: str, lfs: pd.DataFrame, t_matrix: str, z_matrix: str, samples: str
+        path_train_data: str, path_output: str, rule2rule_id: Dict, num_lfs: int, z_matrix: str, samples: str
 ) -> None:
-    """
-    This function processes the train data and saves t_matrix, z_matrix and training set info to output directory.
-    """
+    """ Processes the train data and saves t_matrix, z_matrix and training set info to output directory. """
     log_section("Processing of train data has started", logger)
-    train_data = annotate_conll_data_with_lfs(path_train_data, lfs, False)
-    rule_assignments_t = get_t_matrix(lfs)
-    rule_matches_z = get_z_matrix(train_data, lfs)
 
-    dump(sparse.csr_matrix(rule_assignments_t), os.path.join(path_output, t_matrix))
-    dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
+    train_data = annotate_conll_data_with_lfs(path_train_data, rule2rule_id, False)
+    rule_matches_z = get_z_matrix(train_data, num_lfs)
+
     dump(train_data, os.path.join(path_output, samples))
+    dump(rule_matches_z, os.path.join(path_output, z_matrix))
 
     logger.info("Processing of train data has finished")
 
 
 def get_dev_test_data(
-        path_data: str, path_output: str, labels2ids: dict, lfs: pd.DataFrame, z_matrix: str, samples: str,
-        other_class_id: int
+        path_data: str, path_output: str, labels2ids: dict, rule2rule_id: Dict, num_lfs: int, z_matrix: str,
+        samples: str, other_class_id: int
 ) -> None:
     """
     This function processes the development data and save it as DataFrame with samples as row text and gold labels
     (encoded with ids) to output directory. Additionally it saved z matrix for testing purposes.
     """
     log_section("Processing of eval data has started", logger)
-    val_data = get_conll_data_with_ent_pairs(path_data, lfs, labels2ids, other_class_id)
-    rule_matches_z = get_z_matrix(val_data, lfs)
+    val_data = get_conll_data_with_ent_pairs(path_data, rule2rule_id, labels2ids, other_class_id)
+    rule_matches_z = get_z_matrix(val_data, num_lfs)
 
-    dump(sparse.csr_matrix(rule_matches_z), os.path.join(path_output, z_matrix))
+    dump(rule_matches_z, os.path.join(path_output, z_matrix))
     dump(val_data, os.path.join(path_output, samples))
 
     logger.info("Processing of eval data has finished")
 
 
-def annotate_conll_data_with_lfs(conll_data: str, lfs: pd.DataFrame, filter_out_other: bool = True) -> pd.DataFrame:
+def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out_other: bool = True) -> pd.DataFrame:
     num_lines = count_file_lines(conll_data)
     processed_lines = 0
     samples, rules, enc_rules = [], [], []
@@ -131,14 +135,16 @@ def annotate_conll_data_with_lfs(conll_data: str, lfs: pd.DataFrame, filter_out_
                 sample = ""
                 subj, obj = {}, {}
             elif line == "":  # Instance ends
+                if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
+                    continue
                 if min(list(subj.keys())) < min(list(obj.keys())):
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
-                if rule in lfs.rule.values:
+                if rule in rule2rule_id.keys():
                     samples.append(sample)
                     rules.append(rule)
-                    rule_id = int(lfs.loc[lfs["rule"] == rule, "rule_id"].iloc[0])
+                    rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
                 elif not filter_out_other:
                     samples.append(sample)
@@ -167,14 +173,13 @@ def annotate_conll_data_with_lfs(conll_data: str, lfs: pd.DataFrame, filter_out_
 
 
 def get_conll_data_with_ent_pairs(
-        conll_data: str, lfs: pd.DataFrame, labels2ids: dict, other_class_id: int = None
+        conll_data: str, rule2rule_id: Dict, labels2ids: dict, other_class_id: int = None
 ) -> pd.DataFrame:
     """
     Processing of TACRED dataset. The function reads the .conll input file, extract the samples and the labels as well
     as argument pairs, which are saved as decision rules.
     :param conll_data: input data in .conll format
-    :param lfs: labelling functions used to annotate the data (used to get z_dev matrix for calculating the simple
-    majority voting as baseline)
+    :param rule2rule_id: corresponding of rules to rules ids
     :param labels2ids: dictionary of label - id corresponding
     :param other_class_id: id of other_class_label
     :return: DataFrame with columns "samples" (extracted sentences), "rules" (entity pairs), "enc_rules" (entity pairs
@@ -199,11 +204,11 @@ def get_conll_data_with_ent_pairs(
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
 
-                if rule in lfs.rule.values:
+                if rule in rule2rule_id.keys():
                     samples.append(sample)
                     labels.append(label)
                     rules.append(rule)
-                    rule_id = int(lfs.loc[lfs["rule"] == rule, "rule_id"].iloc[0])
+                    rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
 
                 else:
@@ -240,15 +245,16 @@ def get_t_matrix(lfs: pd.DataFrame) -> np.ndarray:
     return rule_assignments_t
 
 
-def get_z_matrix(data: pd.DataFrame, lfs: pd.DataFrame) -> np.ndarray:
-    """ Function calculates the z matrix (samples x rules)"""
-    rules_matrix = data["enc_rules"].values
-    z_matrix = np.empty([len(rules_matrix), lfs.rule_id.max() + 1])
-    for index, row in data.iterrows():
-        if pd.isnull(row["enc_rules"]):
-            continue
-        z_matrix[index, int(row["enc_rules"])] = 1
-    return z_matrix
+def get_z_matrix(data: pd.DataFrame, num_lfs: int) -> np.ndarray:
+    """
+    Function calculates the z matrix (samples x rules)
+    data: pd.DataFrame (samples, matched rules, matched rules id )
+    output: sparse z matrix
+    """
+    a = data.reset_index().dropna()
+    z_matrix_sparse = sp.csr_matrix((np.ones(len(a['index'].values)), (a['index'].values, a['enc_rules'].values)),
+                                    shape=(len(data.index), num_lfs))
+    return z_matrix_sparse
 
 
 def get_max_val(_dict: dict):
