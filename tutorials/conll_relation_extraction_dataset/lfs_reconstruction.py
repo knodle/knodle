@@ -9,7 +9,7 @@ from typing import Dict
 from tutorials.conll_relation_extraction_dataset.utils import count_file_lines, get_id, update_dict
 
 logger = logging.getLogger(__name__)
-PRINT_EVERY = 100000
+PRINT_EVERY = 1000000
 
 
 def reconstruct_arg_pairs_lfs(
@@ -20,7 +20,14 @@ def reconstruct_arg_pairs_lfs(
     """ Thins function reconstructs argument pairs that have been LFs while constructing the conll noisy dataset """
     Path(path_output).mkdir(parents=True, exist_ok=True)
     labels2ids = get_labels(path_labels)
-    get_lfs(path_data, labels2ids, path_output)
+    rules = get_lfs(path_data, labels2ids)
+
+    with open(os.path.join(path_output, "lfs.csv"), 'a', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=["rule", "rule_id", "label", "label_id"])
+        writer.writeheader()
+        writer = csv.writer(csvfile)
+        # writer.writerows([x.split(',') for x in rules])
+        writer.writerows(rules)
 
 
 def get_labels(path_labels: str) -> Dict:
@@ -33,24 +40,25 @@ def get_labels(path_labels: str) -> Dict:
     return relation2ids
 
 
-def get_lfs(conll_data: str, labels2ids: Dict, path_output: str) -> None:
+def get_lfs(conll_data: str, labels2ids: Dict) -> list:
     relation2rules, rule2id = {}, {}
+    rules = []
     num_lines = count_file_lines(conll_data)
     processed_lines = 0
 
-    with open(os.path.join(path_output, "lfs.csv"), 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=["rule", "rule_id", "label", "label_id"])
-        writer.writeheader()
-
     with open(conll_data, encoding='utf-8') as f:
+        sample_num = 0
         for line in f:
             processed_lines += 1
             line = line.strip()
             if line.startswith("# id="):  # Instance starts
+                sample_num += 1
                 subj, obj = {}, {}
                 label = line.split(" ")[3][5:]
                 label_id = encode_labels(label, labels2ids)
             elif line == "":  # Instance ends
+                if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
+                    continue
                 if min(list(subj.keys())) < min(list(obj.keys())):
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 else:
@@ -59,10 +67,9 @@ def get_lfs(conll_data: str, labels2ids: Dict, path_output: str) -> None:
                 if label_id != "unk":
                     rule_id = get_id(rule, rule2id)
                     update_dict(label, rule_id, relation2rules)
-
-                    with open(os.path.join(path_output, "lfs.csv"), 'a', newline='') as csvfile:
-                        writer = csv.writer(csvfile)
-                        writer.writerow([rule, rule_id, label, label_id])
+                    rule_info = [str(rule), str(rule_id), str(label), str(label_id)]
+                    if rule_info not in rules:
+                        rules.append(rule_info)
 
             elif line.startswith("#"):  # comment
                 continue
@@ -76,6 +83,7 @@ def get_lfs(conll_data: str, labels2ids: Dict, path_output: str) -> None:
             if processed_lines % PRINT_EVERY == 0:
                 logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
                                                                    conll_data.split("/")[-1]))
+    return rules
 
 
 def encode_labels(label: str, label2id: dict) -> int:
