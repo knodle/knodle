@@ -89,6 +89,9 @@ class CrossWeigh(Trainer):
 
         logger.info("Classifier training is started")
 
+        if not self.trainer_config.filter_empty_probs and self.trainer_config.no_match_class_label is None:
+            self.trainer_config.no_match_class_label = self.rule_assignments_t.shape[1]
+
         train_labels = get_labels(
             self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
         train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)

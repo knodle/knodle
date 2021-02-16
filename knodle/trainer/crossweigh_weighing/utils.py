@@ -138,9 +138,7 @@ def get_labels(
     if no_match_class_label:
         if no_match_class_label < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        if no_match_class_label < rule_matches_z.shape[1]:
-            raise RuntimeError("Label for negative samples is probably already assigned to some other class")
-        return get_majority_vote_probs_with_no_rel(rule_matches_z, rule_assignments_t, no_match_class_label)
+        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
 

@@ -53,14 +53,19 @@ def z_t_matrices_to_majority_vote_probs(
         raise ValueError("Dimensions mismatch!")
 
     if isinstance(rule_matches_z, sp.csr_matrix):
-        rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
+        rule_counts = rule_matches_z.dot(mapping_rules_labels_t).toarray()
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
     if other_class is not None:
-        rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        if rule_counts.shape[1] == other_class:
+            rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
+            rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        elif rule_counts.shape[1] > other_class:
+            rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        else:
+            raise ValueError("Other class id is incorrect")
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
-
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
 
