@@ -39,13 +39,14 @@ def preprocess_data(
     Path(path_output).mkdir(parents=True, exist_ok=True)
 
     labels2ids = get_labels(path_labels)
+    num_labels = len(labels2ids)
     other_class_id = max(labels2ids.values()) + 1       # used for dev and test sets
 
     lfs = pd.read_csv(path_lfs)
     rule2rule_id = dict(zip(lfs.rule, lfs.rule_id))
     num_lfs = max(lfs.rule_id.values) + 1
 
-    rule_assignments_t = get_t_matrix(lfs)
+    rule_assignments_t = get_t_matrix(lfs, num_labels)
     dump(sp.csr_matrix(rule_assignments_t), os.path.join(path_output, T_MATRIX_OUTPUT_TRAIN))
 
     get_train_data(
@@ -237,9 +238,9 @@ def get_conll_data_with_ent_pairs(
     return pd.DataFrame.from_dict({"samples": samples, "rules": rules, "enc_rules": enc_rules, "labels": labels})
 
 
-def get_t_matrix(lfs: pd.DataFrame) -> np.ndarray:
+def get_t_matrix(lfs: pd.DataFrame, num_labels: int) -> np.ndarray:
     """ Function calculates t matrix (rules x labels) using the known correspondence of relations to decision rules """
-    rule_assignments_t = np.empty([lfs.rule_id.max() + 1, lfs.label_id.max() + 1])
+    rule_assignments_t = np.empty([lfs.rule_id.max() + 1, num_labels])
     for index, row in lfs.iterrows():
         rule_assignments_t[row["rule_id"], row["label_id"]] = 1
     return rule_assignments_t
