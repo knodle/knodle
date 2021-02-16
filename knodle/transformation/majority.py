@@ -59,8 +59,7 @@ def z_t_matrices_to_majority_vote_probs(
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
     if other_class is not None:
-        add_columns = np.zeros([rule_counts.shape[0], other_class + 1 - rule_counts.shape[1]])
-        rule_counts = np.hstack((rule_counts, add_columns))
+        rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
         rule_counts[~rule_counts.any(axis=1), other_class] = 1
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
