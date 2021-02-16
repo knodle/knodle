@@ -6,7 +6,9 @@ from pathlib import Path
 import logging
 from typing import Dict
 
-from tutorials.conll_relation_extraction_dataset.utils import count_file_lines, get_id, update_dict
+from tutorials.conll_relation_extraction_dataset.utils import (
+    count_file_lines, get_id, update_dict, convert_to_tacred_rel
+)
 
 logger = logging.getLogger(__name__)
 PRINT_EVERY = 1000000
@@ -53,7 +55,9 @@ def get_lfs(conll_data: str, labels2ids: Dict) -> list:
             if line.startswith("# id="):  # Instance starts
                 sample_num += 1
                 subj, obj = {}, {}
-                label = line.split(" ")[3][5:]
+                label = convert_to_tacred_rel(line.split(" ")[3][5:])
+                if label not in labels2ids and label != "no_relation":
+                    logger.info(label)
                 label_id = encode_labels(label, labels2ids)
             elif line == "":  # Instance ends
                 if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
