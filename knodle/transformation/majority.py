@@ -50,17 +50,19 @@ def z_t_matrices_to_majority_vote_probs(
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
-        raise ValueError(f"Dimensions mismatch! Z matrix has shape {rule_matches_z.shape}, T matrix has shape {mapping_rules_labels_t.shape}")
+        raise ValueError(f"Dimensions mismatch! Z matrix has shape {rule_matches_z.shape}, while "
+                         f"T matrix has shape {mapping_rules_labels_t.shape}")
 
     if isinstance(rule_matches_z, sp.csr_matrix):
-        rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
+        rule_counts = rule_matches_z.dot(mapping_rules_labels_t).toarray()
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
     if other_class is not None:
+        add_columns = np.zeros([rule_counts.shape[0], other_class + 1 - rule_counts.shape[1]])
+        rule_counts = np.hstack((rule_counts, add_columns))
         rule_counts[~rule_counts.any(axis=1), other_class] = 1
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
-
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
 
@@ -90,8 +92,7 @@ def input_to_majority_vote_input(
 ):
     if other_class_id is not None and filter_non_labelled:
         raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
-    
-    print("mapping rules shape: ", mapping_rules_labels_t.shape[1])
+
     label_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
     if filter_non_labelled:
         input_data_x, label_probs = filter_empty_probabilities(input_data_x, label_probs)
@@ -100,5 +101,4 @@ def input_to_majority_vote_input(
         kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
         label_probs = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=label_probs, **kwargs)
 
-    print("Label probs shape: ", label_probs.shape[1])
     return input_data_x, label_probs
