@@ -24,7 +24,7 @@ def test_train():
     rule_matches_z[1:, 1] = 1
 
     mapping_rules_labels_t = np.zeros((num_rules, num_classes))
-    mapping_rules_labels_t[:, 0] = 1
+    mapping_rules_labels_t[:, 1] = 1
 
     trainer = NoDenoisingTrainer(
         model=model,
@@ -35,9 +35,12 @@ def test_train():
 
     trainer.train()
 
-    y_np = np.zeros((num_samples,))
+    y_np = np.ones((num_samples,))
     y_labels = TensorDataset(torch.from_numpy(y_np))
     metrics = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%
     assert metrics.get("accuracy") == 1
+    #assert True == False
+
+    assert trainer.model(torch.from_numpy(np.ones((num_features, )))).argmax() == 1
