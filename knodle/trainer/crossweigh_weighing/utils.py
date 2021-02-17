@@ -1,5 +1,6 @@
 import logging
 from typing import Dict
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -138,7 +139,7 @@ def get_labels(
         if no_match_class_label < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
         if no_match_class_label < rule_assignments_t.shape[1] - 1:
-            raise RuntimeError("Label for negative samples is probably already assigned to some other class")
+            warnings.warn(f"Negative class {no_match_class_label} is already present in data")
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
