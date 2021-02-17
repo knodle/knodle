@@ -5,8 +5,8 @@ from knodle.trainer.knn_denoising.config import KNNConfig
 class SnorkelConfig(MajorityConfig):
     def __init__(
             self,
-            label_model_num_epochs: int = 5000,
-            label_model_log_freq: int = 500,
+            label_model_num_epochs: int = 50,
+            label_model_log_freq: int = 10,
             **kwargs
     ):
         super().__init__(**kwargs)

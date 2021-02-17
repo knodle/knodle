@@ -31,7 +31,7 @@ class SnorkelTrainer(NoDenoisingTrainer):
         # create Snorkel matrix and train LabelModel
         L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z, self.mapping_rules_labels_t)
 
-        label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
+        label_model = LabelModel(cardinality=self.trainer_config.output_classes, verbose=True)
         label_model.fit(
             L_train,
             n_epochs=self.trainer_config.label_model_num_epochs,

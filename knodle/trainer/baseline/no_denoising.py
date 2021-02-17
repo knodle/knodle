@@ -70,6 +70,7 @@ class NoDenoisingTrainer(Trainer):
                     logits = outputs
                 else:
                     logits = outputs[0]
+                    
                 loss = self.trainer_config.criterion(logits, label_batch)
 
                 # backward pass
@@ -91,7 +92,7 @@ class NoDenoisingTrainer(Trainer):
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x is not None:
+            if self.dev_model_input_x is not None and self.dev_gold_labels_y is not None:
                 clf_report = self.test(self.dev_model_input_x, self.dev_gold_labels_y)
                 logger.info("Epoch development accuracy: {}".format(clf_report["accuracy"]))
 

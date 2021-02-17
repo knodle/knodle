@@ -42,7 +42,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
 
         model_input_x, label_probs = input_to_majority_vote_input(
             self.model_input_x, denoised_rule_matches_z, self.mapping_rules_labels_t,
-            filter_non_labelled=self.trainer_config.filter_non_labelled
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id
         )
 
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
