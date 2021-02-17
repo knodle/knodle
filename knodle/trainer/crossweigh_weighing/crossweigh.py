@@ -94,6 +94,11 @@ class CrossWeigh(Trainer):
 
         train_labels = get_labels(
             self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
+
+        if train_labels.shape[1] != self.trainer_config.output_classes:
+            raise ValueError(f"The number of output classes {self.trainer_config.output_classes} do not correspond to "
+                             f"labels probabilities dimension {train_labels.shape[1]}")
+
         train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)
         train_losses, train_acc = [], []
 
