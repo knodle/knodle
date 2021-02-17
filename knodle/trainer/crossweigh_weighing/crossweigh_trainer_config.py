@@ -32,6 +32,7 @@ class CrossWeighTrainerConfig:
         self.grad_clipping = grad_clipping
         self.output_classes = output_classes
         self.filter_empty_probs = filter_empty_probs
+        self.no_match_class_label = no_match_class_label
         self.device = check_and_return_device()
 
         if epochs <= 0:
