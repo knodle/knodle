@@ -162,26 +162,6 @@ def read_train_dev_test(target_path: str):
     return train_df, dev_df, test_df, train_rule_matches_z, mapping_rules_labels_t
 
 
-# def get_train_features(input_data: pd.DataFrame, word2id: dict, column_num: int) -> TensorDataset:
-#     """
-#     This function reads the input data saved as a DataFrame and encode sentences with words ids.
-#     :param path_train_data: path to .csv file with input data
-#     :param word2id: dictionary of words to their ids that corresponds to pretrained embeddings
-#     :param column_num: number of a column in DataFrame with input data where samples are stored
-#     :return:
-#     """
-#     enc_input_samples = encode_samples(list(input_data.iloc[:, column_num]), word2id, MAXLEN)
-#     return torch.utils.data.TensorDataset(torch.LongTensor(enc_input_samples))
-#
-#
-# def get_dev_data(dev_data: pd.DataFrame, word2id: dict) -> Tuple[TensorDataset, torch.LongTensor]:
-#     """ Read dev data with gold labels and turn it into TensorDataset(features, labels)"""
-#     enc_dev_samples = encode_samples(list(dev_data.iloc[:, 1]), word2id, MAXLEN)
-#     dev_samples_dataset = torch.utils.data.TensorDataset(torch.LongTensor(enc_dev_samples))
-#     dev_labels_tensor = torch.LongTensor(list(dev_data.iloc[:, 4]))
-#     return dev_samples_dataset, dev_labels_tensor
-
-
 def get_glove_encoded_features(input_data: pd.DataFrame, word2id: dict, column_num: int) -> TensorDataset:
     enc_input_samples = encode_samples(list(input_data.iloc[:, column_num]), word2id, MAXLEN)
     return torch.utils.data.TensorDataset(torch.LongTensor(enc_input_samples))
