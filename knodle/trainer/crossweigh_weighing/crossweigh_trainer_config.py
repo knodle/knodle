@@ -52,3 +52,6 @@ class CrossWeighTrainerConfig:
             self.optimizer = SGD(model.parameters(), lr=self.lr)
         else:
             self.optimizer = optimizer_
+
+        self.no_match_class_label = no_match_class_label
+

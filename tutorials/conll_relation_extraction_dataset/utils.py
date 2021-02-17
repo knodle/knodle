@@ -112,9 +112,9 @@ def get_analysed_conll_data(
     )
 
 
-def encode_labels(label: str, label2id: dict) -> int:
+def encode_labels(label: str, label2id: dict, other_class: int) -> int:
     """ Encodes labels with corresponding labels id. If relation is unknown, returns special id for unknown relations"""
-    return label2id.get(label, UNKNOWN_RELATIONS_ID)
+    return label2id.get(label, other_class)
 
 
 def build_df(
@@ -233,3 +233,23 @@ def count_file_lines(file_name: str) -> int:
 def save_dict(dict_: dict, path: str) -> None:
     with open(path, "w+") as f:
         json.dump(dict_, f)
+
+
+def convert_to_tacred_rel(label: str) -> str:
+    """ Function changes some labels in train data that are transcribed differently to tacred labels"""
+    if label == "org:top_members_employees":
+        return "org:top_members/employees"
+    elif label == "org:political_religious_affiliation":
+        return "org:political/religious_affiliation"
+    elif label == "per:employee_or_member_of":
+        return "per:employee_of"
+    elif label == "org:number_of_employees_members":
+        return "org:number_of_employees/members"
+    elif label == "per:statesorprovinces_of_residence":
+        return "per:stateorprovinces_of_residence"
+    elif label == "org:date_founded":
+        return "org:founded"
+    elif label == "org:date_dissolved":
+        return "org:dissolved"
+    else:
+        return label
