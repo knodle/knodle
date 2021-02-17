@@ -62,7 +62,7 @@ def z_t_matrices_to_majority_vote_probs(
         if rule_counts.shape[1] == other_class:
             rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
             rule_counts[~rule_counts.any(axis=1), other_class] = 1
-        elif rule_counts.shape[1] > other_class:
+        elif rule_counts.shape[1] >= other_class:
             rule_counts[~rule_counts.any(axis=1), other_class] = 1
         else:
             raise ValueError("Other class id is incorrect")
