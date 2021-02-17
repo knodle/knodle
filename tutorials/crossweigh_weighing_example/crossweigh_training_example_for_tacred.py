@@ -15,7 +15,7 @@ from transformers import DistilBertTokenizer, AdamW, DistilBertForSequenceClassi
 
 from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.trainer.crossweigh_weighing.bert.crossweigh_with_bert import CrossWeigh
+from knodle.trainer.crossweigh_weighing.crossweigh_bert import CrossWeigh
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
