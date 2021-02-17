@@ -11,7 +11,7 @@ from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer.knn_denoising.knn_config import KNNConfig
+from knodle.trainer.knn_denoising.config import KNNConfig
 from knodle.trainer.knn_denoising.knn_denoising import (
     KnnDenoisingTrainer,
 )
@@ -49,6 +49,7 @@ def train_knn_model():
     train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
     dev_dataset = TensorDataset(Tensor(tfidf_values[X_dev.index].toarray()))
 
+
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
     for k in [1, 2, 4, 8, 15]:
         print("K is: {}".format(k))
@@ -57,26 +58,30 @@ def train_knn_model():
             k=k
         )
 
-        trainer = KnnDenoisingTrainer(
-            model,
-            mapping_rules_labels_t=mapping_rules_labels_t,
-            model_input_x=train_dataset,
-            rule_matches_z=train_rule_matches_z,
-            dev_model_input_x=dev_dataset,
-            dev_rule_matches_z=dev_rule_matches_z,
-            trainer_config=custom_model_config,
-        )
-
-        trainer.train()
-
         tfidf_values_sparse = Tensor(tfidf_values[X_test.index].toarray())
         tfidf_values_sparse = tfidf_values_sparse.to(custom_model_config.device)
 
         test_tfidf = TensorDataset(tfidf_values_sparse)
 
+        y_dev = Tensor(imdb_dataset.loc[X_dev.index, "label_id"].values)
+        y_dev = y_dev.to(custom_model_config.device)
+        y_dev = TensorDataset(y_dev)
+
         y_test = Tensor(imdb_dataset.loc[X_test.index, "label_id"].values)
         y_test = y_test.to(custom_model_config.device)
         y_test = TensorDataset(y_test)
+
+        trainer = KnnDenoisingTrainer(
+            model=model,
+            mapping_rules_labels_t=mapping_rules_labels_t,
+            model_input_x=train_dataset,
+            rule_matches_z=train_rule_matches_z,
+            dev_model_input_x=dev_dataset,
+            dev_gold_labels_y=y_dev,
+            trainer_config=custom_model_config,
+        )
+
+        trainer.train()
 
         clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
         print("-------------------------")

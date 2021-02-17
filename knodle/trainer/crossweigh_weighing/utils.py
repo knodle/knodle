@@ -1,6 +1,7 @@
 import logging
 import random
 from typing import Dict
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,6 @@ from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.evaluation import tacred_metrics
-from knodle.trainer.utils.denoise import get_majority_vote_probs_with_no_rel
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,9 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
             parts = line.strip().split(" ")
             embeddings.append([float(v) for v in parts[1:]])
         emb_matrix = np.array(embeddings)
-        assert emb_matrix.shape[0] == int(emb_matrix_size[0]) and emb_matrix.shape[1] == int(emb_matrix_size[1])
+        assert emb_matrix.shape[0] == int(emb_matrix_size[0]) and emb_matrix.shape[
+            1
+        ] == int(emb_matrix_size[1])
     return emb_matrix
 
 
@@ -95,8 +97,8 @@ def check_splitting(
 ) -> None:
     """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
 
-    rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
-    tst_sample = tst_samples.tensors[0][rnd_tst, :]
+    rnd_tst = np.random.randint(0, tst_samples.shape[0])  # take some random index
+    tst_sample = tst_samples[rnd_tst, :]
     tst_idx = tst_idx[rnd_tst]
     tst_label = tst_labels[rnd_tst, :]
 
@@ -142,9 +144,8 @@ def get_labels(
         if no_match_class_label < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
         if no_match_class_label < rule_assignments_t.shape[1] - 1:
-            raise RuntimeError("Label for negative samples is probably already assigned to some other class")
+            warnings.warn(f"Negative class {no_match_class_label} is already present in data")
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
-        # return get_majority_vote_probs_with_no_rel(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
 

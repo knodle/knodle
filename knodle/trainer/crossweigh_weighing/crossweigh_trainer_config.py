@@ -15,15 +15,15 @@ class CrossWeighTrainerConfig:
             batch_size: int = 32,
             optimizer_: optimizer = None,
             output_classes: int = 2,
-            lr: float = 2.0,
-            epochs: int = 3,
+            lr: float = 0.01,
+            epochs: int = 2,
             class_weights: Tensor = None,
             seed: int = 12345,  # set seed for reproducibility
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
             filter_empty_probs: bool = False,
-            no_match_class_label: int = None):
-
+            no_match_class_label: int = None
+    ):
         self.criterion = criterion
         self.batch_size = batch_size
         self.lr = lr
