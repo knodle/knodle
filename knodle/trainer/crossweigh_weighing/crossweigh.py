@@ -17,7 +17,7 @@ from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import Cross
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
-    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics, build_bert_feature_labels_dataloader,
+    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics,
     build_feature_weights_labels_dataloader, build_feature_labels_dataloader
 )
 
@@ -42,6 +42,8 @@ class CrossWeigh(NoDenoisingTrainer):
             rule_matches_z: np.ndarray,
             dev_features: TensorDataset = None,
             dev_labels: Tensor = None,
+            cw_model: Module = None,
+            cw_inputs_x: TensorDataset = None,
             evaluation_method: str = "sklearn_classification_report",
             dev_labels_ids: Dict = None,
             path_to_weights: str = "data",
@@ -81,6 +83,9 @@ class CrossWeigh(NoDenoisingTrainer):
             self.trainer_config = trainer_config
             logger.info("Initalized trainer with custom model config: {}".format(self.trainer_config.__dict__))
 
+        self.cw_model = cw_model if cw_model else model
+        self.cw_inputs_x = cw_inputs_x if cw_inputs_x else inputs_x
+
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
 
@@ -117,16 +122,18 @@ class CrossWeigh(NoDenoisingTrainer):
         for curr_epoch in range(self.trainer_config.epochs):
             logger.info(f"Epoch {curr_epoch}")
 
-            os.makedirs(SAVE_DIR, exist_ok=True)
-            path_to_saved_model = os.path.join(SAVE_DIR, 'model_epoch_{}.pth'.format(curr_epoch))
+            path_to_saved_model = os.path.join(self.path_to_weights, "trained_models")
+            os.makedirs(self.path_to_weights, exist_ok=True)
+            path_to_saved_model = os.path.join(path_to_saved_model, f'model_epoch_{curr_epoch}.pth')
+
             steps = 0
 
             running_loss, epoch_acc = 0.0, 0.0
             for features, weights, labels in tqdm(train_loader):
                 steps += 1
-                features, weights, labels = features.to(self.trainer_config.device), \
-                                            weights.to(self.trainer_config.device), \
-                                            labels.to(self.trainer_config.device)
+                features, weights, labels = \
+                    features.to(self.trainer_config.device), weights.to(self.trainer_config.device), \
+                    labels.to(self.trainer_config.device)
 
                 self.model.zero_grad()
                 predictions = self.model(features)
@@ -154,7 +161,7 @@ class CrossWeigh(NoDenoisingTrainer):
             if self.dev_features:
                 dev_loss, dev_metrics = self._evaluate(dev_loader)
                 dev_losses.append(dev_loss)
-                dev_acc.append(dev_metrics["precision"])
+                dev_acc.append(dev_metrics["accuracy"])
                 logger.info(f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
             torch.save(self.model.cpu().state_dict(), path_to_saved_model)  # saving model
@@ -167,7 +174,7 @@ class CrossWeigh(NoDenoisingTrainer):
             draw_loss_accuracy_plot({"train loss": train_losses, "tran acc": train_acc})
 
     def _get_sample_weights(self):
-        """ This function checks whether there are accesible already pretrained sample weights. If yes, return
+        """ This function checks whether there are accessible already pretrained sample weights. If yes, return
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
 
         if os.path.isfile(os.path.join(self.path_to_weights, "sample_weights.lib")):
@@ -176,9 +183,9 @@ class CrossWeigh(NoDenoisingTrainer):
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
             sample_weights = CrossWeighWeightsCalculator(
-                self.model,
+                self.cw_model,
                 self.rule_assignments_t,
-                self.inputs_x,
+                self.cw_inputs_x,
                 self.rule_matches_z,
                 self.path_to_weights,
                 self.denoising_config
@@ -186,24 +193,22 @@ class CrossWeigh(NoDenoisingTrainer):
             logger.info(f"Sample weights are calculated and saved to {self.path_to_weights} file")
         return sample_weights
 
-    # todo: move to utils
     def _get_loss_with_sample_weights(self, output: Tensor, weights: Tensor, labels: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
-        loss_no_reduction = self.trainer_config.criterion(output,
-                                                          labels,
-                                                          weight=self.trainer_config.class_weights,
-                                                          reduction="none")
-        # return (loss_no_reduction * weights).sum() / self.trainer_config.class_weights[labels].sum()
+        loss_no_reduction = self.trainer_config.criterion(
+            output, labels, weight=self.trainer_config.class_weights, reduction="none"
+        )
         return (loss_no_reduction * weights).mean()
 
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""
         self.model.eval()
-        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), torch.Tensor().to(self.trainer_config.device)
+        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), \
+                                      torch.Tensor().to(self.trainer_config.device)
 
         with torch.no_grad():
             dev_loss, dev_acc = 0.0, 0.0
-            for features, labels in dev_dataloader:
+            for inputs, labels in dev_dataloader:
                 features, labels = features.to(self.trainer_config.device), labels.to(self.trainer_config.device)
 
                 self.model.zero_grad()
@@ -238,12 +243,12 @@ class CrossWeigh(NoDenoisingTrainer):
                     "Labels to labels ids correspondence is needed to make TACRED specific evaluation. Since it is "
                     "absent now, the standard sklearn metrics will be calculated instead"
                 )
-                return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)["macro avg"]
+                return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
             return calculate_dev_tacred_metrics(predictions, gold_labels, self.dev_labels_ids)
 
         elif self.evaluation_method == "sklearn_classification_report":
-            return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)["macro avg"]
+            return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         else:
             logging.warning("No evaluation method is given. The evaluation on dev data is skipped")

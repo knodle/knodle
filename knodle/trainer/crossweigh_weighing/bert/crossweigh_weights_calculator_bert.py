@@ -242,8 +242,6 @@ class CrossWeighWeightsCalculator:
                 predictions = predicted.tolist()
                 for curr_pred in range(len(predictions)):
                     gold = labels.tolist()[curr_pred]
-                    # gold_classes = [idx for idx, value in enumerate(gold) if value > 0]
-                    # todo: it is corrected for IMDB dataset only!
                     gold_classes = gold.index(max(gold))
                     guess = predictions[curr_pred]
                     if guess != gold_classes:

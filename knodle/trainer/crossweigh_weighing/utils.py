@@ -89,7 +89,7 @@ def set_device(enable_cuda: bool):
 
 
 def check_splitting(
-        tst_samples: torch.Tensor,
+        tst_samples: TensorDataset,
         tst_labels: np.ndarray,
         tst_idx: np.ndarray,
         samples: torch.Tensor,
@@ -97,8 +97,8 @@ def check_splitting(
 ) -> None:
     """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
 
-    rnd_tst = np.random.randint(0, tst_samples.shape[0])  # take some random index
-    tst_sample = tst_samples[rnd_tst, :]
+    rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
+    tst_sample = tst_samples.tensors[0][rnd_tst, :]
     tst_idx = tst_idx[rnd_tst]
     tst_label = tst_labels[rnd_tst, :]
 
@@ -229,3 +229,4 @@ def build_bert_features_labels_ids_dataloader(
         torch.Tensor(idx).long()
     )
     return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
+

@@ -15,7 +15,7 @@ from tqdm import tqdm
 from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from knodle.trainer.crossweigh_weighing.bert.crossweigh_weights_calculator_bert import CrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
     set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics, build_bert_feature_labels_dataloader,
     build_bert_feature_weights_labels_dataloader
@@ -28,8 +28,7 @@ torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
-# PRINT_EVERY = 300
-# SAVE_DIR = "/Users/asedova/PycharmProjects/knodle/knodle/trainer/crossweigh_weighing/bert/run_10_02"
+PRINT_EVERY = 300
 
 
 class CrossWeigh(NoDenoisingTrainer):
@@ -42,6 +41,8 @@ class CrossWeigh(NoDenoisingTrainer):
             rule_matches_z: np.ndarray,
             dev_features: TensorDataset = None,
             dev_labels: Tensor = None,
+            cw_model: Module = None,
+            cw_inputs_x: TensorDataset = None,
             evaluation_method: str = "sklearn_classification_report",
             dev_labels_ids: Dict = None,
             path_to_weights: str = "data",
@@ -80,6 +81,9 @@ class CrossWeigh(NoDenoisingTrainer):
         else:
             self.trainer_config = trainer_config
             logger.info("Initalized trainer with custom model config: {}".format(self.trainer_config.__dict__))
+
+        self.cw_model = cw_model if cw_model else model
+        self.cw_inputs_x = cw_inputs_x if cw_inputs_x else inputs_x
 
     def train(self):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
@@ -121,19 +125,18 @@ class CrossWeigh(NoDenoisingTrainer):
             os.makedirs(self.path_to_weights, exist_ok=True)
             path_to_saved_model = os.path.join(path_to_saved_model,  f'model_epoch_{curr_epoch}.pth')
 
-            # steps = 0
-
+            steps = 0
             running_loss, epoch_acc = 0.0, 0.0
             for input_ids_batch, attention_mask_batch, weights, labels in tqdm(train_loader):
-                # steps += 1
-                inputs = {
+                steps += 1
+                features = {
                     "input_ids": input_ids_batch.to(self.trainer_config.device),
                     "attention_mask": attention_mask_batch.to(self.trainer_config.device)
                 }
                 weights, labels = weights.to(self.trainer_config.device), labels.to(self.trainer_config.device)
 
                 self.model.zero_grad()
-                predictions = self.model(**inputs)
+                predictions = self.model(**features)
                 loss = self._get_loss_with_sample_weights(predictions[0], weights, labels)
                 loss.backward()
                 if self.trainer_config.use_grad_clipping:
@@ -144,10 +147,10 @@ class CrossWeigh(NoDenoisingTrainer):
                 running_loss += loss.detach()
                 epoch_acc += acc.item()
 
-                # if steps % PRINT_EVERY == 0 and self.dev_features:
-                #     dev_loss, dev_metrics = self._evaluate(dev_loader)
-                #     logger.info(f"Train loss: {running_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}, "
-                #                 f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
+                if steps % PRINT_EVERY == 0 and self.dev_features:
+                    dev_loss, dev_metrics = self._evaluate(dev_loader)
+                    logger.info(f"Train loss: {running_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}, "
+                                f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
             avg_loss = running_loss / len(train_loader)
             avg_acc = epoch_acc / len(train_loader)
@@ -171,7 +174,7 @@ class CrossWeigh(NoDenoisingTrainer):
             draw_loss_accuracy_plot({"train loss": train_losses, "tran acc": train_acc})
 
     def _get_sample_weights(self):
-        """ This function checks whether there are accesible already pretrained sample weights. If yes, return
+        """ This function checks whether there are accessible already pretrained sample weights. If yes, return
         them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
 
         if os.path.isfile(os.path.join(self.path_to_weights, "sample_weights.lib")):
@@ -180,9 +183,9 @@ class CrossWeigh(NoDenoisingTrainer):
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
             sample_weights = CrossWeighWeightsCalculator(
-                self.model,
+                self.cw_model,
                 self.rule_assignments_t,
-                self.inputs_x,
+                self.cw_inputs_x,
                 self.rule_matches_z,
                 self.path_to_weights,
                 self.denoising_config
@@ -190,34 +193,30 @@ class CrossWeigh(NoDenoisingTrainer):
             logger.info(f"Sample weights are calculated and saved to {self.path_to_weights} file")
         return sample_weights
 
-    # todo: move to utils
     def _get_loss_with_sample_weights(self, output: Tensor, weights: Tensor, labels: Tensor) -> Tensor:
         """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
-        loss_no_reduction = self.trainer_config.criterion(output,
-                                                          labels,
-                                                          weight=self.trainer_config.class_weights,
-                                                          reduction="none")
+        loss_no_reduction = self.trainer_config.criterion(
+            output, labels, weight=self.trainer_config.class_weights, reduction="none"
+        )
         return (loss_no_reduction * weights).mean()
-        # normalisation of the sample weights so that the range of the loss will approx. have the same range and
-        # won’t depend on the current sample distribution in the batch.
-        # return (loss_no_reduction * weights / weights.sum()).sum()
 
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""
         self.model.eval()
-        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), torch.Tensor().to(self.trainer_config.device)
+        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), \
+                                      torch.Tensor().to(self.trainer_config.device)
 
         with torch.no_grad():
             dev_loss, dev_acc = 0.0, 0.0
             for input_ids_batch, attention_mask_batch, labels in dev_dataloader:
-                inputs = {
+                features = {
                     "input_ids": input_ids_batch.to(self.trainer_config.device),
                     "attention_mask": attention_mask_batch.to(self.trainer_config.device)
                 }
                 labels = labels.to(self.trainer_config.device)
 
                 self.model.zero_grad()
-                predictions = self.model(**inputs)
+                predictions = self.model(**features)
                 dev_loss += self.calculate_dev_loss(predictions[0], labels.long())
 
                 _, predicted = torch.max(predictions[0], 1)
