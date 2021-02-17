@@ -246,7 +246,7 @@ def get_t_matrix(lfs: pd.DataFrame, num_labels: int) -> np.ndarray:
     return rule_assignments_t
 
 
-def get_z_matrix(data: pd.DataFrame, num_lfs: int) -> np.ndarray:
+def get_z_matrix(data: pd.DataFrame, num_lfs: int) -> sp.csr_matrix:
     """
     Function calculates the z matrix (samples x rules)
     data: pd.DataFrame (samples, matched rules, matched rules id )
