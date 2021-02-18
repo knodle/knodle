@@ -43,6 +43,7 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
+        logger.debug(f"{self.trainer_config.evaluate_with_other_class} and {self.labels2ids}")
         if self.trainer_config.evaluate_with_other_class and self.labels2ids is None:
             # check if the selected evaluation type is valid
             logging.warning(
@@ -76,7 +77,7 @@ class Trainer(ABC):
         if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
             clf_report = other_class_classification_report(
-                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids
+                y_pred=predictions, y_true=test_labels, labels2ids=self.labels2ids
             )
         else:
             logger.info("Using standard scikit-learn evaluation.")

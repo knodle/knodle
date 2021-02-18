@@ -6,15 +6,18 @@ Score the predictions with gold labels, using precision, recall and F1 metrics.
 
 import sys
 from collections import Counter
+from typing import Dict
+
+import numpy as np
 
 from knodle.transformation.labels import translate_predictions
 
 
 def other_class_classification_report(
-        prediction_ids: np.array, label_ids_y: np.array, labels2ids: Dict, verbose: bool = True
+        y_pred: np.array, y_true: np.array, labels2ids: Dict, verbose: bool = True
 ) -> Dict:
     string_prediction, string_gold = translate_predictions(
-        predictions=prediction_ids, labels=label_ids_y, labels2ids=labels2ids
+        predictions=y_pred, labels=y_true, labels2ids=labels2ids
     )
     clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose)
     return clf_report

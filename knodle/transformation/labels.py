@@ -1,3 +1,6 @@
+from typing import Dict
+import numpy as np
+
 def translate_predictions(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
     """
     Prepare data for string label based evaluation.

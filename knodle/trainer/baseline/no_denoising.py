@@ -35,11 +35,12 @@ class NoDenoisingTrainer(Trainer):
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
             trainer_config: MajorityConfig = None,
+            **kwargs
     ):
         if trainer_config is None:
             trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config, **kwargs
         )
 
         self.dev_model_input_x = dev_model_input_x
@@ -117,7 +118,7 @@ class NoDenoisingTrainer(Trainer):
 
         self.train_loop(feature_label_dataloader)
 
-    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset):
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
@@ -155,12 +156,12 @@ class NoDenoisingTrainer(Trainer):
         if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
             clf_report = other_class_classification_report(
-                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids, verbose=True
+                y_pred=predictions, y_true=gold_labels, labels2ids=self.labels2ids, verbose=True
             )
         else:
             logger.info("Using standard scikit-learn evaluation.")
             clf_report = classification_report(
-                y_true=test_labels, y_pred=predictions, output_dict=True
+                y_true=gold_labels, y_pred=predictions, output_dict=True
             )
             
         return clf_report
