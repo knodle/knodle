@@ -15,6 +15,7 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.config import MajorityConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.evaluation.other_class_f1 import other_class_classification_report
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,8 @@ class NoDenoisingTrainer(Trainer):
 
             if self.dev_model_input_x is not None and self.dev_gold_labels_y is not None:
                 clf_report = self.test(self.dev_model_input_x, self.dev_gold_labels_y)
-                logger.info("Epoch development accuracy: {}".format(clf_report["accuracy"]))
+                metric = "accuracy" if not self.trainer_config.evaluate_with_other_class else "f1"
+                logger.info("Epoch development {}: {}".format(metric, clf_report[metric]))
 
         log_section("Training done", logger)
 
@@ -150,10 +152,10 @@ class NoDenoisingTrainer(Trainer):
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))
 
-        if self.labels2ids is not None:
+        if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
-            clf_report = calculate_dev_tacred_metrics(
-                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids
+            clf_report = other_class_classification_report(
+                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids, verbose=True
             )
         else:
             logger.info("Using standard scikit-learn evaluation.")

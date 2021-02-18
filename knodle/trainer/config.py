@@ -15,7 +15,8 @@ class TrainerConfig:
             optimizer: Optimizer = None,
             output_classes: int = 2,
             epochs: int = 35,
-            seed: int = 42
+            seed: int = 42,
+            evaluate_with_other_class: bool = False
     ):
         self.criterion = criterion
         self.batch_size = batch_size
@@ -31,6 +32,7 @@ class TrainerConfig:
         self.output_classes = output_classes
         self.device = check_and_return_device()
         self.seed = seed
+        self.evaluate_with_other_class = evaluate_with_other_class
         torch.manual_seed(self.seed)
 
 

@@ -11,7 +11,7 @@ from joblib import load
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.other_class_f1 import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig

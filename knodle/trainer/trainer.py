@@ -9,7 +9,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config import TrainerConfig
-from knodle.trainer.crossweigh_weighing.utils import calculate_dev_tacred_metrics
+from knodle.evaluation.other_class_f1 import other_class_classification_report
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,14 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
+        if self.trainer_config.evaluate_with_other_class and self.labels2ids is None:
+            # check if the selected evaluation type is valid
+            logging.warning(
+                "Labels to labels ids correspondence is needed to make other_class specific evaluation. Since it is "
+                "absent now, the standard sklearn metrics will be calculated instead."
+            )
+            self.trainer_config.evaluate_with_other_class = False
+
     @abstractmethod
     def train(self):
         pass
@@ -65,9 +73,9 @@ class Trainer(ABC):
         if predictions.shape[1] > 1:
             predictions = np.argmax(predictions, axis=1)
 
-        if self.labels2ids is not None:
+        if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
-            clf_report = calculate_dev_tacred_metrics(
+            clf_report = other_class_classification_report(
                 predictions=predictions, labels=test_labels, labels2ids=self.labels2ids
             )
         else:

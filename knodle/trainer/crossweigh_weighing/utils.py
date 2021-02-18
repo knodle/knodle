@@ -1,12 +1,10 @@
 import logging
-from typing import Dict
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from knodle.evaluation import tacred_metrics
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 logger = logging.getLogger(__name__)
 
@@ -143,13 +141,3 @@ def get_labels(
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
     else:
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
-
-
-def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
-    predictions_idx = predictions.astype(int).tolist()
-    labels_idx = labels.astype(int).tolist()
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in labels_idx]
-    return tacred_metrics.score(test_labels, predictions, verbose=True)

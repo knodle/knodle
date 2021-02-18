@@ -16,10 +16,11 @@ from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import Cross
 from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
-    set_seed, draw_loss_accuracy_plot, get_labels, calculate_dev_tacred_metrics
+    set_seed, draw_loss_accuracy_plot, get_labels
 )
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.utils.utils import accuracy_of_probs
+from knodle.evaluation.other_class_f1 import other_class_classification_report
 
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
@@ -228,7 +229,7 @@ class CrossWeigh(Trainer):
                 )
                 return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)["macro avg"]
 
-            return calculate_dev_tacred_metrics(predictions, gold_labels, self.dev_labels_ids)
+            return other_class_classification_report(predictions, gold_labels, self.dev_labels_ids)
 
         elif self.evaluation_method == "sklearn_classification_report":
             return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)["macro avg"]
