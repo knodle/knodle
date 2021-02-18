@@ -96,13 +96,13 @@ def encode_labels(label: str, label2id: dict) -> int:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
-    parser.add_argument("--path_data", help="")
-    parser.add_argument("--path_labels", help="")
+    parser.add_argument("--train_data", help="")
+    parser.add_argument("--labels", help="")
     parser.add_argument("--path_outputs", help="")
 
     args = parser.parse_args()
     reconstruct_arg_pairs_lfs(
-        args.path_data,
-        args.path_labels,
+        args.train_data,
+        args.labels,
         args.path_outputs
     )

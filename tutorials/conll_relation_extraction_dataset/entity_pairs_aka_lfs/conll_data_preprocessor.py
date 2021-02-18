@@ -135,6 +135,7 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
             if line.startswith("# id="):  # Instance starts
                 sample = ""
                 subj, obj = {}, {}
+                tokens_in_the_middle = False
             elif line == "":  # Instance ends
                 if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
                     continue
@@ -161,11 +162,20 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
                 if splitted_line[2] == "SUBJECT":
                     subj[splitted_line[0]] = token
                     sample += " " + token
+                    if not tokens_in_the_middle:
+                        tokens_in_the_middle = True
+                    else:
+                        tokens_in_the_middle = False
                 elif splitted_line[4] == "OBJECT":
                     obj[splitted_line[0]] = token
                     sample += " " + token
+                    if not tokens_in_the_middle:
+                        tokens_in_the_middle = True
+                    else:
+                        tokens_in_the_middle = False
                 else:
-                    sample += " " + token
+                    if tokens_in_the_middle:
+                        sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
                 logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
                                                                    conll_data.split("/")[-1]))
