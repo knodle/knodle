@@ -135,7 +135,6 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
             if line.startswith("# id="):  # Instance starts
                 sample = ""
                 subj, obj = {}, {}
-                tokens_in_the_middle = False
             elif line == "":  # Instance ends
                 if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
                     continue
@@ -144,12 +143,12 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 if rule in rule2rule_id.keys():
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     rules.append(rule)
                     rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
                 elif not filter_out_other:
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     rules.append(None)
                     enc_rules.append(None)
                 else:
@@ -162,19 +161,11 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
                 if splitted_line[2] == "SUBJECT":
                     subj[splitted_line[0]] = token
                     sample += " " + token
-                    if not tokens_in_the_middle:
-                        tokens_in_the_middle = True
-                    else:
-                        tokens_in_the_middle = False
                 elif splitted_line[4] == "OBJECT":
                     obj[splitted_line[0]] = token
                     sample += " " + token
-                    if not tokens_in_the_middle:
-                        tokens_in_the_middle = True
-                    else:
-                        tokens_in_the_middle = False
                 else:
-                    if tokens_in_the_middle:
+                    if (bool(subj) and not bool(obj)) or (not bool(subj) and bool(obj)):
                         sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
                 logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
@@ -210,20 +201,23 @@ def get_conll_data_with_ent_pairs(
                 subj, obj = {}, {}
                 label = encode_labels(line.split(" ")[3][5:], labels2ids, other_class_id)
             elif line == "":  # Instance ends
+                if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
+                    logger.info("Wow")
+                    continue
                 if min(list(subj.keys())) < min(list(obj.keys())):
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
 
                 if rule in rule2rule_id.keys():
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     labels.append(label)
                     rules.append(rule)
                     rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
 
                 else:
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     labels.append(label)
                     rules.append(None)
                     enc_rules.append(None)
@@ -240,10 +234,12 @@ def get_conll_data_with_ent_pairs(
                     obj[splitted_line[0]] = token
                     sample += " " + token
                 else:
-                    sample += " " + token
+                    if (bool(subj) and not bool(obj)) or (not bool(subj) and bool(obj)):
+                        sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
-                logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
-                                                                   conll_data.split("/")[-1]))
+                logger.info("Processed {:0.2f}% of {} file".format(
+                    100 * processed_lines / num_lines, conll_data.split("/")[-1])
+                )
 
     return pd.DataFrame.from_dict({"samples": samples, "rules": rules, "enc_rules": enc_rules, "labels": labels})
 
