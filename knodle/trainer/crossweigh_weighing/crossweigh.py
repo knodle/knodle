@@ -74,7 +74,7 @@ class CrossWeigh(Trainer):
         else:
             self.trainer_config = trainer_config
             logger.info("Initalized trainer with custom model config: {}".format(self.trainer_config.__dict__))
-            
+
         set_seed(self.trainer_config.seed)
 
     def train(self):
@@ -89,8 +89,16 @@ class CrossWeigh(Trainer):
 
         logger.info("Classifier training is started")
 
+        if not self.trainer_config.filter_empty_probs and self.trainer_config.no_match_class_label is None:
+            self.trainer_config.no_match_class_label = self.rule_assignments_t.shape[1]
+
         train_labels = get_labels(
             self.rule_matches_z, self.rule_assignments_t, self.trainer_config.no_match_class_label)
+
+        if train_labels.shape[1] != self.trainer_config.output_classes:
+            raise ValueError(f"The number of output classes {self.trainer_config.output_classes} do not correspond to "
+                             f"labels probabilities dimension {train_labels.shape[1]}")
+
         train_loader = self._get_feature_label_dataloader(self.model_input_x, train_labels, sample_weights)
         train_losses, train_acc = [], []
 
@@ -130,7 +138,8 @@ class CrossWeigh(Trainer):
                 logger.info(f"Dev loss: {dev_loss:.3f}, Dev metrics: {dev_metrics}")
 
         if self.dev_features is not None:
-            draw_loss_accuracy_plot({"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
+            draw_loss_accuracy_plot(
+                {"train loss": train_losses, "dev loss": dev_losses, "tran acc": train_acc, "dev acc": dev_acc})
         else:
             draw_loss_accuracy_plot({"train loss": train_losses, "tran acc": train_acc})
 
@@ -155,7 +164,8 @@ class CrossWeigh(Trainer):
         return sample_weights
 
     def _get_feature_label_dataloader(
-            self, samples: TensorDataset, labels: Union[Tensor, np.ndarray], sample_weights: np.ndarray = None, shuffle: bool = True
+            self, samples: TensorDataset, labels: Union[Tensor, np.ndarray], sample_weights: np.ndarray = None,
+            shuffle: bool = True
     ) -> DataLoader:
         """ Converts encoded samples and labels to dataloader. Optionally: add sample_weights as well """
         tensor_target = torch.LongTensor(labels).to(self.trainer_config.device)

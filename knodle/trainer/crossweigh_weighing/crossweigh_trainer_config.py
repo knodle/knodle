@@ -21,6 +21,7 @@ class CrossWeighTrainerConfig:
             seed: int = 12345,  # set seed for reproducibility
             use_grad_clipping: bool = True,
             grad_clipping: int = 5,
+            filter_empty_probs: bool = False,
             no_match_class_label: int = None
     ):
         self.criterion = criterion
@@ -30,6 +31,7 @@ class CrossWeighTrainerConfig:
         self.use_grad_clipping = use_grad_clipping
         self.grad_clipping = grad_clipping
         self.output_classes = output_classes
+        self.filter_empty_probs = filter_empty_probs
         self.no_match_class_label = no_match_class_label
         self.device = check_and_return_device()
 
@@ -50,3 +52,6 @@ class CrossWeighTrainerConfig:
             self.optimizer = SGD(model.parameters(), lr=self.lr)
         else:
             self.optimizer = optimizer_
+
+        self.no_match_class_label = no_match_class_label
+

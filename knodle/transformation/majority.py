@@ -53,8 +53,6 @@ def z_t_matrices_to_majority_vote_probs(
         raise ValueError(f"Dimensions mismatch! Z matrix has shape {rule_matches_z.shape}, while "
                          f"T matrix has shape {mapping_rules_labels_t.shape}")
 
-    print(type(rule_matches_z), type(mapping_rules_labels_t))
-    
     if isinstance(rule_matches_z, sp.csr_matrix):
         rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
         if isinstance(rule_counts, sp.csr_matrix):
@@ -65,20 +63,18 @@ def z_t_matrices_to_majority_vote_probs(
         rule_counts = sp.csr_matrix(rule_matches_z).dot(mapping_rules_labels_t).toarray()
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
-    
-    print(f"Rule counts shape: {rule_counts.shape}")
-    print(other_class)
-    
+
     if other_class is not None:
-        print(f"other {other_class}, rules {rule_counts.shape[1]} = {other_class + 1 - rule_counts.shape[1]}")
-        add_columns = np.zeros([rule_counts.shape[0], other_class + 1 - rule_counts.shape[1]])
-        rule_counts = np.hstack((rule_counts, add_columns))
-        rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        if rule_counts.shape[1] == other_class:
+            rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
+            rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        elif rule_counts.shape[1] >= other_class:
+            rule_counts[~rule_counts.any(axis=1), other_class] = 1
+        else:
+            raise ValueError("Other class id is incorrect")
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
-    
-    print(f"Rule counts probs shape: {rule_counts_probs.shape}")
-    
     return rule_counts_probs
 
 
