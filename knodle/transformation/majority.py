@@ -64,6 +64,8 @@ def z_t_matrices_to_majority_vote_probs(
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
+    print(f"Current shape: {rule_counts.shape}")
+    
     if other_class is not None:
         if rule_counts.shape[1] == other_class:
             rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
@@ -73,7 +75,8 @@ def z_t_matrices_to_majority_vote_probs(
         else:
             raise ValueError("Other class id is incorrect")
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
-
+    
+    print(f"Final shape: {rule_counts_probs.shape}")
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
 

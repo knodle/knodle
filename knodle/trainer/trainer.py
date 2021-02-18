@@ -1,3 +1,4 @@
+from typing import Dict
 import logging
 
 import numpy as np
@@ -8,6 +9,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
 from knodle.trainer.config import TrainerConfig
+from knodle.trainer.crossweigh_weighing.utils import calculate_dev_tacred_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,7 @@ class Trainer(ABC):
             mapping_rules_labels_t: np.ndarray,
             model_input_x: TensorDataset,
             rule_matches_z: np.ndarray,
+            labels2ids: Dict = None,
             trainer_config: TrainerConfig = None,
     ):
         """
@@ -34,9 +37,9 @@ class Trainer(ABC):
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
         self.rule_matches_z = rule_matches_z
+        self.labels2ids = labels2ids
         if trainer_config is None:
             self.trainer_config = TrainerConfig(model)
-
         else:
             self.trainer_config = trainer_config
 
@@ -62,10 +65,17 @@ class Trainer(ABC):
         if predictions.shape[1] > 1:
             predictions = np.argmax(predictions, axis=1)
 
-        clf_report = classification_report(
-            y_true=test_labels, y_pred=predictions, output_dict=True
-        )
-        logger.info("Accuracy is {}".format(clf_report["accuracy"]))
+        if self.labels2ids is not None:
+            logger.info("Using specific evaluation for better 'other class' handling.")
+            clf_report = calculate_dev_tacred_metrics(
+                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids
+            )
+        else:
+            logger.info("Using standard scikit-learn evaluation.")
+            clf_report = classification_report(
+                y_true=test_labels, y_pred=predictions, output_dict=True
+            )
+            logger.info("Accuracy is {}".format(clf_report["accuracy"]))
         return clf_report
 
     def _prediction_loop(self, features: TensorDataset, evaluate: bool):

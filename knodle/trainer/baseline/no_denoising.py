@@ -115,7 +115,7 @@ class NoDenoisingTrainer(Trainer):
 
         self.train_loop(feature_label_dataloader)
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset):
+    def test(self, test_features: TensorDataset, test_labels: TensorDataset):
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
@@ -150,6 +150,15 @@ class NoDenoisingTrainer(Trainer):
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))
 
-        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-
+        if self.labels2ids is not None:
+            logger.info("Using specific evaluation for better 'other class' handling.")
+            clf_report = calculate_dev_tacred_metrics(
+                predictions=predictions, labels=test_labels, labels2ids=self.labels2ids
+            )
+        else:
+            logger.info("Using standard scikit-learn evaluation.")
+            clf_report = classification_report(
+                y_true=test_labels, y_pred=predictions, output_dict=True
+            )
+            
         return clf_report
