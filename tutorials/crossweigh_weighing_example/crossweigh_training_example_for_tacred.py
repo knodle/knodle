@@ -61,9 +61,9 @@ def train_crossweigh(
         cw_partitions=[2, 3],
         cw_folds=[5, 10],
         cw_epochs=[2],
-        weight_reducing_rate=[0.3, 0.7],
-        samples_start_weights=[2.0, 4.0],
-        epochs=[1],
+        weight_reducing_rate=[0.3],
+        samples_start_weights=[2.0],
+        epochs=[2],
     )
     param_values = [v for v in parameters.values()]
 
