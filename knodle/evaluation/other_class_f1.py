@@ -5,6 +5,8 @@ Score the predictions with gold labels, using precision, recall and F1 metrics.
 """
 
 import sys
+import logging
+
 from collections import Counter
 from typing import Dict
 
@@ -12,6 +14,8 @@ import numpy as np
 
 from knodle.transformation.labels import translate_predictions
 
+
+logger = logging.getLogger(__name__)
 
 def other_class_classification_report(
         y_pred: np.array, y_true: np.array, labels2ids: Dict, verbose: bool = True
@@ -48,7 +52,7 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
 
     # Print verbose information
     if verbose:
-        print("Per-relation statistics:")
+        logger.info("Per-relation statistics:")
         relations = gold_by_relation.keys()
         longest_relation = 0
         for relation in sorted(relations):
@@ -68,32 +72,12 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
             if prec + recall > 0:
                 f1 = 2.0 * prec * recall / (prec + recall)
             # (print the score)
-            sys.stdout.write(("{:<" + str(longest_relation) + "}").format(relation))
-            sys.stdout.write("  P: ")
-            if prec < 0.1:
-                sys.stdout.write(' ')
-            if prec < 1.0:
-                sys.stdout.write(' ')
-            sys.stdout.write("{:.2%}".format(prec))
-            sys.stdout.write("  R: ")
-            if recall < 0.1:
-                sys.stdout.write(' ')
-            if recall < 1.0:
-                sys.stdout.write(' ')
-            sys.stdout.write("{:.2%}".format(recall))
-            sys.stdout.write("  F1: ")
-            if f1 < 0.1:
-                sys.stdout.write(' ')
-            if f1 < 1.0:
-                sys.stdout.write(' ')
-            sys.stdout.write("{:.2%}".format(f1))
-            sys.stdout.write("  #: %d" % gold)
-            sys.stdout.write("\n")
-        print("")
+            line = f"{relation:{longest_relation}s}    P: {prec:6.2f}    R: {recall:6.2f}    F1: {f1:6.2f}    #: {gold:6d}"
+            logger.info(line)
 
     # Print the aggregate score
     if verbose:
-        print("Final Score:")
+        logger.info("Final Score:")
     prec_micro = 1.0
     if sum(guessed_by_relation.values()) > 0:
         prec_micro = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
@@ -104,10 +88,10 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
     if prec_micro + recall_micro > 0.0:
         f1_micro = 2.0 * prec_micro * recall_micro / (prec_micro + recall_micro)
 
-    print("Precision (micro): {:.3%}".format(prec_micro))
-    print("   Recall (micro): {:.3%}".format(recall_micro))
-    print("       F1 (micro): {:.3%}".format(f1_micro))
+    logger.info("Precision (micro): {:.3%}".format(prec_micro))
+    logger.info("   Recall (micro): {:.3%}".format(recall_micro))
+    logger.info("       F1 (micro): {:.3%}".format(f1_micro))
 
-    print("\n")
+    logger.info("\n")
 
     return {"precision": prec_micro, "recall": recall_micro, "f1": f1_micro}
