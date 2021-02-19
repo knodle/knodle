@@ -19,6 +19,8 @@ from knodle.trainer.utils import log_section
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
+PRINT_EVERY = 500
+
 
 class CrossWeighWeightsCalculator:
 
@@ -214,7 +216,9 @@ class CrossWeighWeightsCalculator:
         """
         self.crossweigh_model.train()
         for curr_epoch in range(self.denoising_config.cw_epochs):
+            steps = 0
             for tokens, labels in train_loader:
+                steps += 1
                 tokens, labels = tokens.to(self.denoising_config.device), labels.to(self.denoising_config.device)
                 self.denoising_config.optimizer.zero_grad()
 
@@ -226,6 +230,9 @@ class CrossWeighWeightsCalculator:
                 if self.denoising_config.use_grad_clipping:
                     nn.utils.clip_grad_norm_(self.crossweigh_model.parameters(), self.denoising_config.grad_clipping)
                 self.denoising_config.optimizer.step()
+
+                if steps % PRINT_EVERY == 0:
+                    logger.info(f"Epoch {curr_epoch}, Step {steps}, Loss {loss}")
 
     def cw_test(self, test_loader: DataLoader) -> None:
         """
