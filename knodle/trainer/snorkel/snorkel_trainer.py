@@ -19,19 +19,26 @@ class SnorkelTrainer(NoDenoisingTrainer):
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
         super().__init__(**kwargs)
 
-    def _snorkel_denoising(self, model_input_x, rule_matches_z):
-        non_zero_indices = np.where(rule_matches_z.sum(axis=1) != 0)[0]
-        rule_matches_z = rule_matches_z[non_zero_indices]
-        tensors = list(model_input_x.tensors)
-        for i in range(len(tensors)):
-            tensors[i] = tensors[i][non_zero_indices]
+    def _snorkel_denoising(self):
+        if self.trainer_config.other_class_id is not None and self.trainer_config.filter_non_labelled:
+            raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
 
-        model_input_x = TensorDataset(*tensors)
+        if self.trainer_config.filter_non_labelled:
+            # filter instance with no LF matches
+            non_zero_indices = np.where(self.rule_matches_z.sum(axis=1) != 0)[0]
+            rule_matches_z = self.rule_matches_z[non_zero_indices]
+            tensors = list(self.model_input_x.tensors)
+            for i in range(len(tensors)):
+                tensors[i] = tensors[i][non_zero_indices]
+            model_input_x = TensorDataset(*tensors)
+        else:
+            model_input_x = self.model_input_x
+            rule_matches_z = self.rule_matches_z
 
         # create Snorkel matrix and train LabelModel
         L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z, self.mapping_rules_labels_t)
 
-        label_model = LabelModel(cardinality=self.trainer_config.output_classes, verbose=True)
+        label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
         label_model.fit(
             L_train,
             n_epochs=self.trainer_config.label_model_num_epochs,
@@ -39,11 +46,18 @@ class SnorkelTrainer(NoDenoisingTrainer):
             seed=self.trainer_config.seed
         )
         label_probs = label_model.predict_proba(L_train)
+
+        if self.trainer_config.other_class_id:
+            # post-process snorkel labels; add other class for instances with no LF matches
+            zero_indices = np.where(self.rule_matches_z.sum(axis=1) == 0)[0]
+            other_class_probs = np.zeros((label_probs.shape[0], 1))
+            other_class_probs[zero_indices] = 1.0
+            label_probs = np.concatenate([label_probs, other_class_probs], axis=1)
         return model_input_x, label_probs
 
     def train(self):
         # Snorkel denoising
-        model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
+        model_input_x, label_probs = self._snorkel_denoising()
 
         # Standard training
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
