@@ -61,9 +61,9 @@ def train_crossweigh(
         cw_partitions=[2, 3],
         cw_folds=[5, 10],
         cw_epochs=[2],
-        weight_reducing_rate=[0.3],
-        samples_start_weights=[2.0],
-        epochs=[2],
+        weight_reducing_rate=[0.3],       # 0.7
+        samples_start_weights=[2.0],        # 4.0
+        epochs=[2]
     )
     param_values = [v for v in parameters.values()]
 
@@ -127,23 +127,24 @@ def train_crossweigh(
             path_to_weights=path_to_weights,
             denoising_config=custom_crossweigh_denoising_config,
             trainer_config=custom_crossweigh_trainer_config,
+            run_classifier=False
         )
         trainer.train()
         print("Testing on the test dataset....")
-        metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
+        # metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
         # metrics = test(model, optimizer, features_dataset: TensorDataset, labels: TensorDataset, device)
 
-        tb.add_hparams(
-            {"cw_lr": cw_lr,
-             "epochs": epochs,
-             "cw_partitions": cw_part,
-             "cw_folds": cw_folds,
-             "cw_epochs": cw_epochs,
-             "weight_reducing_rate": weight_rr,
-             "samples_start_weights": start_weights},
-            {"precision": metrics["precision"],
-             "recall": metrics["recall"],
-             "f1": metrics["f1"]})
+        # tb.add_hparams(
+        #     {"cw_lr": cw_lr,
+        #      "epochs": epochs,
+        #      "cw_partitions": cw_part,
+        #      "cw_folds": cw_folds,
+        #      "cw_epochs": cw_epochs,
+        #      "weight_reducing_rate": weight_rr,
+        #      "samples_start_weights": start_weights},
+        #     {"precision": metrics["precision"],
+        #      "recall": metrics["recall"],
+        #      "f1": metrics["f1"]})
 
         tb.close()
         print("========================================================================")
