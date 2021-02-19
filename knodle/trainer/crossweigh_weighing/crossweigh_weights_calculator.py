@@ -238,6 +238,9 @@ class CrossWeighWeightsCalculator:
 
         with torch.no_grad():
             for tokens, idx, labels in test_loader:
+                tokens, idx, labels = tokens.to(self.denoising_config.device), \
+                                      idx.to(self.denoising_config.device), \
+                                      labels.to(self.denoising_config.device)
                 outputs = self.crossweigh_model(tokens)
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()
