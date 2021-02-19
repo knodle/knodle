@@ -19,7 +19,7 @@ from knodle.trainer.utils import log_section
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
-PRINT_EVERY = 500
+PRINT_EVERY = 300
 
 
 class CrossWeighWeightsCalculator:
@@ -232,7 +232,7 @@ class CrossWeighWeightsCalculator:
                 self.denoising_config.optimizer.step()
 
                 if steps % PRINT_EVERY == 0:
-                    logger.info(f"Epoch {curr_epoch}, Step {steps}, Loss {loss}")
+                    logger.info(f"Epoch {curr_epoch}, Step {steps}/{len(train_loader)}, Loss {loss}")
 
     def cw_test(self, test_loader: DataLoader) -> None:
         """
