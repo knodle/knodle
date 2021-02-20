@@ -28,7 +28,7 @@ torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
-PRINT_EVERY = 5
+PRINT_EVERY = 300
 
 
 class CrossWeigh(NoDenoisingTrainer):
@@ -124,15 +124,13 @@ class CrossWeigh(NoDenoisingTrainer):
             logger.info(f"Epoch {curr_epoch}")
 
             path_to_saved_model = os.path.join(self.path_to_weights, "trained_models")
-            os.makedirs(path_to_saved_model, exist_ok=True)
+            os.makedirs(self.path_to_weights, exist_ok=True)
             path_to_saved_model = os.path.join(path_to_saved_model,  f'model_epoch_{curr_epoch}.pth')
 
             steps = 0
             running_loss, epoch_acc = 0.0, 0.0
-            for input_ids_batch, attention_mask_batch, weights, labels in tqdm(train_loader):
+            for input_ids_batch, attention_mask_batch, weights, labels in train_loader:
                 steps += 1
-                if steps > 10:
-                    continue
                 features = {
                     "input_ids": input_ids_batch.to(self.trainer_config.device),
                     "attention_mask": attention_mask_batch.to(self.trainer_config.device)
@@ -207,29 +205,25 @@ class CrossWeigh(NoDenoisingTrainer):
     def _evaluate(self, dev_dataloader: DataLoader) -> Union[Tuple[float, None], Tuple[float, Dict]]:
         """ Model evaluation on dev set: the trained model is applied on the dev set and the average loss is returned"""
         self.model.eval()
-        all_predictions, all_labels = \
-            torch.Tensor().to(self.trainer_config.device), torch.Tensor().to(self.trainer_config.device)
+        all_predictions, all_labels = torch.Tensor().to(self.trainer_config.device), \
+                                      torch.Tensor().to(self.trainer_config.device)
 
         with torch.no_grad():
             dev_loss, dev_acc = 0.0, 0.0
-            steps = 0
-            for input_ids_batch, attention_mask_batch, labels in tqdm(dev_dataloader):
-                steps += 1
-                if steps < 10:
-                    features = {
-                        "input_ids": input_ids_batch.to(self.trainer_config.device),
-                        "attention_mask": attention_mask_batch.to(self.trainer_config.device)
-                    }
-                    labels = labels.to(self.trainer_config.device)
+            for input_ids_batch, attention_mask_batch, labels in dev_dataloader:
+                features = {
+                    "input_ids": input_ids_batch.to(self.trainer_config.device),
+                    "attention_mask": attention_mask_batch.to(self.trainer_config.device)
+                }
+                labels = labels.to(self.trainer_config.device)
 
-                    self.model.zero_grad()
-                    predictions = self.model(**features)
-                    dev_loss += self.calculate_dev_loss(predictions[0], labels.long())
+                self.model.zero_grad()
+                predictions = self.model(**features)
+                dev_loss += self.calculate_dev_loss(predictions[0], labels.long())
 
-                    _, predicted = torch.max(predictions[0], 1)
-                    # all_predictions = torch.cat([all_predictions, predicted.float()])
-                    all_predictions = torch.cat([all_predictions, predicted])
-                    all_labels = torch.cat([all_labels, labels.long()])
+                _, predicted = torch.max(predictions[0], 1)
+                all_predictions = torch.cat([all_predictions, predicted.float()])
+                all_labels = torch.cat([all_labels, labels.long()])
 
             predictions, gold_labels = (all_predictions.cpu().detach().numpy(), all_labels.cpu().detach().numpy())
             dev_metrics = self.calculate_dev_metrics(predictions, gold_labels)
