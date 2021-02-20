@@ -117,6 +117,8 @@ class CrossWeigh(NoDenoisingTrainer):
             dev_losses, dev_acc = [], []
 
         train_losses, train_acc = [], []
+
+        self.model.to(self.trainer_config.device)
         self.model.train()
         for curr_epoch in range(self.trainer_config.epochs):
             logger.info(f"Epoch {curr_epoch}")
@@ -127,7 +129,7 @@ class CrossWeigh(NoDenoisingTrainer):
 
             steps = 0
             running_loss, epoch_acc = 0.0, 0.0
-            for input_ids_batch, attention_mask_batch, weights, labels in tqdm(train_loader):
+            for input_ids_batch, attention_mask_batch, weights, labels in train_loader:
                 steps += 1
                 features = {
                     "input_ids": input_ids_batch.to(self.trainer_config.device),
@@ -220,7 +222,7 @@ class CrossWeigh(NoDenoisingTrainer):
                 dev_loss += self.calculate_dev_loss(predictions[0], labels.long())
 
                 _, predicted = torch.max(predictions[0], 1)
-                all_predictions = torch.cat([all_predictions, predicted])
+                all_predictions = torch.cat([all_predictions, predicted.float()])
                 all_labels = torch.cat([all_labels, labels.long()])
 
             predictions, gold_labels = (all_predictions.cpu().detach().numpy(), all_labels.cpu().detach().numpy())
