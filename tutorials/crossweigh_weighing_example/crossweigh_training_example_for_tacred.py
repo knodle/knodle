@@ -100,6 +100,7 @@ def train_crossweigh(
             samples_start_weights=start_weights,
             optimizer_=torch.optim.Adam(model.parameters(), lr=cw_lr),
             output_classes=NUM_CLASSES,
+            batch_size=512,
             filter_empty_probs=False,
             no_match_class_label=NO_MATCH_CLASS_LABEL
         )
@@ -109,6 +110,7 @@ def train_crossweigh(
             output_classes=NUM_CLASSES,
             optimizer_=AdamW(model.parameters(), lr=1e-4),
             epochs=epochs,
+            batch_size=32,
             filter_empty_probs=False,
             no_match_class_label=NO_MATCH_CLASS_LABEL
         )
@@ -127,11 +129,11 @@ def train_crossweigh(
             path_to_weights=path_to_weights,
             denoising_config=custom_crossweigh_denoising_config,
             trainer_config=custom_crossweigh_trainer_config,
-            run_classifier=False
+            run_classifier=True
         )
         trainer.train()
         print("Testing on the test dataset....")
-        # metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
+        metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
         # metrics = test(model, optimizer, features_dataset: TensorDataset, labels: TensorDataset, device)
 
         # tb.add_hparams(
