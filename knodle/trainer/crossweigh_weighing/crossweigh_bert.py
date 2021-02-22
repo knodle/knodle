@@ -124,7 +124,7 @@ class CrossWeigh(NoDenoisingTrainer):
             logger.info(f"Epoch {curr_epoch}")
 
             path_to_saved_model = os.path.join(self.path_to_weights, "trained_models")
-            os.makedirs(self.path_to_weights, exist_ok=True)
+            os.makedirs(path_to_saved_model, exist_ok=True)
             path_to_saved_model = os.path.join(path_to_saved_model,  f'model_epoch_{curr_epoch}.pth')
 
             steps = 0
