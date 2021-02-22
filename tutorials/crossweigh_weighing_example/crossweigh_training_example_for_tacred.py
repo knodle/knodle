@@ -53,7 +53,7 @@ def train_crossweigh(
     dev_dataset_bert = get_bert_encoded_features(dev_df, tokenizer, 0)
     dev_labels = torch.LongTensor(list(dev_df.iloc[:, 3]))
 
-    test_dataset_bert = get_bert_encoded_features(dev_df, tokenizer, 0)
+    test_dataset_bert = get_bert_encoded_features(test_df, tokenizer, 0)
     test_labels = torch.LongTensor(list(test_df.iloc[:, 3]))
 
     parameters = dict(
@@ -61,8 +61,8 @@ def train_crossweigh(
         cw_partitions=[2, 3],
         cw_folds=[5, 10],
         cw_epochs=[2],
-        weight_reducing_rate=[0.3],       # 0.7
-        samples_start_weights=[2.0],        # 4.0
+        weight_reducing_rate=[0.3, 0.7],       # 0.7
+        samples_start_weights=[2.0, 4.0],        # 4.0
         epochs=[2]
     )
     param_values = [v for v in parameters.values()]
@@ -120,20 +120,19 @@ def train_crossweigh(
             rule_assignments_t=mapping_rules_labels_t,
             inputs_x=train_input_x_bert,
             rule_matches_z=rule_matches_z,
-            dev_features=dev_dataset_bert,
-            dev_labels=dev_labels,
+            # dev_features=dev_dataset_bert,
+            # dev_labels=dev_labels,
             cw_model=model_cw,
             cw_inputs_x=train_input_x_glove,
             evaluation_method="tacred",
             dev_labels_ids=labels2ids,
             path_to_weights=path_to_weights,
             denoising_config=custom_crossweigh_denoising_config,
-            trainer_config=custom_crossweigh_trainer_config,
-            run_classifier=True
+            trainer_config=custom_crossweigh_trainer_config
         )
         trainer.train()
-        print("Testing on the test dataset....")
-        metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
+        # print("Testing on the test dataset....")
+        # metrics = test_tacred_dataset(model, trainer, test_dataset_bert, test_labels, labels2ids)
         # metrics = test(model, optimizer, features_dataset: TensorDataset, labels: TensorDataset, device)
 
         # tb.add_hparams(
