@@ -36,7 +36,8 @@ class TrainerConfig:
         torch.manual_seed(self.seed)
 
         self.output_dir_path = output_dir_path
-        os.makedirs(self.output_dir_path, exist_ok=True)
+        if output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
 
 
 
