@@ -1,4 +1,5 @@
 import logging
+from os import path
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -94,6 +95,14 @@ class NoDenoisingTrainer(Trainer):
             if self.dev_model_input_x is not None:
                 clf_report = self.test(self.dev_model_input_x, self.dev_gold_labels_y)
                 logger.info("Epoch development accuracy: {}".format(clf_report["accuracy"]))
+
+            if self.trainer_config.output_dir_path is not None:
+                model_path = path.join(
+                    self.trainer_config.output_dir_path,
+                    f"model_state_dict_epoch_{current_epoch}.pt"
+                )
+                torch.save(self.model.cpu().state_dict(), model_path)  # saving model
+                self.model.to(self.trainer_config.device)
 
         log_section("Training done", logger)
 
