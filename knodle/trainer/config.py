@@ -1,4 +1,5 @@
 from typing import Callable
+import os
 
 from snorkel.classification import cross_entropy_with_probs
 import torch
@@ -17,7 +18,8 @@ class TrainerConfig:
             epochs: int = 35,
             seed: int = 42,
             evaluate_with_other_class: bool = False
-    ):
+            output_dir_path: str = None
+		):
         self.criterion = criterion
         self.batch_size = batch_size
 
@@ -34,6 +36,11 @@ class TrainerConfig:
         self.seed = seed
         self.evaluate_with_other_class = evaluate_with_other_class
         torch.manual_seed(self.seed)
+
+        self.output_dir_path = output_dir_path
+        if output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
+
 
 
 class MajorityConfig(TrainerConfig):
