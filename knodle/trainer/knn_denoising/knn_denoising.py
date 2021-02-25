@@ -110,7 +110,7 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         # save data for caching
         if cache_dir is not None:
             os.makedirs(cache_dir, exist_ok=True)
-            joblib.dump(cache_file, denoised_rule_matches_z)
+            joblib.dump(denoised_rule_matches_z, cache_file)
 
         return denoised_rule_matches_z
 
