@@ -7,7 +7,6 @@ import numpy as np
 from torch.optim import SGD
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-from annoy import AnnoyIndex
 
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
@@ -73,35 +72,12 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         logger.info(f"Start denoising labeling functions with k: {k}.")
 
         # Set up data structure, to quickly find nearest neighbors
-        if self.trainer_config.use_approximation:
-            # use annoy fast ANN
-            if k is not None:
-                indices = []
-
-                t = AnnoyIndex(self.knn_feature_matrix.shape[1], 'dot')
-                for i, v in enumerate(self.knn_feature_matrix):
-                    t.add_item(i, v)
-                t.build(10, n_jobs=-1)
-
-                for i, v in enumerate(self.knn_feature_matrix):
-                    nn, _ = t.get_nns_by_vector(v, k, search_k=-1, include_distances=False)
-                    indices.append(nn)
-                indices = np.vstack(indices)
-            else:
-                pass
+        if k is not None:
+            neighbors = NearestNeighbors(n_neighbors=k, n_jobs=-1).fit(self.knn_feature_matrix)
+            distances, indices = neighbors.kneighbors(self.knn_feature_matrix, n_neighbors=k)
         else:
-            metric = lambda x, y: -np.dot(x, y)
-            # use standard precise kNN
-            if k is not None:
-                neighbors = NearestNeighbors(
-                    n_neighbors=k, n_jobs=-1,
-                    metric=metric).fit(self.knn_feature_matrix)
-                indices = neighbors.kneighbors(self.knn_feature_matrix, n_neighbors=k, return_distance=False)
-            else:
-                neighbors = NearestNeighbors(
-                    radius=self.trainer_config.radius, n_jobs=-1,
-                    metric=metric).fit(self.knn_feature_matrix)
-                indices = neighbors.radius_neighbors(self.knn_feature_matrix, return_distance=False)
+            neighbors = NearestNeighbors(radius=self.trainer_config.radius, n_jobs=-1).fit(self.knn_feature_matrix)
+            distances, indices = neighbors.radius_neighbors(self.knn_feature_matrix)
 
         # activate matches.
         denoised_rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
