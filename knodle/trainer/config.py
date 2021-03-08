@@ -39,8 +39,10 @@ class MajorityConfig(TrainerConfig):
             self,
             filter_non_labelled: bool = True,
             use_probabilistic_labels: bool = True,
+            other_class_id: int = None,
             **kwargs
     ):
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.use_probabilistic_labels = use_probabilistic_labels
+        self.other_class_id = other_class_id
