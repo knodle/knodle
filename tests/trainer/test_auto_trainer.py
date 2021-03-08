@@ -3,10 +3,10 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.auto_trainer import AutoTrainer
 
 
-def test_train():
+def test_auto_train():
     num_samples = 64
     num_features = 16
     num_rules = 6
@@ -25,7 +25,8 @@ def test_train():
     mapping_rules_labels_t = np.zeros((num_rules, num_classes))
     mapping_rules_labels_t[:, 1] = 1
 
-    trainer = NoDenoisingTrainer(
+    trainer = AutoTrainer(
+        name="no_denoising",
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,
@@ -38,8 +39,10 @@ def test_train():
     y_labels = TensorDataset(torch.from_numpy(y_np))
     metrics = trainer.test(model_input_x, y_labels)
 
+    print(trainer.trainer.model(torch.from_numpy(np.ones((num_features,)))))
     # We train 100% on 1 class, thus test accuracy should be 100%
     assert metrics.get("accuracy") == 1
-    # assert True == False
 
-    assert trainer.model(torch.from_numpy(np.ones((num_features,)))).argmax() == 1
+    assert trainer.trainer.model(torch.from_numpy(np.ones((num_features,)))).argmax() == 1
+
+    assert "a" == "b"
