@@ -15,8 +15,7 @@ class CrossWeighDenoisingConfig(MajorityConfig):
             cw_optimizer: Optimizer = None,
             cw_filter_non_labelled: bool = None,
             cw_other_class_id: int = None,
-            cw_use_grad_clipping: bool = True,
-            cw_grad_clipping: int = 5,
+            cw_grad_clipping: int = None,
             **kwargs
     ):
 
@@ -25,8 +24,11 @@ class CrossWeighDenoisingConfig(MajorityConfig):
         self.folds = folds
         self.weight_reducing_rate = weight_reducing_rate
         self.samples_start_weights = samples_start_weights
-        self.cw_use_grad_clipping = cw_use_grad_clipping
-        self.cw_grad_clipping = cw_grad_clipping
+
+        if cw_grad_clipping is None:
+            self.cw_grad_clipping = self.grad_clipping
+        else:
+            self.cw_grad_clipping = cw_grad_clipping
 
         if cw_epochs is None:
             self.cw_epochs = self.epochs
