@@ -1,7 +1,6 @@
 from typing import Callable
 
 from snorkel.classification import cross_entropy_with_probs
-import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
