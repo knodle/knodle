@@ -13,7 +13,7 @@ from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import Trainer
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import TrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
@@ -33,10 +33,10 @@ class NoDenoisingTrainer(Trainer):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: MajorityConfig = None,
+            trainer_config: TrainerConfig = None,
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
+            trainer_config = TrainerConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )
@@ -70,7 +70,7 @@ class NoDenoisingTrainer(Trainer):
                     logits = outputs
                 else:
                     logits = outputs[0]
-                loss = self.trainer_config.criterion(logits, label_batch)
+                loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
 
                 # backward pass
                 loss.backward()
