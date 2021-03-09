@@ -42,9 +42,7 @@ class TrainerConfig:
         self.other_class_id = other_class_id
         self.grad_clipping = grad_clipping
 
-        if class_weights is None:
-            self.class_weights = class_weights
+        if class_weights is not None and len(class_weights) != self.output_classes:
+            raise Exception("Wrong class sample_weights initialisation!")
         else:
-            if len(class_weights) != self.output_classes:
-                raise Exception("Wrong class sample_weights initialisation!")
             self.class_weights = class_weights
