@@ -1,17 +1,13 @@
 import logging
 import random
 from typing import Dict
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.sparse as sp
 import torch
-from torch import Tensor
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 
 from knodle.evaluation import tacred_metrics
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 logger = logging.getLogger(__name__)
 
 
@@ -121,31 +117,6 @@ def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.nda
     return np.delete(where_to_find, intersections)
 
 
-def draw_loss_accuracy_plot(curves: dict) -> None:
-    """ The function creates a plot of 4 curves and displays it"""
-    colors = "bgrcmyk"
-    color_index = 0
-    epochs = range(1, len(next(iter(curves.values()))) + 1)
-
-    for label, value in curves.items():
-        plt.plot(epochs, value, c=colors[color_index], label=label)
-        color_index += 1
-
-    plt.xticks(epochs)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-    plt.show()
-
-
-def get_labels(
-        rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray, other_class_id: int = None
-) -> np.ndarray:
-    """This function checks whether dataset contains negative samples and calculates the labels with majority voting"""
-    if other_class_id:
-        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, other_class_id)
-    else:
-        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
-
-
 def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
     predictions_idx = predictions.astype(int).tolist()
     labels_idx = labels.astype(int).tolist()
@@ -154,76 +125,3 @@ def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, la
     predictions = [idx2labels[p] for p in predictions_idx]
     test_labels = [idx2labels[p] for p in labels_idx]
     return tacred_metrics.score(test_labels, predictions, verbose=True)
-
-
-def build_feature_labels_dataloader(
-        features: TensorDataset, labels: Tensor, batch_size: int, shuffle: bool = True
-) -> DataLoader:
-    """ Converts encoded samples and labels to dataloader. Optionally: add sample_weights as well """
-
-    dataset = TensorDataset(
-        features.tensors[0],
-        labels.float()
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-
-
-def build_feature_weights_labels_dataloader(
-        features: TensorDataset, sample_weights: Tensor, labels: np.ndarray, batch_size: int, shuffle: bool = True
-) -> DataLoader:
-    """ Converts encoded samples and labels to dataloader """
-    dataset = TensorDataset(
-        # features.tensors[0],
-        sample_weights.float(),
-        torch.Tensor(labels).float()
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-
-
-def build_features_ids_labels_dataloader(
-        features: TensorDataset, idx: np.ndarray, labels: np.ndarray, batch_size: int, shuffle=True
-):
-    dataset = TensorDataset(
-        features.tensors[0],
-        torch.Tensor(idx).long(),
-        torch.Tensor(labels).float()
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-
-
-def build_bert_feature_labels_dataloader(
-        features: TensorDataset, labels: Tensor, batch_size: int, shuffle: bool = True
-) -> DataLoader:
-    """ Converts encoded samples, labels and sample weights to dataloader """
-    dataset = TensorDataset(
-        features.tensors[0],
-        features.tensors[1],
-        labels      # long type since labels for dev/test are ints
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-
-
-def build_bert_feature_weights_labels_dataloader(
-        features: TensorDataset, sample_weights: Tensor, labels: np.ndarray, batch_size: int, shuffle: bool = True
-) -> DataLoader:
-    dataset = TensorDataset(
-        # features.tensors[0],
-        # features.tensors[1],
-        features,
-        torch.Tensor(sample_weights).float(),
-        torch.Tensor(labels).float(),      # float type here since labels for training are probs
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-
-
-def build_bert_features_labels_ids_dataloader(
-        features: TensorDataset, labels: np.ndarray, idx: np.ndarray, batch_size: int, shuffle=True
-):
-    dataset = TensorDataset(
-        features.tensors[0],
-        features.tensors[1],
-        torch.Tensor(labels).float(),
-        torch.Tensor(idx).long()
-    )
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)
-

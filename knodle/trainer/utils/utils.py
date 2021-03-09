@@ -5,7 +5,7 @@ import torch
 from torch import Tensor, argmax
 from torch.utils.data import TensorDataset
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 def log_section(text: str, logger: logging, additional_info: {} = None) -> None:
@@ -76,3 +76,18 @@ def set_seed(seed: int) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+
+def draw_loss_accuracy_plot(curves: dict) -> None:
+    """ The function creates a plot of 4 curves and displays it"""
+    colors = "bgrcmyk"
+    color_index = 0
+    epochs = range(1, len(next(iter(curves.values()))) + 1)
+
+    for label, value in curves.items():
+        plt.plot(epochs, value, c=colors[color_index], label=label)
+        color_index += 1
+
+    plt.xticks(epochs)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.show()
