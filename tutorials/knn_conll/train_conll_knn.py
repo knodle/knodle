@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch.optim import AdamW
 
-from knodle.model.logistic_regression.logistic_regression_model import (
+from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer import TrainerConfig
