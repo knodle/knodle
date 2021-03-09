@@ -4,7 +4,8 @@ from snorkel.classification import cross_entropy_with_probs
 import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
-from knodle.trainer.utils.utils import check_and_return_device
+
+from knodle.trainer.utils.utils import check_and_return_device, set_seed
 
 
 class TrainerConfig:
@@ -30,8 +31,7 @@ class TrainerConfig:
             self.optimizer = optimizer
         self.output_classes = output_classes
         self.device = check_and_return_device()
-        self.seed = seed
-        torch.manual_seed(self.seed)
+        set_seed(seed)
 
 
 class MajorityConfig(TrainerConfig):
@@ -40,9 +40,20 @@ class MajorityConfig(TrainerConfig):
             filter_non_labelled: bool = True,
             use_probabilistic_labels: bool = True,
             other_class_id: int = None,
+            grad_clipping: int = None,
+            class_weights: Tensor = None,
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.device = check_and_return_device()
         self.filter_non_labelled = filter_non_labelled
         self.use_probabilistic_labels = use_probabilistic_labels
         self.other_class_id = other_class_id
+        self.grad_clipping = grad_clipping
+
+        if class_weights is None:
+            self.class_weights = torch.tensor([1.0] * self.output_classes)
+        else:
+            if len(class_weights) != self.output_classes:
+                raise Exception("Wrong class sample_weights initialisation!")
+            self.class_weights = class_weights

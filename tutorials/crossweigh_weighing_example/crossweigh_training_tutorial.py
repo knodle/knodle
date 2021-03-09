@@ -12,11 +12,12 @@ from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
 from knodle.evaluation.tacred_metrics import score
+from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
-from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh_trainer_config import CrossWeighTrainerConfig
-from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
+
+from knodle.trainer.config import MajorityConfig
+from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 
 NUM_CLASSES = 42
 MAXLEN = 50
@@ -69,23 +70,21 @@ def train_crossweigh(
 
     custom_crossweigh_denoising_config = CrossWeighDenoisingConfig(
         model=model,
-        crossweigh_partitions=2,
+        partitions=2,
         class_weights=CLASS_WEIGHTS,
         crossweigh_folds=10,
-        crossweigh_epochs=2,
+        epochs=2,
         weight_reducing_rate=0.3,
         samples_start_weights=3.0,
-        lr=0.8,
-        optimizer_=torch.optim.Adam(model.parameters()),
+        optimizer=torch.optim.Adam(model.parameters(), lr=0.8),
         output_classes=NUM_CLASSES
     )
 
-    custom_crossweigh_trainer_config = CrossWeighTrainerConfig(
+    custom_crossweigh_trainer_config = MajorityConfig(
         model=model,
         class_weights=CLASS_WEIGHTS,
-        lr=2.0,
         output_classes=NUM_CLASSES,
-        optimizer_=torch.optim.Adam(model.parameters()),
+        optimizer=torch.optim.Adam(model.parameters(), lr=2.0),
         epochs=3
     )
 
