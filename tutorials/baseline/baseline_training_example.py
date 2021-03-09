@@ -6,7 +6,7 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.data.download import MinioConnector
-from knodle.model.logistic_regression.logistic_regression_model import (
+from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
