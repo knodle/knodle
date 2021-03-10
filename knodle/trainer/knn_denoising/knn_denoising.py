@@ -83,6 +83,12 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
 
         logger.info(f"Start denoising labeling functions with k: {k}.")
         
+        # ignore zero-match rows for knn construction & activation
+        if self.trainer_config.activate_no_match_instances:
+            ignore = np.zeros((self.knn_feature_matrix.shape[0],), dtype=np.bool)
+        else:
+            ignore = self.rule_matches_z.sum(-1) == 0
+
         # Set up data structure, to quickly find nearest neighbors
         if self.trainer_config.use_approximation:
             # use annoy fast ANN
@@ -93,7 +99,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
                 logger.info("Creating annoy index...")
                 t = AnnoyIndex(knn_matrix_shape[1], 'dot')
                 for i, v in enumerate(self.knn_feature_matrix):
-                    t.add_item(i, v)
+                    if not ignore[i]:
+                        t.add_item(i, v)
 
                 t.build(10, n_jobs=10)
                 
