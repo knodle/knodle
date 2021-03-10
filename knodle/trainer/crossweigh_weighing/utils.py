@@ -132,15 +132,15 @@ def draw_loss_accuracy_plot(curves: dict) -> None:
 
 
 def get_labels(
-        rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray, no_match_class_label: int = None
+        rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray, other_class_id: int = None
 ) -> np.ndarray:
     """ Check whether dataset contains negative samples and calculates the labels using majority voting """
-    if no_match_class_label:
-        if no_match_class_label < 0:
+    if other_class_id:
+        if other_class_id < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        if no_match_class_label < rule_assignments_t.shape[1] - 1:
-            warnings.warn(f"Negative class {no_match_class_label} is already present in data")
-        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
+        if other_class_id < rule_assignments_t.shape[1] - 1:
+            warnings.warn(f"Negative class {other_class_id} is already present in data")
+        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, other_class_id)
     else:
         return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
 

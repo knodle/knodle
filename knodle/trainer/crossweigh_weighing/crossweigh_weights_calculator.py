@@ -11,7 +11,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 from tqdm import tqdm
-from knodle.trainer.crossweigh_weighing.crossweigh_denoising_config import CrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import set_seed, check_splitting, return_unique, get_labels
 
 
@@ -62,7 +62,7 @@ class CrossWeighWeightsCalculator:
         logger.info("======= Denoising with CrossWeigh is started =======")
         os.makedirs(self.output_dir, exist_ok=True)
 
-        labels = get_labels(self.rule_matches_z, self.rule_assignments_t, self.denoising_config.no_match_class_label)
+        labels = get_labels(self.rule_matches_z, self.rule_assignments_t, self.denoising_config.other_class_id)
         rules_samples_ids_dict = self._get_rules_samples_ids_dict()
 
         for partition in range(self.denoising_config.cw_partitions):
@@ -205,7 +205,7 @@ class CrossWeighWeightsCalculator:
         :param train_loader: loader with the data which is used for training (k-1 folds)
         """
         self.crossweigh_model.train()
-        for _ in tqdm(range(self.denoising_config.cw_epochs)):
+        for _ in tqdm(range(self.denoising_config.epochs)):
             for tokens, labels, _ in train_loader:
                 self.denoising_config.criterion.weight = self.denoising_config.class_weights
                 self.denoising_config.criterion.reduction = "none"

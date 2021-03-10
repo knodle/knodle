@@ -1,8 +1,11 @@
+import random
 import logging
 
+import torch
 from torch import Tensor, argmax
 from torch.utils.data import TensorDataset
-import torch
+import numpy as np
+
 
 
 def log_section(text: str, logger: logging, additional_info: {} = None) -> None:
@@ -61,10 +64,15 @@ def check_and_return_device() -> torch.device:
     If a GPU is available -> The device is GPU, if not the device is CPU
     """
     if torch.cuda.is_available():
-
         device = torch.device("cuda")
-
     else:
         device = torch.device("cpu")
-
     return device
+
+
+def set_seed(seed: int) -> None:
+    """ Fix seed for all shuffle processes in order to get the reproducible result """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
