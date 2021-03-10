@@ -1,5 +1,6 @@
 import os
 import logging
+import gc
 
 import joblib
 import numpy as np
@@ -41,9 +42,13 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
 
         denoised_rule_matches_z = self._knn_denoise_rule_matches()
 
+        self.rule_matches_z = None
+        gc.collect()
+
         model_input_x, label_probs = input_to_majority_vote_input(
-            self.model_input_x, denoised_rule_matches_z, self.mapping_rules_labels_t,
-            filter_non_labelled=self.trainer_config.filter_non_labelled
+            self.model_input_x, denoised_rule_matches_z, self.mapping_rules_labels_t.astype(np.int64),
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id
         )
 
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
@@ -58,17 +63,18 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
             rule_matches_z: Matrix with all applied weak supervision sources. Shape: (Instances x Rules)
         Returns: Denoised / Improved applied labeling function matrix. Shape: (Instances x Rules)
         """
+        k = self.trainer_config.k
+        if k == 1:
+            return self.rule_matches_z
 
         # load cached data, if available
         cache_dir = self.trainer_config.caching_folder
         if cache_dir is not None:
-            cache_file = os.path.join(cache_dir, "denoised_rule_matches_z.lib")
+            nn_type = "ann" if self.trainer_config.use_approximation else "knn"
+            cache_file = os.path.join(cache_dir, f"denoised_rule_matches_z_{k}_{nn_type}.lib")
             if os.path.isfile(cache_file):
+                logger.info(f"Loaded knn matrix from cache: {cache_file}")
                 return joblib.load(cache_file)
-
-        k = self.trainer_config.k
-        if k == 1:
-            return self.rule_matches_z
 
         logger.info(f"Start denoising labeling functions with k: {k}.")
 
@@ -77,33 +83,42 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
             # use annoy fast ANN
             if k is not None:
                 indices = []
+                knn_matrix_shape = self.knn_feature_matrix.shape
 
-                t = AnnoyIndex(self.knn_feature_matrix.shape[1], 'dot')
+                logger.info("Creating annoy index...")
+                t = AnnoyIndex(knn_matrix_shape[1], 'dot')
                 for i, v in enumerate(self.knn_feature_matrix):
                     t.add_item(i, v)
-                t.build(10, n_jobs=-1)
 
-                for i, v in enumerate(self.knn_feature_matrix):
-                    nn, _ = t.get_nns_by_vector(v, k, search_k=-1, include_distances=False)
-                    indices.append(nn)
-                indices = np.vstack(indices)
+                t.build(10, n_jobs=10)
+
+                # free RAM
+                self.knn_feature_matrix = None
+                gc.collect()
+
+                logger.info("Retrieving neighbor indices...")
+                indices = ( # make a generator: no memory is allocated at this moment
+                    np.array(t.get_nns_by_item(i, k, search_k=-1, include_distances=False))
+                    #if not ignore[i] else np.array([])
+                    for i in range(knn_matrix_shape[0])
+                )
             else:
                 pass
         else:
-            metric = lambda x, y: -np.dot(x, y)
             # use standard precise kNN
             if k is not None:
-                neighbors = NearestNeighbors(
-                    n_neighbors=k, n_jobs=-1,
-                    metric=metric).fit(self.knn_feature_matrix)
+                logger.info("Creating NN index...")
+                neighbors = NearestNeighbors(n_neighbors=k, n_jobs=10).fit(self.knn_feature_matrix)
+                logger.info("Retrieving neighbor indices...")
                 indices = neighbors.kneighbors(self.knn_feature_matrix, n_neighbors=k, return_distance=False)
             else:
-                neighbors = NearestNeighbors(
-                    radius=self.trainer_config.radius, n_jobs=-1,
-                    metric=metric).fit(self.knn_feature_matrix)
+                logger.info("Creating NN index...")
+                neighbors = NearestNeighbors(radius=self.trainer_config.radius, n_jobs=10).fit(self.knn_feature_matrix)
+                logger.info("Retrieving neighbor indices...")
                 indices = neighbors.radius_neighbors(self.knn_feature_matrix, return_distance=False)
 
         # activate matches.
+        logger.info("Activating neighbors...")
         denoised_rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
 
         # save data for caching
