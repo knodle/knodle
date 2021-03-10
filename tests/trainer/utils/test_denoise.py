@@ -42,3 +42,14 @@ def test_denoise_knn():
 
     denoised_z = activate_neighbors(test_array, indices)
     assert_array_equal(denoised_z, right_result)
+
+def test_match_persistance():
+    test_array = np.array([[0, 1], [1, 0]])
+    right_result = np.array([[1, 1], [1, 1]])
+    indices = np.array([[0, 1], [1, 0]])
+
+    denoised_z = activate_neighbors(test_array, indices)
+
+    # make sure all old matches persist and have same match values (currently always 1)
+    assert denoised_z[test_array == 1].sum() == test_array[test_array == 1].sum()
+
