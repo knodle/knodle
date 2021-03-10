@@ -10,7 +10,7 @@ from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
-from knodle.trainer.baseline.majority_config import MajorityConfig
+from knodle.trainer.baseline.majority_config import TrainerConfig
 from tutorials.ImdbDataset.utils import init_logger, read_train_dev_test, create_tfidf_values
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def train_simple_ds_model():
 
     model = LogisticRegressionModel(tfidf_values.shape[1], 2)
 
-    custom_model_config = MajorityConfig(
+    custom_model_config = TrainerConfig(
         model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
     )
 
