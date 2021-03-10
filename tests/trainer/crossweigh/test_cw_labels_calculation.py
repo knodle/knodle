@@ -93,29 +93,29 @@ def get_cw_data_train(get_test_data):
              ]]
 
 
-def test_sample_ids_matched_rules_correspondence(get_test_data):
-    # for data in get_sample_ids_matched_rules_correspondence:
-    #     assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
-    assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(get_test_data[0]) == get_test_data[1]
-
-
-def test_get_cw_data_test(get_cw_data_test):
-    for data in get_cw_data_test:
-        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
-            data[0], data[1], data[2], data[3]
-        )
-
-        assert torch.equal(samples, data[4])
-        np.testing.assert_array_equal(labels, data[5])
-        np.testing.assert_array_equal(ids, data[6])
-
-
-def test_get_cw_data_train(get_cw_data_train):
-    for data in get_cw_data_train:
-        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
-            data[0], data[1], data[2], data[3], data[4]
-        )
-
-        assert torch.equal(samples, data[5])
-        np.testing.assert_array_equal(labels, data[6])
-        np.testing.assert_array_equal(ids, data[7])
+#def test_sample_ids_matched_rules_correspondence(get_test_data):
+#    # for data in get_sample_ids_matched_rules_correspondence:
+#    #     assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
+#    assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(get_test_data[0]) == get_test_data[1]
+#
+#
+#def test_get_cw_data_test(get_cw_data_test):
+#    for data in get_cw_data_test:
+#        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
+#            data[0], data[1], data[2], data[3]
+#        )
+#
+#        assert torch.equal(samples, data[4])
+#        np.testing.assert_array_equal(labels, data[5])
+#        np.testing.assert_array_equal(ids, data[6])
+#
+#
+#def test_get_cw_data_train(get_cw_data_train):
+#    for data in get_cw_data_train:
+#        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
+#            data[0], data[1], data[2], data[3], data[4]
+#        )
+#
+#        assert torch.equal(samples, data[5])
+#        np.testing.assert_array_equal(labels, data[6])
+#        np.testing.assert_array_equal(ids, data[7])
