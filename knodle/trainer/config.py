@@ -17,9 +17,9 @@ class TrainerConfig:
             output_classes: int = 2,
             epochs: int = 35,
             seed: int = 42,
-            evaluate_with_other_class: bool = False
+            evaluate_with_other_class: bool = False,
             output_dir_path: str = None
-		):
+        ):
         self.criterion = criterion
         self.batch_size = batch_size
 
