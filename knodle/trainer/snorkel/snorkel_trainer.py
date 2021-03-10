@@ -75,7 +75,7 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
     def train(self):
         # Snorkel denoising
         denoised_rule_matches_z = self._knn_denoise_rule_matches()
-        model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
+        model_input_x, label_probs = self._snorkel_denoising()
 
         # Standard training
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
