@@ -8,6 +8,7 @@ class KNNConfig(MajorityConfig):
             radius: float = None,
             weighted_knn_activation: bool = False,
             use_approximation: bool = False,
+            activate_no_match_instances: bool = True,
             caching_folder: str = None,  # if set to string, denoised data is cached
             **kwargs
     ):
@@ -16,6 +17,7 @@ class KNNConfig(MajorityConfig):
         self.radius = radius
         self.weighted_knn_activation = weighted_knn_activation
         self.use_approximation = use_approximation
+        self.activate_no_match_instances = activate_no_match_instances
         self.caching_folder = caching_folder
 
         if self.k is not None and self.radius is not None:
