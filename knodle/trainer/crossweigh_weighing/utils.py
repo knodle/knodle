@@ -2,7 +2,6 @@ import logging
 import random
 from typing import Dict
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
@@ -64,14 +63,6 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
             1
         ] == int(emb_matrix_size[1])
     return emb_matrix
-
-
-def set_seed(seed: int):
-    """ Fix seed for all shuffle processes in order to get the reproducible result """
-    random.seed(seed)
-    np.random.seed(np.array(seed, dtype="int64"))
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
 
 
 def set_device(enable_cuda: bool):

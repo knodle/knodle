@@ -14,15 +14,13 @@ from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 
-from knodle.transformation.filter import filter_empty_probabilities_x_y_z
+from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
 
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
-
-PRINT_EVERY = 300
 
 
 class CrossWeighTrainer(NoDenoisingTrainer):
@@ -87,7 +85,7 @@ class CrossWeighTrainer(NoDenoisingTrainer):
         )
 
         if self.trainer_config.filter_non_labelled:
-            self.model_input_x, self.rule_matches_z, train_labels = filter_empty_probabilities_x_y_z(
+            self.model_input_x, train_labels, self.rule_matches_z = filter_empty_probabilities(
                 self.model_input_x, train_labels, self.rule_matches_z
             )
 
@@ -128,6 +126,7 @@ class CrossWeighTrainer(NoDenoisingTrainer):
         weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
+        weights_calculation_config.if_set_seed = self.trainer_config.cw_if_set_seed
         return weights_calculation_config
 
     # def calculate_dev_metrics(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Union[Dict, None]:

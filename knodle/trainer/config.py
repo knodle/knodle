@@ -15,7 +15,7 @@ class TrainerConfig:
             optimizer: Optimizer = None,
             output_classes: int = 2,
             epochs: int = 35,
-            seed: int = 42,
+            if_set_seed: bool = False,
             filter_non_labelled: bool = True,
             use_probabilistic_labels: bool = True,
             other_class_id: int = None,
@@ -24,7 +24,9 @@ class TrainerConfig:
     ):
         self.criterion = criterion
         self.batch_size = batch_size
-        set_seed(seed)
+
+        if if_set_seed is True:
+            set_seed(12345)
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

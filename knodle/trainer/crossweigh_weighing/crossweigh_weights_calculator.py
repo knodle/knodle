@@ -13,13 +13,12 @@ from joblib import dump
 from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.crossweigh_weighing.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
-from knodle.transformation.filter import filter_empty_probabilities_x_y_z
+from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
-PRINT_EVERY = 300
 
 
 class CrossWeighWeightsCalculator(NoDenoisingTrainer):
@@ -51,7 +50,7 @@ class CrossWeighWeightsCalculator(NoDenoisingTrainer):
         )
 
         if self.trainer_config.filter_non_labelled:
-            self.model_input_x, self.rule_matches_z, labels = filter_empty_probabilities_x_y_z(
+            self.model_input_x, labels, self.rule_matches_z = filter_empty_probabilities(
                 self.model_input_x, labels, self.rule_matches_z
             )
 

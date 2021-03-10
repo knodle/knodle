@@ -11,12 +11,13 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 from sklearn.metrics import classification_report
 
+from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.config import TrainerConfig
-from knodle.trainer.utils.utils import log_section, accuracy_of_probs, draw_loss_accuracy_plot
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
 PRINT_EVERY = 300
@@ -83,7 +84,10 @@ class NoDenoisingTrainer(Trainer):
                     logits = outputs[0]
 
                 if use_sample_weights:
-                    loss = self._get_loss_with_sample_weights(logits, sample_weights, label_batch)
+                    loss_no_reduction = self.trainer_config.criterion(
+                        logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
+                    )
+                    loss = loss_no_reduction * sample_weights.mean()
                 else:
                     loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
 
@@ -125,13 +129,6 @@ class NoDenoisingTrainer(Trainer):
                 draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
 
         self.model.eval()
-
-    def _get_loss_with_sample_weights(self, predictions: Tensor, weights: Tensor, labels: Tensor) -> Tensor:
-        """ Calculates loss for each training sample and multiplies it with corresponding sample weight"""
-        loss_no_reduction = self.trainer_config.criterion(
-            predictions, labels, weight=self.trainer_config.class_weights, reduction="none"
-        )
-        return (loss_no_reduction * weights).mean()
 
     def train(self):
         """
