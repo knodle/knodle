@@ -87,7 +87,7 @@ class NoDenoisingTrainer(Trainer):
                     loss_no_reduction = self.trainer_config.criterion(
                         logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
                     )
-                    loss = loss_no_reduction * sample_weights.mean()
+                    loss = (loss_no_reduction * sample_weights).mean()
                 else:
                     loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
 
@@ -101,7 +101,8 @@ class NoDenoisingTrainer(Trainer):
                 epoch_loss += loss.detach().item()
                 epoch_acc += acc.item()
 
-                if steps % PRINT_EVERY == 0:
+                # print epoch loss and accuracy after each 10% of training is done
+                if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
                     logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
 
             avg_loss = epoch_loss / len(feature_label_dataloader)

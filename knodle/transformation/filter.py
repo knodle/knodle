@@ -25,7 +25,7 @@ def filter_empty_probabilities(
         new_tensors.append(input_data_x.tensors[i][non_zeros])
     new_x = TensorDataset(*new_tensors)
 
-    if rule_matches_z:
+    if rule_matches_z is not None:
         return new_x, class_probas_y[non_zeros], rule_matches_z[non_zeros]
 
     return new_x, class_probas_y[non_zeros]
