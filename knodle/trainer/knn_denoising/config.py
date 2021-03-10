@@ -31,3 +31,10 @@ class KNNConfig(MajorityConfig):
                 "The Knn trainer can only use the radius for exact neighbor search "
                 "Distance-based selection is currently unavailable for approximate NN."
             )
+
+        # Currently improssible, though can (should?) be done in the future.
+        if not self.use_approximation and not self.activate_no_match_instances:
+            raise RuntimeError(
+                "The Knn trainer with exact neighbor selection always uses all of the instances. "
+                "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
+            )
