@@ -102,8 +102,12 @@ class NoDenoisingTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
-                    logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                try:
+                    if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
+                        logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                except ZeroDivisionError:
+                    continue
+
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
