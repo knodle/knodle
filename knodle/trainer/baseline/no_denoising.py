@@ -188,7 +188,10 @@ class NoDenoisingTrainer(Trainer):
 
         clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
-        return clf_report, dev_loss / len(feature_label_dataloader)
+        if loss_calculation:
+            return clf_report, dev_loss / len(feature_label_dataloader)
+        else:
+            return clf_report
 
     def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
         """ Calculates the loss on the dev set using given criterion"""
