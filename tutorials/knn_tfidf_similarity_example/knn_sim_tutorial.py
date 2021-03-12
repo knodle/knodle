@@ -82,7 +82,7 @@ def train_knn_model():
 
         trainer.train()
 
-        clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
+        clf_report, _ = trainer.test(test_features=test_tfidf, test_labels=y_test)
         print("-------------------------")
         print(f"k == {k}")
         print(clf_report)

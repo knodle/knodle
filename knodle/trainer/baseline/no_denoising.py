@@ -1,4 +1,5 @@
 import logging
+from typing import Union, Dict, Tuple
 
 import numpy as np
 from torch import Tensor
@@ -150,7 +151,9 @@ class NoDenoisingTrainer(Trainer):
 
         self.train_loop(feature_label_dataloader)
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False):
+    def test(
+            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+    ) -> Tuple(Dict, Union[float, None]):
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
@@ -191,7 +194,7 @@ class NoDenoisingTrainer(Trainer):
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)
         else:
-            return clf_report
+            return clf_report, None
 
     def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
         """ Calculates the loss on the dev set using given criterion"""

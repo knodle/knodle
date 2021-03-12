@@ -37,7 +37,7 @@ def test_train():
 
     y_np = np.ones((num_samples,))
     y_labels = TensorDataset(torch.from_numpy(y_np))
-    metrics = trainer.test(model_input_x, y_labels)
+    metrics, _ = trainer.test(model_input_x, y_labels)
 
     # We train 100% on 1 class, thus test accuracy should be 100%
     assert metrics.get("accuracy") == 1
