@@ -153,7 +153,7 @@ class NoDenoisingTrainer(Trainer):
 
     def test(
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
-    ) -> Tuple(Dict, Union[float, None]):
+    ) -> Tuple[Dict, Union[float, None]]:
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
