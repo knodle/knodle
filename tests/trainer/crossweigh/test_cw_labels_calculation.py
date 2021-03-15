@@ -4,7 +4,7 @@ import torch
 from torch import LongTensor
 from torch.utils.data import TensorDataset
 
-from knodle.model.logistic_regression.logistic_regression_model import LogisticRegressionModel
+from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 
 
