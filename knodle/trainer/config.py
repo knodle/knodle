@@ -37,8 +37,8 @@ class TrainerConfig:
 
         # create model directory
         self.output_dir_path = output_dir_path
-        os.makedirs(self.output_dir_path, exist_ok=True)
-
+        if self.output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
 
 
 class MajorityConfig(TrainerConfig):
