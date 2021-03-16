@@ -5,7 +5,7 @@ import torch
 from torch import Tensor, argmax
 from torch.utils.data import TensorDataset
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 def log_section(text: str, logger: logging, additional_info: {} = None) -> None:
