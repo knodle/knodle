@@ -15,7 +15,7 @@ class TrainerConfig:
             batch_size: int = 32,
             optimizer: Optimizer = None,
             output_classes: int = 2,
-            epochs: int = 35
+            epochs: int = 35,
             output_dir_path: str = None,
             if_set_seed: bool = False,
             filter_non_labelled: bool = True,
@@ -41,8 +41,9 @@ class TrainerConfig:
         self.output_classes = output_classes
         self.device = check_and_return_device()
 
+        # create model directory
         self.output_dir_path = output_dir_path
-        if output_dir_path is not None:
+        if self.output_dir_path is not None:
             os.makedirs(self.output_dir_path, exist_ok=True)
 
         self.filter_non_labelled = filter_non_labelled
