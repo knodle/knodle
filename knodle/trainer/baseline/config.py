@@ -2,11 +2,11 @@ import torch
 from torch import Tensor
 
 from knodle.trainer.auto_config import AutoConfig
-from knodle.trainer.config import DenoisingConfig
+from knodle.trainer.config import BaseTrainerConfig
 
 
 @AutoConfig.register("no_denoising")
-class NoDenoisingConfig(DenoisingConfig):
+class NoDenoisingConfig(BaseTrainerConfig):
     def __init__(
             self,
             use_probabilistic_labels: bool = True,

@@ -1,11 +1,11 @@
-from knodle.trainer.config import DenoisingConfig
+from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.knn_denoising.config import KNNConfig
 
 from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("snorkel")
-class SnorkelConfig(DenoisingConfig):
+class SnorkelConfig(BaseTrainerConfig):
     def __init__(
             self,
             label_model_num_epochs: int = 5000,

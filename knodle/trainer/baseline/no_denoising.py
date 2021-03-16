@@ -14,7 +14,7 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.config import DenoisingConfig
+from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
@@ -35,10 +35,10 @@ class NoDenoisingTrainer(Trainer):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: DenoisingConfig = None,
+            trainer_config: BaseTrainerConfig = None,
     ):
         if trainer_config is None:
-            trainer_config = DenoisingConfig(optimizer=SGD(model.parameters(), lr=0.001))
+            trainer_config = BaseTrainerConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )

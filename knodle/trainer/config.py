@@ -40,7 +40,7 @@ class TrainerConfig:
         self.device = torch.device("device") if device is not None else check_and_return_device()
 
 
-class DenoisingConfig(TrainerConfig):
+class BaseTrainerConfig(TrainerConfig):
     def __init__(
             self,
             filter_non_labelled: bool = True,

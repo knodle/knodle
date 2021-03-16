@@ -1,11 +1,11 @@
 from torch.optim import Optimizer
 
-from knodle.trainer.config import DenoisingConfig
+from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("crossweigh")
-class CrossWeighDenoisingConfig(DenoisingConfig):
+class CrossWeighDenoisingConfig(BaseTrainerConfig):
     def __init__(
             self,
             partitions: int = 2,
