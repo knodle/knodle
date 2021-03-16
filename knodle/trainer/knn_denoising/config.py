@@ -1,7 +1,9 @@
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import DenoisingConfig
+from knodle.trainer.auto_config import AutoConfig
 
 
-class KNNConfig(MajorityConfig):
+@AutoConfig.register("knn")
+class KNNConfig(DenoisingConfig):
     def __init__(
             self,
             k: int = None,

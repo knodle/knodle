@@ -1,8 +1,11 @@
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import DenoisingConfig
 from knodle.trainer.knn_denoising.config import KNNConfig
 
+from knodle.trainer.auto_config import AutoConfig
 
-class SnorkelConfig(MajorityConfig):
+
+@AutoConfig.register("snorkel")
+class SnorkelConfig(DenoisingConfig):
     def __init__(
             self,
             label_model_num_epochs: int = 5000,
@@ -14,6 +17,7 @@ class SnorkelConfig(MajorityConfig):
         self.label_model_log_freq = label_model_log_freq
 
 
+@AutoConfig.register("snorkel_knn")
 class SnorkelKNNConfig(SnorkelConfig, KNNConfig):
     def __init__(self, **kwargs):
         # use all config parameters in SnorkelConfig and KNNConfig
