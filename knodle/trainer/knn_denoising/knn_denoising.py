@@ -38,6 +38,9 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         else:
             self.knn_feature_matrix = knn_feature_matrix
 
+        self.rule_matches_z = self.rule_matches_z.astype(np.int8)
+        self.mapping_rules_labels_t = self.mapping_rules_labels_t.astype(np.int8)
+
     def train(self):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
@@ -91,7 +94,6 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         if self.trainer_config.use_approximation:
             # use annoy fast ANN
             if k is not None:
-                indices = []
                 knn_matrix_shape = self.knn_feature_matrix.shape
 
                 logger.info("Creating annoy index...")

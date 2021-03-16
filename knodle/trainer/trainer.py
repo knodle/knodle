@@ -32,9 +32,9 @@ class Trainer(ABC):
                 trainer_config: Config for different parameters like loss function, optimizer, batch size.
         """
         self.model = model
-        self.mapping_rules_labels_t = mapping_rules_labels_t.astype(np.int8)
+        self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
-        self.rule_matches_z = rule_matches_z.astype(np.int8)
+        self.rule_matches_z = rule_matches_z
         if trainer_config is None:
             self.trainer_config = TrainerConfig(model)
         else:
