@@ -1,7 +1,10 @@
 import logging
+from typing import Union, Dict, Tuple
 
 import numpy as np
+from torch import Tensor
 from tqdm.auto import tqdm
+import torch.nn.functional as F
 
 import torch
 import torch.nn as nn
@@ -9,12 +12,13 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 from sklearn.metrics import classification_report
 
+from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import TrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
@@ -35,10 +39,10 @@ class NoDenoisingTrainer(Trainer):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: MajorityConfig = None,
+            trainer_config: TrainerConfig = None,
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
+            trainer_config = TrainerConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
         )
@@ -53,17 +57,25 @@ class NoDenoisingTrainer(Trainer):
 
         return input_batch, label_batch
 
-    def train_loop(self, feature_label_dataloader):
+    def train_loop(self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False):
         log_section("Training starts", logger)
 
         self.model.to(self.trainer_config.device)
         self.model.train()
-        for current_epoch in tqdm(range(self.trainer_config.epochs)):
-            epoch_loss, epoch_acc = 0.0, 0.0
+
+        train_losses, train_acc = [], []
+        if self.dev_model_input_x is not None:
+            dev_losses, dev_acc = [], []
+
+        for current_epoch in range(self.trainer_config.epochs):
             logger.info("Epoch: {}".format(current_epoch))
-            i = 0
+            epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
             for batch in tqdm(feature_label_dataloader):
                 input_batch, label_batch = self._load_batch(batch)
+                steps += 1
+
+                if use_sample_weights:
+                    input_batch, sample_weights = input_batch[:-1], input_batch[-1]
 
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
@@ -72,32 +84,56 @@ class NoDenoisingTrainer(Trainer):
                     logits = outputs
                 else:
                     logits = outputs[0]
-                loss = self.trainer_config.criterion(logits, label_batch)
+
+                if use_sample_weights:
+                    loss_no_reduction = self.trainer_config.criterion(
+                        logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
+                    )
+                    loss = (loss_no_reduction * sample_weights).mean()
+                else:
+                    loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
 
                 # backward pass
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                if isinstance(self.trainer_config.grad_clipping, (int, float)):
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
                 self.trainer_config.optimizer.step()
                 acc = accuracy_of_probs(logits, label_batch)
 
                 epoch_loss += loss.detach().item()
                 epoch_acc += acc.item()
 
-                # i += 1
-                # if i > 0:
-                #     break
+                # print epoch loss and accuracy after each 10% of training is done
+                try:
+                    if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
+                        logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                except ZeroDivisionError:
+                    continue
+
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
+            train_losses.append(avg_loss)
+            train_acc.append(avg_acc)
 
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x is not None:
-                clf_report = self.test(self.dev_model_input_x, self.dev_gold_labels_y)
-                logger.info("Epoch development accuracy: {}".format(clf_report["accuracy"]))
+            if self.dev_model_input_x:
+                dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
+                dev_losses.append(dev_loss)
+                dev_acc.append(dev_clf_report["accuracy"])
+                logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
         log_section("Training done", logger)
+
+        if draw_plot:
+            if self.dev_model_input_x:
+                draw_loss_accuracy_plot(
+                    {"train loss": train_losses, "train acc": train_acc, "dev loss": dev_losses, "dev acc": dev_acc}
+                )
+            else:
+                draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
 
         self.model.eval()
 
@@ -116,7 +152,9 @@ class NoDenoisingTrainer(Trainer):
 
         self.train_loop(feature_label_dataloader)
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset):
+    def test(
+            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+    ) -> Tuple[Dict, Union[float, None]]:
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
@@ -124,6 +162,8 @@ class NoDenoisingTrainer(Trainer):
         self.model.to(self.trainer_config.device)
         self.model.eval()
         predictions_list, label_list = [], []
+        dev_loss, dev_acc = 0.0, 0.0
+
         i = 0
         # Loop over predictions
         with torch.no_grad():
@@ -137,6 +177,9 @@ class NoDenoisingTrainer(Trainer):
                     prediction_vals = outputs
                 else:
                     prediction_vals = outputs[0]
+
+                if loss_calculation:
+                    dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
 
                 # add predictions and labels
                 predictions = np.argmax(prediction_vals.detach().cpu().numpy(), axis=-1)
@@ -153,4 +196,14 @@ class NoDenoisingTrainer(Trainer):
 
         clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
-        return clf_report
+        if loss_calculation:
+            return clf_report, dev_loss / len(feature_label_dataloader)
+        else:
+            return clf_report, None
+
+    def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
+        """ Calculates the loss on the dev set using given criterion"""
+        predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
+        labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
+        loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
+        return loss.detach()
