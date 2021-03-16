@@ -36,7 +36,7 @@ def test_train():
 
     y_np = np.ones((num_samples,))
     y_labels = TensorDataset(torch.from_numpy(y_np))
-    metrics = trainer.test(model_input_x, y_labels)
+    metrics, _ = trainer.test(model_input_x, y_labels)
 
     # Check whether the code ran up to here
     assert 2 == 2
