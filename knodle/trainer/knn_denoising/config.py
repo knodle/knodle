@@ -1,7 +1,7 @@
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import TrainerConfig
 
 
-class KNNConfig(MajorityConfig):
+class KNNConfig(TrainerConfig):
     def __init__(
             self,
             k: int = None,

@@ -13,6 +13,8 @@ from annoy import AnnoyIndex
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
+from knodle.trainer.trainer import Trainer
+from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
 from knodle.trainer.knn_denoising.config import KNNConfig
 from knodle.trainer.utils.denoise import activate_neighbors
@@ -20,6 +22,7 @@ from knodle.trainer.utils.denoise import activate_neighbors
 logger = logging.getLogger(__name__)
 
 
+@AutoTrainer.register('knn_trainer')
 class KnnDenoisingTrainer(NoDenoisingTrainer):
     def __init__(
             self,
