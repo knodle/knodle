@@ -1,4 +1,5 @@
 import logging
+from os import path
 from typing import Union, Dict, Tuple
 
 import numpy as np
@@ -124,6 +125,15 @@ class NoDenoisingTrainer(Trainer):
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
+
+            # saving model
+            if self.trainer_config.output_dir_path is not None:
+                model_path = path.join(
+                    self.trainer_config.output_dir_path,
+                    f"model_state_dict_epoch_{current_epoch}.pt"
+                )
+                torch.save(self.model.cpu().state_dict(), model_path)
+                self.model.to(self.trainer_config.device)
 
         log_section("Training done", logger)
 

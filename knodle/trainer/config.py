@@ -1,4 +1,5 @@
 from typing import Callable
+import os
 
 from snorkel.classification import cross_entropy_with_probs
 from torch import Tensor
@@ -15,12 +16,13 @@ class TrainerConfig:
             optimizer: Optimizer = None,
             output_classes: int = 2,
             epochs: int = 35,
+            output_dir_path: str = None,
             if_set_seed: bool = False,
             filter_non_labelled: bool = True,
             use_probabilistic_labels: bool = True,
             other_class_id: int = None,
             grad_clipping: int = None,
-            class_weights: Tensor = None,
+            class_weights: Tensor = None
     ):
         self.criterion = criterion
         self.batch_size = batch_size
@@ -38,6 +40,11 @@ class TrainerConfig:
             self.optimizer = optimizer
         self.output_classes = output_classes
         self.device = check_and_return_device()
+
+        # create model directory
+        self.output_dir_path = output_dir_path
+        if self.output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
 
         self.filter_non_labelled = filter_non_labelled
         self.use_probabilistic_labels = use_probabilistic_labels
