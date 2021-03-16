@@ -1,13 +1,12 @@
 import logging
+import random
 from typing import Dict
-import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch.utils.data import TensorDataset
 
 from knodle.evaluation import tacred_metrics
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 logger = logging.getLogger(__name__)
 
 
@@ -66,13 +65,6 @@ def get_embedding_matrix(pretrained_embedding_file: str) -> np.ndarray:
     return emb_matrix
 
 
-def set_seed(seed: int):
-    """ Fix seed for all shuffle processes in order to get the reproducible result """
-    np.random.seed(np.array(seed, dtype="int64"))
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-
-
 def set_device(enable_cuda: bool):
     """ Set where the calculations will be done (cpu or cuda) depending on whether the cuda is available and chosen """
     if enable_cuda and torch.cuda.is_available():
@@ -84,7 +76,7 @@ def set_device(enable_cuda: bool):
 
 
 def check_splitting(
-        tst_samples: torch.Tensor,
+        tst_samples: TensorDataset,
         tst_labels: np.ndarray,
         tst_idx: np.ndarray,
         samples: torch.Tensor,
@@ -92,8 +84,8 @@ def check_splitting(
 ) -> None:
     """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
 
-    rnd_tst = np.random.randint(0, tst_samples.shape[0])  # take some random index
-    tst_sample = tst_samples[rnd_tst, :]
+    rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
+    tst_sample = tst_samples.tensors[0][rnd_tst, :]
     tst_idx = tst_idx[rnd_tst]
     tst_label = tst_labels[rnd_tst, :]
 
@@ -114,35 +106,6 @@ def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.nda
     """ Checks intersections between the 1st and the 2nd arrays and return unique values of the 1st array """
     intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[1].tolist()
     return np.delete(where_to_find, intersections)
-
-
-def draw_loss_accuracy_plot(curves: dict) -> None:
-    """ The function creates a plot of 4 curves and displays it"""
-    colors = "bgrcmyk"
-    color_index = 0
-    epochs = range(1, len(next(iter(curves.values()))) + 1)
-
-    for label, value in curves.items():
-        plt.plot(epochs, value, c=colors[color_index], label=label)
-        color_index += 1
-
-    plt.xticks(epochs)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-    plt.show()
-
-
-def get_labels(
-        rule_matches_z: np.ndarray, rule_assignments_t: np.ndarray, no_match_class_label: int = None
-) -> np.ndarray:
-    """ Check whether dataset contains negative samples and calculates the labels using majority voting """
-    if no_match_class_label:
-        if no_match_class_label < 0:
-            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        if no_match_class_label < rule_assignments_t.shape[1] - 1:
-            warnings.warn(f"Negative class {no_match_class_label} is already present in data")
-        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t, no_match_class_label)
-    else:
-        return z_t_matrices_to_majority_vote_probs(rule_matches_z, rule_assignments_t)
 
 
 def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:

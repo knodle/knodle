@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch.optim import AdamW
 
-from knodle.model.logistic_regression.logistic_regression_model import (
+from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer import TrainerConfig
@@ -198,10 +198,10 @@ def train(train_tfidf, train_rule_matches_z, mapping_rules_labels_t, tfidf_value
 
 
 def test(trainer, train_tfidf, test_tfidf, y_train, y_test):
-    results_dict_train_split = trainer.test(
+    results_dict_train_split, _ = trainer.test(
         test_features=train_tfidf, test_labels=y_train
     )
-    results_dict_test_split = trainer.test(test_features=test_tfidf, test_labels=y_test)
+    results_dict_test_split, _ = trainer.test(test_features=test_tfidf, test_labels=y_test)
 
     return results_dict_train_split, results_dict_test_split
 
