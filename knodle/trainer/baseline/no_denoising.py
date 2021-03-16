@@ -17,13 +17,14 @@ from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import Trainer
+from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.config import TrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
-PRINT_EVERY = 300
 
 
+@AutoTrainer.register('no_denoising')
 class NoDenoisingTrainer(Trainer):
     """
     The baseline class implements a baseline model for labeling data with weak supervision.
@@ -185,7 +186,11 @@ class NoDenoisingTrainer(Trainer):
                 predictions_list.append(predictions)
                 label_list.append(label_batch.detach().cpu().numpy())
 
-        # transform to correct format
+                # i += 1
+                # if i > 0:
+                #     break
+
+        # transform to correct format.
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))
 
