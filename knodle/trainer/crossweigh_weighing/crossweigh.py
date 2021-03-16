@@ -61,8 +61,13 @@ class CrossWeigh(NoDenoisingTrainer):
         self.run_classifier = run_classifier
         self.use_weights = use_weights
 
-    def train(self):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         """ This function sample_weights the samples with CrossWeigh method and train the model """
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
         sample_weights = self._get_sample_weights() if self.use_weights \
             else torch.FloatTensor([1] * len(self.model_input_x))
