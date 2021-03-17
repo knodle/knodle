@@ -1,3 +1,6 @@
+import joblib
+import os
+
 import numpy as np
 from snorkel.labeling.model import LabelModel
 
@@ -46,13 +49,23 @@ class SnorkelTrainer(NoDenoisingTrainer):
             seed=self.trainer_config.seed
         )
         label_probs = label_model.predict_proba(L_train)
-
+        
+        # todo: check for nan output probabilities
+        
         if self.trainer_config.other_class_id:
             # post-process snorkel labels; add other class for instances with no LF matches
             zero_indices = np.where(self.rule_matches_z.sum(axis=1) == 0)[0]
             other_class_probs = np.zeros((label_probs.shape[0], 1))
             other_class_probs[zero_indices] = 1.0
-            label_probs = np.concatenate([label_probs, other_class_probs], axis=1)
+            label_probs = np.concatenate([label_probs, other_class_probs], axis=1)    
+            
+        # cache the resulting labels
+        if self.trainer_config.caching_folder is not None:
+            cache_dir = self.trainer_config.caching_folder
+            cache_file = os.path.join(cache_dir, "snorkel_labels.lib")
+            os.makedirs(cache_dir, exist_ok=True)
+            joblib.dump(label_probs, cache_file)
+            
         return model_input_x, label_probs
 
     def train(self):
@@ -75,7 +88,7 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
     def train(self):
         # Snorkel denoising
         denoised_rule_matches_z = self._knn_denoise_rule_matches()
-        model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
+        model_input_x, label_probs = self._snorkel_denoising()
 
         # Standard training
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
