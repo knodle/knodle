@@ -24,9 +24,9 @@ test_requirements = ["pytest", "pytest-cov"]
 setup(
     name="knodle",
     version_config={
-        "template": "{tag}",
-        "dev_template": "{tag}.dev{ccount}",
-        "dirty_template": "{tag}.post{ccount}",  # during build always dirty, since untracked files are created
+        "template": "{tag}",  # no untracked files, no new commits
+        "dev_template": "{tag}.dev{ccount}",  # no untracked files, new commits since last tag
+        "dirty_template": "{tag}.post{ccount}",  # untracked files and/or new commits since last tag
         "count_commits_from_version_file": False
     },
     setup_requires=['setuptools-git-versioning'],
