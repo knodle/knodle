@@ -11,7 +11,8 @@ from knodle.model.logistic_regression_model import (
 )
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 from knodle.trainer.baseline.majority_config import TrainerConfig
-from tutorials.ImdbDataset.utils import init_logger, read_train_dev_test, create_tfidf_values
+from tutorials.ImdbDataset.utils import init_logger, create_tfidf_values
+from tutorials.utils import read_train_dev_test
 
 logger = logging.getLogger(__name__)
 

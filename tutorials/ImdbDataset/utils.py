@@ -2,23 +2,8 @@ import logging
 import os
 import sys
 
-import pandas as pd
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-
-def read_train_dev_test(target_path: str):
-    train_df = load(os.path.join(target_path, 'train_df.lib'))
-    dev_df = load(os.path.join(target_path, 'dev_df.lib'))
-    test_df = load(os.path.join(target_path, 'test_df.lib'))
-    train_rule_matches_z = load(os.path.join(target_path, 'train_rule_matches_z.lib')).toarray()
-    dev_rule_matches_z = load(os.path.join(target_path, 'dev_rule_matches_z.lib')).toarray()
-    test_rule_matches_z = load(os.path.join(target_path, 'test_rule_matches_z.lib')).toarray()
-    mapping_rules_labels_t = load(os.path.join(target_path, 'mapping_rules_labels_t.lib'))
-    imdb_dataset = pd.read_csv(os.path.join(target_path, 'imdb_data_preprocessed.csv'))
-
-    return train_df, dev_df, test_df, train_rule_matches_z, dev_rule_matches_z, test_rule_matches_z, imdb_dataset, \
-           mapping_rules_labels_t
 
 
 def create_tfidf_values(
