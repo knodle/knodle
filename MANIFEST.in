@@ -13,6 +13,7 @@ include LICENSE
 # included by 'recursive-include', so list those separately
 recursive-include knodle *
 recursive-include tests  *
+prune tutorials
 
 # Exclude generated files
 prune */__pycache__
