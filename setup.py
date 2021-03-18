@@ -26,13 +26,18 @@ test_requirements = ["pytest", "pytest-cov"]
 setup(
     name="knodle",
     version=VERSION.get("__version__"),
-    url="https://github.com/knodle/knodle",
+    url="http://knodle.cc",
+    project_urls={
+        "github": "https://github.com/knodle/knodle",
+        "Bug Tracker": "https://github.com/knodle/knodle/issues"
+    },
     license="TBC",
     author="knodle",
     author_email="knodle@cs.univie.ac.at",
     description="Knowledge infused deep learning framework",
     long_description=read("README.md"),
-    packages=find_packages(exclude=("tests",)),
+    long_description_content_type="text/markdown",
+    packages=find_packages(exclude=("tests","tutorials")),
     install_requires=requirements,
     tests_require=test_requirements,
     extras_require={"test": test_requirements},
@@ -40,12 +45,9 @@ setup(
         "Development Status :: 2 - Pre-Alpha",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8"
     ],
 )
