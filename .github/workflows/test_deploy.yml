@@ -1,4 +1,4 @@
-name: Build and Deploy on Master
+name: Build and Deploy on TestPyPI
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          #pip install -r requirements_dev.txt
+          pip install build twine # -r requirements_dev.txt
           #python setup.py sdist bdist_wheel
           python -m build
           python -m twine upload --repository testpypi dist/*  # FOR UPLOADING PURPOSES
