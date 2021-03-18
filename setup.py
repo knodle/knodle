@@ -37,7 +37,7 @@ setup(
     description="Knowledge infused deep learning framework",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    packages=find_packages(exclude=["tests", "tutorials"]),
+    packages=find_packages(exclude=["tests"]),
     package_dir={'knodle': 'knodle'},
     install_requires=requirements,
     tests_require=test_requirements,
