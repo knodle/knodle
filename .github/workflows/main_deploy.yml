@@ -1,20 +1,31 @@
-name: Build and Deploy on Master
+name: Upload to PIP on Release
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [created]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  build:
+  upload:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Build and deploy
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: "Installs dependencies"
         run: |
-          pip install -r requirements_dev.txt
-          python setup.py sdist bdist_wheel
-          # twine upload dist/* FOR UPLOADING PURPOSES
+          python3 -m pip install --upgrade pip
+          python3 -m pip install setuptools wheel twine
+
+      - name: "Builds and uploads to PyPI"
+        run: |
+          python3 setup.py sdist bdist_wheel
+          python3 -m twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PIPY_API_TOKEN }}
