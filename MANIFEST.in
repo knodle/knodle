@@ -8,6 +8,7 @@ include MANIFEST.in
 include pyproject.toml
 include README.md
 include LICENSE
+include knodle_logo.png
 
 # Note that sub-directories that don't have __init__ are apparently not
 # included by 'recursive-include', so list those separately
