@@ -23,6 +23,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # Get latest tags to form version name
+      - run: |
+          git fetch --prune --tags
+          git tag --list
+
       # Sets up python3
       - uses: actions/setup-python@v2
         with:
