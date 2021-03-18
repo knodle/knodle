@@ -25,7 +25,9 @@ test_requirements = ["pytest", "pytest-cov"]
 
 setup(
     name="knodle",
-    version=VERSION.get("__version__"),
+#   version=VERSION.get("__version__"),
+    version_config=True,
+    setup_requires=['setuptools-git-versioning'],
     url="http://knodle.cc",
     project_urls={
         "github": "https://github.com/knodle/knodle",
