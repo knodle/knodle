@@ -1,3 +1,5 @@
+<img src="./knodle_logo.png" height="100"/>
+
 ### Knowledge infused deep learning framework
 
 [![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)

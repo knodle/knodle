@@ -31,7 +31,7 @@ setup(
         "github": "https://github.com/knodle/knodle",
         "Bug Tracker": "https://github.com/knodle/knodle/issues"
     },
-    license="TBC",
+    license="Apache 2.0",
     author="knodle",
     author_email="knodle@cs.univie.ac.at",
     description="Knowledge infused deep learning framework",
@@ -39,15 +39,13 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["tests", "tutorials"]),
     package_dir={'knodle': 'knodle'},
-    #package_data={'mypkg': ['data/*.dat']},
     install_requires=requirements,
     tests_require=test_requirements,
     extras_require={"test": test_requirements},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8"
