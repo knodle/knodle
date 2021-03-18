@@ -4,6 +4,7 @@
 *.so
 
 # Packages
+PKG-INFO
 *.egg
 *.egg-info
 dist

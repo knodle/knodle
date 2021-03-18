@@ -24,7 +24,10 @@ test_requirements = ["pytest", "pytest-cov"]
 setup(
     name="knodle",
     version_config={
-        "dirty_template": "{tag}"  # during build always dirty, since untracked files are created
+        "template": "{tag}",
+        "dev_template": "{tag}.dev{ccount}",
+        "dirty_template": "{tag}.post{ccount}",  # during build always dirty, since untracked files are created
+        "count_commits_from_version_file": False
     },
     setup_requires=['setuptools-git-versioning'],
     url="http://knodle.cc",
