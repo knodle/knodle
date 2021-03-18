@@ -25,7 +25,9 @@ test_requirements = ["pytest", "pytest-cov"]
 
 setup(
     name="knodle",
-    version=VERSION.get("__version__"),
+#   version=VERSION.get("__version__"),
+    version_config=True,
+    setup_requires=['setuptools-git-versioning'],
     url="http://knodle.cc",
     project_urls={
         "github": "https://github.com/knodle/knodle",
@@ -37,7 +39,7 @@ setup(
     description="Knowledge infused deep learning framework",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    packages=find_packages(exclude=["tests", "tutorials"]),
+    packages=find_packages(exclude=["tests"]),
     package_dir={'knodle': 'knodle'},
     install_requires=requirements,
     tests_require=test_requirements,
