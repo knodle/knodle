@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Test & Upload to TestPyPI
+name: Upload to TestPyPI
 
 # Controls when the action will run. 
 on:
@@ -26,7 +26,7 @@ jobs:
       # Sets up python3
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.8 
+          python-version: 3.7
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
       - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
@@ -35,16 +35,6 @@ jobs:
           python3 -m pip install --upgrade pip
           # Install build deps
           python3 -m pip install setuptools wheel twine
-          # If requirements.txt exists, install from it
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Install the package from setup.py
-          python3 setup.py install
-
-      # Tests with pytest
-      - name: Test with pytest
-        run: |
-          pip install pytest
-          pytest
 
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
