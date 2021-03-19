@@ -1,10 +1,11 @@
 from typing import Dict
 import logging
+from abc import ABC, abstractmethod
 
 import numpy as np
-import torch
-from abc import ABC, abstractmethod
 from sklearn.metrics import classification_report
+
+import torch
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -25,7 +26,7 @@ class Trainer(ABC):
             trainer_config: TrainerConfig = None,
     ):
         """
-        Constructor for each DsModelTrainer.
+        Constructor for each Trainer.
             Args:
                 model: PyTorch model which will be used for final classification.
                 mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes

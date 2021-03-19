@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 
 from torch import Tensor
 from torch.optim import AdamW
@@ -8,7 +7,7 @@ from torch.utils.data import TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 
 from knodle.data.download import MinioConnector
-from knodle.model.logistic_regression.logistic_regression_model import (
+from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer.knn_denoising.config import KNNConfig
@@ -83,7 +82,7 @@ def train_knn_model():
 
         trainer.train()
 
-        clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
+        clf_report, _ = trainer.test(test_features=test_tfidf, test_labels=y_test)
         print("-------------------------")
         print(f"k == {k}")
         print(clf_report)

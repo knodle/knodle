@@ -2,10 +2,10 @@ from typing import Callable
 import os
 
 from snorkel.classification import cross_entropy_with_probs
-import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
-from knodle.trainer.utils.utils import check_and_return_device
+
+from knodle.trainer.utils.utils import check_and_return_device, set_seed
 
 
 class TrainerConfig:
@@ -16,12 +16,20 @@ class TrainerConfig:
             optimizer: Optimizer = None,
             output_classes: int = 2,
             epochs: int = 35,
-            seed: int = 42,
-            evaluate_with_other_class: bool = False,
-            output_dir_path: str = None
-        ):
+            output_dir_path: str = None,
+            if_set_seed: bool = False,
+            filter_non_labelled: bool = True,
+            use_probabilistic_labels: bool = True,
+            other_class_id: int = None,
+            grad_clipping: int = None,
+            class_weights: Tensor = None,
+            evaluate_with_other_class: bool = False
+    ):
         self.criterion = criterion
         self.batch_size = batch_size
+
+        if if_set_seed is True:
+            set_seed(12345)
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
@@ -31,27 +39,22 @@ class TrainerConfig:
             raise ValueError("An optimizer needs to be provided")
         else:
             self.optimizer = optimizer
+
         self.output_classes = output_classes
         self.device = check_and_return_device()
-        self.seed = seed
-        self.evaluate_with_other_class = evaluate_with_other_class
-        torch.manual_seed(self.seed)
 
+        # create model directory
         self.output_dir_path = output_dir_path
-        if output_dir_path is not None:
+        if self.output_dir_path is not None:
             os.makedirs(self.output_dir_path, exist_ok=True)
 
-
-
-class MajorityConfig(TrainerConfig):
-    def __init__(
-            self,
-            filter_non_labelled: bool = True,
-            use_probabilistic_labels: bool = True,
-            other_class_id: int = None,
-            **kwargs
-    ):
-        super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.use_probabilistic_labels = use_probabilistic_labels
         self.other_class_id = other_class_id
+        self.grad_clipping = grad_clipping
+        self.evaluate_with_other_class = evaluate_with_other_class
+
+        if class_weights is not None and len(class_weights) != self.output_classes:
+            raise Exception("Wrong class sample_weights initialisation!")
+        else:
+            self.class_weights = class_weights
