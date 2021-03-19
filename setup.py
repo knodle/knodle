@@ -18,7 +18,7 @@ with open("requirements.txt") as f:
 
 test_requirements = ["pytest", "pytest-cov"]
 
-# use external package to extract version of the latest release
+# use external package to extract tag of the latest release as version
 # https://pypi.org/project/setuptools-git-versioning/
 
 setup(
@@ -26,11 +26,12 @@ setup(
     version_config={
         "template": "{tag}",  # no untracked files, no new commits
         "dev_template": "{tag}.dev{ccount}",  # no untracked files, new commits since last tag
-        # untracked files and/or new commits since last tag (always the case during git action build
+        # untracked files and/or new commits since last tag
+        # (marina-sp) for some reason this template is always used during git action build
         "dirty_template": "{tag}.post{ccount}",
         "count_commits_from_version_file": False
     },
-    setup_requires=['setuptools-git-versioning'],
+    setup_requires=['setuptools-git-ver'],
     url="http://knodle.cc",
     project_urls={
         "github": "https://github.com/knodle/knodle",

@@ -41,11 +41,8 @@ jobs:
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
         run: |
-          git diff --stat
           python3 setup.py sdist bdist_wheel
-          git diff --stat
           python3 -m twine upload dist/*
-          git diff --stat
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
