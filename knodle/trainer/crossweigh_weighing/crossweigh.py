@@ -48,7 +48,6 @@ class CrossWeighTrainer(NoDenoisingTrainer):
         super().__init__(**kwargs)
 
         self.evaluation_method = evaluation_method
-        self.dev_labels_ids = dev_labels_ids
         self.path_to_weights = path_to_weights
         self.run_classifier = run_classifier
         self.use_weights = use_weights
