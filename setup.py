@@ -27,7 +27,7 @@ setup(
         "template": "{tag}",  # no untracked files, no new commits
         "dev_template": "{tag}.dev{ccount}",  # no untracked files, new commits since last tag
         # untracked files and/or new commits since last tag (always the case during git action build
-        "dirty_template": "{tag}" if ccount != 0 else "{tag}.post{ccount}",
+        "dirty_template": "{tag}.post{ccount}",
         "count_commits_from_version_file": False
     },
     setup_requires=['setuptools-git-versioning'],

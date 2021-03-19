@@ -20,6 +20,9 @@ lib
 lib64
 __pycache__
 
+# package helper
+knodle-*
+
 # Installer logs
 pip-log.txt
 
