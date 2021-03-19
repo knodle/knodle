@@ -51,6 +51,10 @@ class TrainerConfig:
         self.filter_non_labelled = filter_non_labelled
         self.use_probabilistic_labels = use_probabilistic_labels
         self.other_class_id = other_class_id
+
+        if other_class_id < 0:
+            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
+
         self.grad_clipping = grad_clipping
         self.evaluate_with_other_class = evaluate_with_other_class
 

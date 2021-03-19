@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
 from torch.utils.data import TensorDataset
-import warnings
 from knodle.transformation.filter import filter_empty_probabilities
 
 
@@ -49,7 +48,6 @@ def z_t_matrices_to_majority_vote_probs(
         other_class: Class which is chosen, if no function is hitting.
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
-
     if rule_matches_z.shape[1] != mapping_rules_labels_t.shape[0]:
         raise ValueError(f"Dimensions mismatch! Z matrix has shape {rule_matches_z.shape}, while "
                          f"T matrix has shape {mapping_rules_labels_t.shape}")
@@ -66,18 +64,11 @@ def z_t_matrices_to_majority_vote_probs(
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
     if other_class:
-        if other_class < 0:
-            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        if other_class < mapping_rules_labels_t.shape[1] - 1:
-            warnings.warn(f"Negative class {other_class} is already present in data")
-
         if rule_counts.shape[1] == other_class:
             rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
             rule_counts[~rule_counts.any(axis=1), other_class] = 1
         elif rule_counts.shape[1] >= other_class:
             rule_counts[~rule_counts.any(axis=1), other_class] = 1
-        else:
-            raise ValueError("Other class id is incorrect")
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
     
     print(f"Final shape: {rule_counts_probs.shape}")
