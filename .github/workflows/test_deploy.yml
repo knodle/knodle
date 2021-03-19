@@ -39,7 +39,6 @@ jobs:
       - name: "Tag Release"
         run: |
           git tag ${{ github.event.inputs.release-version }}
-          git push --tags
 
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
@@ -50,7 +49,3 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
           TWINE_REPOSITORY: testpypi
-
-      - name: "Remove test tag"
-        run: |
-          git push --delete origin ${{ github.event.inputs.release-version }}
