@@ -8,6 +8,7 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.transformation.torch_input import input_labels_to_tensordataset
+from knodle.transformation.filter import filter_empty_probabilities
 
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
@@ -30,19 +31,16 @@ class SnorkelTrainer(NoDenoisingTrainer):
 
         if self.trainer_config.filter_non_labelled:
             # filter instance with no LF matches
-            non_zero_indices = np.where(self.rule_matches_z.sum(axis=1) != 0)[0]
-            rule_matches_z = self.rule_matches_z[non_zero_indices]
-            tensors = list(self.model_input_x.tensors)
-            for i in range(len(tensors)):
-                tensors[i] = tensors[i][non_zero_indices]
-            model_input_x = TensorDataset(*tensors)
+            model_input_x, rule_matches_z = filter_empty_probabilities(self.model_input_x, filter_matrix=self.rule_matches_z)
         else:
             model_input_x = self.model_input_x
             rule_matches_z = self.rule_matches_z
 
-        # create Snorkel matrix and train LabelModel
-        L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z, self.mapping_rules_labels_t)
+        # snorkel has no benefit from zero rows; they are excluded from training and prediction
+        non_zero_indices = np.where(self.rule_matches_z.sum(axis=1) != 0)[0]
+        L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z[non_zero_indices], self.mapping_rules_labels_t)
 
+        # train LabelModel
         label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
         label_model.fit(
             L_train,
@@ -51,23 +49,32 @@ class SnorkelTrainer(NoDenoisingTrainer):
             seed=self.trainer_config.seed
         )
         label_probs = label_model.predict_proba(L_train)
-        
-        # todo: check for nan output probabilities
-        
+
         if self.trainer_config.other_class_id:
-            # post-process snorkel labels; add other class for instances with no LF matches
-            zero_indices = np.where(self.rule_matches_z.sum(axis=1) == 0)[0]
-            other_class_probs = np.zeros((label_probs.shape[0], 1))
-            other_class_probs[zero_indices] = 1.0
-            label_probs = np.concatenate([label_probs, other_class_probs], axis=1)    
-            
+            # post-process snorkel labels to have other class id
+            label_probs_full = np.zeros((rule_matches_z.shape[0], self.trainer_config.output_classes))
+
+            # get ids of all base classes (not other_class_id)
+            non_other_class_labels = np.where(
+                np.arange(self.trainer_config.output_classes) != self.trainer_config.other_class_id)[0]
+
+            # unusual subsetting: take only specific rows and only specific column values
+            label_probs_full[
+                non_zero_indices.reshape(-1, 1),
+                non_other_class_labels.reshape(1, -1)
+            ] = label_probs
+
+            # set rows with no prediction to other class
+            label_probs_full[~non_zero_indices, self.trainer_config.other_class_id] = 1.0
+            label_probs = label_probs_full
+
         # cache the resulting labels
         if self.trainer_config.caching_folder is not None:
             cache_dir = self.trainer_config.caching_folder
             cache_file = os.path.join(cache_dir, "snorkel_labels.lib")
             os.makedirs(cache_dir, exist_ok=True)
             joblib.dump(label_probs, cache_file)
-            
+
         return model_input_x, label_probs
 
     def train(self):
@@ -90,7 +97,7 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
 
     def train(self):
         # Snorkel denoising
-        denoised_rule_matches_z = self._knn_denoise_rule_matches()
+        self._knn_denoise_rule_matches()
         model_input_x, label_probs = self._snorkel_denoising()
 
         # Standard training

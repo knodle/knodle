@@ -4,11 +4,10 @@
 Score the predictions with gold labels, using precision, recall and F1 metrics.
 """
 
-import sys
 import logging
 
 from collections import Counter
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -18,19 +17,31 @@ from knodle.transformation.labels import translate_predictions
 logger = logging.getLogger(__name__)
 
 def other_class_classification_report(
-        y_pred: np.array, y_true: np.array, labels2ids: Dict, verbose: bool = True
+        y_pred: np.array, y_true: np.array, ids2labels: Dict, other_class_id: int, verbose: bool = True
 ) -> Dict:
+    """ Prepare the batch for the label-based evaluation. """
     string_prediction, string_gold = translate_predictions(
-        predictions=y_pred, labels=y_true, labels2ids=labels2ids
+        predictions=y_pred, labels=y_true, ids2labels=ids2labels
     )
-    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose)
+    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose,
+                       other_class_label=ids2labels[other_class_id])
     return clf_report
 
 
-NO_RELATION = "no_relation"
-
-
-def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
+def score(
+        key: List[str], prediction: List[str], verbose: bool = False, other_class_label: str = "no_relation"
+) -> Dict[str, float]:
+    """
+    Computes the precision, recall and f1-score with respect to the other_class label.
+    Other class is treated as a separate negative class not included into the evaluation,
+    i.e. the metric counts a correctly predicted absence of a label as a TN rather than a TP.
+    Args:
+        key: List with gold string labels for the batch
+        prediction: List with predicted labels for the batch
+        verbose: Whether to output per-relation statistics
+        other_class_label: Label of the class that should be treated as negative.
+    Returns: Decision per sample. Shape: (instances, )
+    """
     correct_by_relation = Counter()
     guessed_by_relation = Counter()
     gold_by_relation = Counter()
@@ -38,13 +49,13 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
     for row in range(len(key)):
         gold = key[row]
         guess = prediction[row]
-        if gold == NO_RELATION and guess == NO_RELATION:
+        if gold == other_class_label and guess == other_class_label:
             pass
-        elif gold == NO_RELATION and guess != NO_RELATION:
+        elif gold == other_class_label and guess != other_class_label:
             guessed_by_relation[guess] += 1
-        elif gold != NO_RELATION and guess == NO_RELATION:
+        elif gold != other_class_label and guess == other_class_label:
             gold_by_relation[gold] += 1
-        elif gold != NO_RELATION and guess != NO_RELATION:
+        elif gold != other_class_label and guess != other_class_label:
             guessed_by_relation[guess] += 1
             gold_by_relation[gold] += 1
             if gold == guess:
@@ -72,12 +83,10 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
             if prec + recall > 0:
                 f1 = 2.0 * prec * recall / (prec + recall)
             # (print the score)
-            line = f"{relation:{longest_relation}s}    P: {prec:6.2f}    R: {recall:6.2f}    F1: {f1:6.2f}    #: {gold:6d}"
+            line = f"{relation:{longest_relation}s}\tP: {prec:6.2f}    R: {recall:6.2f}    " \
+                f"F1: {f1:6.2f}    #: {gold:6d}"
             logger.info(line)
 
-    # Print the aggregate score
-    if verbose:
-        logger.info("Final Score:")
     prec_micro = 1.0
     if sum(guessed_by_relation.values()) > 0:
         prec_micro = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
@@ -88,10 +97,11 @@ def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
     if prec_micro + recall_micro > 0.0:
         f1_micro = 2.0 * prec_micro * recall_micro / (prec_micro + recall_micro)
 
+    # Print the aggregate score
+    logger.info("Final Score:")
     logger.info("Precision (micro): {:.3%}".format(prec_micro))
     logger.info("   Recall (micro): {:.3%}".format(recall_micro))
     logger.info("       F1 (micro): {:.3%}".format(f1_micro))
-
     logger.info("\n")
 
     return {"precision": prec_micro, "recall": recall_micro, "f1": f1_micro}

@@ -41,12 +41,14 @@ class NoDenoisingTrainer(Trainer):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
+            ids2labels: Dict = None,
             trainer_config: TrainerConfig = None
     ):
         if trainer_config is None:
             trainer_config = TrainerConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z,
+            ids2labels=ids2labels, trainer_config=trainer_config
         )
 
         self.dev_model_input_x = dev_model_input_x
@@ -209,7 +211,8 @@ class NoDenoisingTrainer(Trainer):
         if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
             clf_report = other_class_classification_report(
-                y_pred=predictions, y_true=gold_labels, labels2ids=self.labels2ids, verbose=True
+                y_pred=predictions, y_true=gold_labels, ids2labels=self.ids2labels,
+                verbose=True, other_class_id=self.trainer_config.other_class_id
             )
         else:
             logger.info("Using standard scikit-learn evaluation.")
