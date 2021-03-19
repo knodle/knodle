@@ -20,10 +20,20 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install setuptools wheel twine
 
+      - name: "Tag Update"
+          run: |
+            GITTAG=$(git tag --points-at HEAD)
+            python3 update_version_from_tag.py $GITTAG
+            git add knodle/version.py
+            git commit -m "update version to $GITTAG"
+            git push
+
       - name: "Builds and uploads to PyPI"
         run: |
           python3 setup.py sdist bdist_wheel
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+          TWINE_REPOSITORY: testpypi
+          #TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
