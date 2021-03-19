@@ -22,8 +22,7 @@ jobs:
 
       - name: "Tag Update"
         run: |
-          GITTAG=$(git tag --points-at HEAD)
-          python3 update_version_from_tag.py $GITTAG
+          python3 update_version_from_tag.py $(git tag --points-at HEAD)
 
       - name: "Builds and uploads to PyPI"
         run: |
