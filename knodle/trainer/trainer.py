@@ -22,6 +22,7 @@ class Trainer(ABC):
             mapping_rules_labels_t: np.ndarray,
             model_input_x: TensorDataset,
             rule_matches_z: np.ndarray,
+            ids2labels: Dict = None,
             trainer_config: TrainerConfig = None,
     ):
         """
@@ -36,8 +37,8 @@ class Trainer(ABC):
         self.model = model
         self.mapping_rules_labels_t = mapping_rules_labels_t
         self.model_input_x = model_input_x
-        self.labels2ids = labels2ids
         self.rule_matches_z = rule_matches_z
+        self.ids2labels = ids2labels
         if trainer_config is None:
             self.trainer_config = TrainerConfig(model)
         else:
@@ -50,6 +51,8 @@ class Trainer(ABC):
         elif self.trainer_config.other_class_id < self.mapping_rules_labels_t.shape[1] - 1:
             logging.warning(f"Negative class {self.trainer_config.other_class_id} is already present in data")
 
+        logger.debug(f"{self.trainer_config.evaluate_with_other_class} and {self.ids2labels}")
+        if self.trainer_config.evaluate_with_other_class and self.ids2labels is None:
             # check if the selected evaluation type is valid
             logging.warning(
                 "Labels to labels ids correspondence is needed to make other_class specific evaluation. Since it is "
@@ -82,7 +85,7 @@ class Trainer(ABC):
         if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
             clf_report = other_class_classification_report(
-                y_pred=predictions, y_true=test_labels, labels2ids=self.labels2ids
+                y_pred=predictions, y_true=test_labels, ids2labels=self.ids2labels
             )
         else:
             logger.info("Using standard scikit-learn evaluation.")
