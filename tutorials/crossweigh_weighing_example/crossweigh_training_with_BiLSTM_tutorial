@@ -14,7 +14,7 @@ from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
-from tutorials.utils import read_train_dev_test
+from tutorials.utils import read_train_dev_test, get_samples_list
 
 NUM_CLASSES = 42
 MAXLEN = 50
@@ -97,9 +97,9 @@ def train_crossweigh(
     print(clf_report)
 
 
-def get_samples_features(input_data: pd.DataFrame, word2id: dict, samples_column_num: int) -> TensorDataset:
+def get_samples_features(input_data: pd.DataFrame, word2id: dict, samples_column_num: int = None) -> TensorDataset:
     """ Encodes input samples with glove vectors and returns as a Dataset """
-    enc_input_samples = encode_samples(list(input_data.iloc[:, samples_column_num]), word2id, MAXLEN)
+    enc_input_samples = encode_samples(get_samples_list(input_data, samples_column_num), word2id, MAXLEN)
     inputs_x_tensor = torch.LongTensor(enc_input_samples)
     inputs_x_dataset = torch.utils.data.TensorDataset(inputs_x_tensor)
     return inputs_x_dataset
@@ -125,9 +125,7 @@ def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
     enc_input_samples = []
     for sample in raw_samples:
         enc_tokens = [word2id.get(token, 1) for token in sample.lstrip().split(" ")]
-        enc_input_samples.append(
-            np.asarray(add_padding(enc_tokens, maxlen), dtype="float32")
-        )
+        enc_input_samples.append(np.asarray(add_padding(enc_tokens, maxlen), dtype="float32"))
     return enc_input_samples
 
 
@@ -186,10 +184,13 @@ def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labe
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
-    parser.add_argument("--path_to_data", help="")
-    parser.add_argument("--path_to_label_ids", help="")
-    parser.add_argument("--path_to_word_embeddings", help="")
-    parser.add_argument("--sample_weights", help="If there are pretrained samples sample_weights")
+    parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
+    parser.add_argument("--path_to_label_ids", help="Path to the file information about labels and their ids is stored")
+    parser.add_argument("--path_to_word_embeddings", help="Path to the file with pretrained Glove embeddings used for "
+                                                          "samples encoding")
+    parser.add_argument("--sample_weights", help="Path to the folder that either sample weights will be saved to"
+                                                 "or will be loaded from")
+    parser.add_argument("--num_classes", help="Number of classes")
 
     args = parser.parse_args()
 

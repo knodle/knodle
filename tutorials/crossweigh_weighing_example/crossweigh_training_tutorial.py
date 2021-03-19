@@ -6,7 +6,6 @@ from typing import Union, Tuple
 import pandas as pd
 import numpy as np
 import torch
-from joblib import load
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
@@ -15,19 +14,17 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
+from tutorials.utils import get_samples_list, read_train_dev_test
 
-NUM_CLASSES = 2
 CLASS_WEIGHTS = torch.FloatTensor([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.0])
 
 
-def train_crossweigh(
-        path_to_data: str,
-        path_sample_weights: str = None,
-) -> None:
+def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: int) -> None:
     """ Training the BERT model with data denoising using DSCrossWeigh algorithm with logistic regression model """
 
+    num_classes = int(num_classes)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
     train_df, dev_df, test_df, z_train_rule_matches, z_test_rule_matches, t_mapping_rules_labels = \
         read_train_dev_test(path_to_data, if_dev_data=True)
@@ -49,21 +46,15 @@ def train_crossweigh(
     os.makedirs(path_sample_weights, exist_ok=True)
 
     parameters = {
-        "lr": 1e-4,
-        "cw_lr": 0.8,
-        "epochs": 5,
-        "cw_partitions": 2,
-        "cw_folds": 5,
-        "cw_epochs": 2,
-        "weight_rr": 0.7,
+        "lr": 1e-4, "cw_lr": 0.8, "epochs": 5, "cw_partitions": 2, "cw_folds": 5, "cw_epochs": 2, "weight_rr": 0.7,
         "samples_start_weights": 4.0
     }
 
-    model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=NUM_CLASSES)
-    cw_model = LogisticRegressionModel(train_tfidf.shape[1], NUM_CLASSES)
+    model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
+    cw_model = LogisticRegressionModel(train_tfidf.shape[1], num_classes)
 
     custom_crossweigh_config = CrossWeighDenoisingConfig(
-        output_classes=NUM_CLASSES,
+        output_classes=num_classes,
         class_weights=CLASS_WEIGHTS,
         filter_non_labelled=False,
         other_class_id=41,
@@ -99,35 +90,11 @@ def train_crossweigh(
     print(clf_report)
 
 
-def read_train_dev_test(
-        target_path: str, if_dev_data: bool = False
-) -> Union[Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, np.ndarray, np.ndarray, np.ndarray],
-           Tuple[pd.DataFrame, None, pd.DataFrame, np.ndarray, np.ndarray, np.ndarray]]:
-    """This function loads the matrices as well as train, test (occasionally, also dev) data from corresponding files"""
-    train_df = load(os.path.join(target_path, 'df_train.lib'))
-    test_df = load(os.path.join(target_path, 'df_test.lib'))
-    z_train_rule_matches = load(os.path.join(target_path, 'train_rule_matches_z.lib'))
-    z_test_rule_matches = load(os.path.join(target_path, 'test_rule_matches_z.lib'))
-    mapping_rules_labels_t = load(os.path.join(target_path, 'mapping_rules_labels.lib'))
-
-    if if_dev_data:
-        dev_df = load(os.path.join(target_path, 'df_dev.lib'))
-        return train_df, dev_df, test_df, z_train_rule_matches, z_test_rule_matches, mapping_rules_labels_t
-
-    return train_df, None, test_df, z_train_rule_matches, z_test_rule_matches, mapping_rules_labels_t
-
-
 def get_bert_encoded_features(
         input_data: pd.Series, tokenizer: DistilBertTokenizer, column_num: int = None
 ) -> TensorDataset:
     """ Convert input data to BERT encoded features """
-    if isinstance(input_data, pd.Series):
-        encoding = tokenizer(list(input_data), return_tensors='pt', padding=True, truncation=True)
-    elif isinstance(input_data, pd.DataFrame) and column_num:
-        encoding = tokenizer(list(input_data.iloc[:, column_num]), return_tensors='pt', padding=True, truncation=True)
-    else:
-        raise ValueError("Please pass input data either as a Series or a DataFrame with specified number where samples"
-                         "are stored")
+    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
     input_ids = encoding['input_ids']
     attention_mask = encoding['attention_mask']
     return TensorDataset(input_ids, attention_mask)
@@ -139,43 +106,21 @@ def get_tfidf_features(
 ) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
     """ Convert input data to a matrix of TF-IDF features """
     vectorizer = TfidfVectorizer()
-
-    if isinstance(train_data, pd.Series):
-        train_transformed_data = vectorizer.fit_transform(list(train_data))
-    elif isinstance(train_data, pd.DataFrame) and column_num:
-        train_transformed_data = vectorizer.fit_transform(list(train_data.iloc[:, column_num]))
-    else:
-        raise ValueError("Please pass input data either as a Series or a DataFrame with specified number where samples"
-                         "are stored")
-
-    if isinstance(test_data, pd.Series):
-        test_transformed_data = vectorizer.transform(list(test_data))
-    elif isinstance(test_data, pd.DataFrame) and column_num:
-        test_transformed_data = vectorizer.transform(list(test_data.iloc[:, column_num]))
-    else:
-        raise ValueError("Please pass input data either as a Series or a DataFrame with specified number where samples"
-                         "are stored")
+    train_transformed_data = vectorizer.fit_transform(get_samples_list(train_data, column_num))
+    test_transformed_data = vectorizer.transform(get_samples_list(test_data, column_num))
 
     if dev_data is not None:
-        if isinstance(dev_data, pd.Series):
-            dev_transformed_data = vectorizer.transform(list(dev_data))
-        elif isinstance(dev_data, pd.DataFrame) and column_num:
-            dev_transformed_data = vectorizer.transform(list(dev_data.iloc[:, column_num]))
-        else:
-            raise ValueError(
-                "Please pass input data either as a Series or a DataFrame with specified number where samples"
-                "are stored")
+        dev_transformed_data = vectorizer.transform(get_samples_list(dev_data, column_num))
         return train_transformed_data, test_transformed_data, dev_transformed_data
     return train_transformed_data, test_transformed_data, None
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
-    parser.add_argument("--path_to_data", help="")
-    parser.add_argument("--sample_weights", help="If there are pretrained samples sample_weights")
-
+    parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
+    parser.add_argument("--sample_weights", help="Path to the folder that either sample weights will be saved to or "
+                                                 "will be loaded from")
+    parser.add_argument("--num_classes", help="Number of classes")
     args = parser.parse_args()
 
-    train_crossweigh(
-        args.path_to_data, args.sample_weights
-    )
+    train_crossweigh(args.path_to_data, args.sample_weights, args.num_classes)

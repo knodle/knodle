@@ -14,8 +14,8 @@ from knodle.trainer.knn_denoising.config import KNNConfig
 from knodle.trainer.knn_denoising.knn_denoising import (
     KnnDenoisingTrainer,
 )
-from tutorials.ImdbDataset.utils import create_tfidf_values, init_logger
-from tutorials.utils import read_train_dev_test
+from tutorials.ImdbDataset.utils import init_logger
+from tutorials.utils import create_tfidf_values, read_train_dev_test
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def train_knn_model():
     X_test = test_df.reviews_preprocessed
 
     tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, True, MAX_FEATURES
+        imdb_dataset.reviews_preprocessed.values, MAX_FEATURES, path_to_cash="tutorials/ImdbDataset/tfidf.lib"
     )
 
     train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
