@@ -6,8 +6,6 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation import tacred_metrics
-
 logger = logging.getLogger(__name__)
 
 
