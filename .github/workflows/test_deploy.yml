@@ -56,3 +56,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
           TWINE_REPOSITORY: testpypi
+
+      - name: "Remove test tag"
+        run: |
+          git push --delete origin ${{ github.event.inputs.release-version }}
