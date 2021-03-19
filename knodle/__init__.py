@@ -2,6 +2,7 @@
 
 __author__ = "knodle <knodle@cs.univie.ac.at>"
 __all__ = []
+from knodle.version import __version__
 
 import logging
 

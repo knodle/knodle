@@ -13,6 +13,11 @@ def read(filename):
     with io.open(filename, mode="r", encoding="utf-8") as fd:
         return re.sub(text_type(r":[a-z]+:`~?(.*?)`"), text_type(r"``\1``"), fd.read())
 
+
+VERSION: Dict[str, str] = {}
+with open("knodle/version.py", "r") as version_file:
+    exec(version_file.read(), VERSION)
+
 with open("requirements.txt") as f:
     requirements = f.readlines()
 
@@ -23,13 +28,7 @@ test_requirements = ["pytest", "pytest-cov"]
 
 setup(
     name="knodle",
-    version_config={
-        # untracked files and/or new commits since last tag
-        # (marina-sp) for some reason this template is always used during git action build
-        "dirty_template": "{tag}",
-        "count_commits_from_version_file": False
-    },
-    setup_requires=['setuptools-git-versioning'],
+    version=VERSION.get("__version__"),
     url="http://knodle.cc",
     project_urls={
         "github": "https://github.com/knodle/knodle",
