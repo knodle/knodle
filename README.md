@@ -4,6 +4,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![PyPI](https://img.shields.io/pypi/v/knodle)
 
 ## Installation
 
@@ -60,16 +61,17 @@ There are several denoising methods available.
 
 ## Tutorials
 
-The folder [tutorials](https://github.com/knodle/knodle/tree/develop/tutorials/) has different tutorials:
-
-1. [IMDB Dataset Creation](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset): Shows how to create a weakly supervised dataset by incorporating keywords as weak sources.
-2. [Relation Extraction Dataset](https://github.com/knodle/knodle/tree/develop/tutorials/RelationExtractionDataset): Shows the process of creating a dataset with the CONLL dataset.
-3. [Baseline Training](https://github.com/knodle/knodle/tree/develop/tutorials/baseline_training_example): Shows the example process of training a baseline classifier.
-4. [KNN Similarity Trainer](https://github.com/knodle/knodle/tree/develop/tutorials/knn_tfidf_similarity_example): Shows an example of how to use the denoising method of knn for training a weak classifier.
+We also aimed at providing the users with basic tutorials that would explain how to use our framework. All of them are stored in [tutorials](https://github.com/knodle/knodle/tree/develop/tutorials/) folder and logically divided into two groups:
+- tutorials that demonstrate how to prepare the input data for Knodle Framework...
+    - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources (LINK)
+    - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources (LINK)
+- tutorials how to work with Knodle Framework
+    - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle. (LINK)
+    - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained. (LINK)
 
 ## Compatibility
 
-Currently the package will be tested on Python 3.7. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
+Currently the package is tested on Python 3.7. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
 
 ## Structure
 
@@ -96,15 +98,15 @@ knodle
 │          ├── snorkel
 │          └── utils
 │    └── transformation
-├── tutorials
-│    ├── preprocessing
-│          ├── conll_dataset
-│          ├── imdb_dataset
-│          ├── spam_dataset
-│          └── spouse_dataset
-│    └── training
-│          ├── AutoTrainer
-│          └── dscrossweigh
+└── tutorials
+     ├── preprocessing
+           ├── conll_dataset
+           ├── imdb_dataset
+           ├── spam_dataset
+           └── spouse_dataset
+     └── training
+           ├── AutoTrainer
+           └── dscrossweigh
 
 ```
 
@@ -114,7 +116,8 @@ Licensed under the [Apache 2.0 License](LICENSE).
 
 ## Authors
 
-- [Benjamin Roth](https://www.benjaminroth.net/)
 - [Anastasiia Sedova](https://github.com/agsedova)
+- [Andreas Stephan](https://github.com/AndSt)
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
-- Andreas Stephan
+- [Marina Speranskaya](https://github.com/marina-sp) 
+- [Benjamin Roth](https://www.benjaminroth.net/)
