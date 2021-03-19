@@ -1,4 +1,4 @@
-<img src="./knodle_logo.png" height="250"/>
+<img src="./knodle_logo.png" height="200"/>
 
 ### Knowledge infused deep learning framework
 
