@@ -48,7 +48,7 @@ def train_crossweigh(
     :param path_dev_features_labels: path to DataFrame with development data (1st column - samples, 2nd column - labels)
     """
 
-    labels2ids = read_labels_from_file(path_labels, "no_relation")
+    ids2labels = read_labels_from_file(path_labels, "no_relation")
     word2id, word_embedding_matrix = vocab_and_vectors(path_emb)
 
     rule_matches_z = load(path_z)
@@ -96,7 +96,7 @@ def train_crossweigh(
         dev_features=dev_dataset,
         dev_labels=dev_labels,
         evaluation_method="tacred",
-        dev_labels_ids=labels2ids,
+        ids2labels=ids2labels,
         path_to_weights=path_to_weights,
         denoising_config=custom_crossweigh_denoising_config,
         trainer_config=custom_crossweigh_trainer_config,
@@ -140,17 +140,17 @@ def get_dev_data(
 
 def read_labels_from_file(path_labels: str, negative_label: str) -> dict:
     """ Reads the labels from the file and encode them with ids """
-    relation2ids = {}
+    ids2relation = {}
     with open(path_labels, encoding="UTF-8") as file:
         for line in file.readlines():
             relation, relation_enc = line.replace("\n", "").split(",")
-            relation2ids[relation] = int(relation_enc)
+            ids2relation[int(relation_enc)] = relation
 
     # add no_match label
     if negative_label:
-        relation2ids[negative_label] = max(list(relation2ids.values())) + 1
+        ids2relation[max(list(ids2relation.keys())) + 1] = negative_label
 
-    return relation2ids
+    return ids2relation
 
 
 def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:

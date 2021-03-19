@@ -31,7 +31,6 @@ class CrossWeighTrainer(NoDenoisingTrainer):
             cw_model_input_x: TensorDataset = None,
             cw_rule_matches_z: np.ndarray = None,
             evaluation_method: str = "sklearn_classification_report",
-            dev_labels_ids: Dict = None,
             path_to_weights: str = "data",
             run_classifier: bool = True,
             use_weights: bool = True,
