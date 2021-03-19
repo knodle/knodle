@@ -1,8 +1,8 @@
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.config import TrainerConfig
 from knodle.trainer.knn_denoising.config import KNNConfig
 
 
-class SnorkelConfig(MajorityConfig):
+class SnorkelConfig(TrainerConfig):
     def __init__(
             self,
             label_model_num_epochs: int = 100,

@@ -3,10 +3,10 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.auto_trainer import AutoTrainer
 
 
-def test_train():
+def test_auto_train():
     num_samples = 64
     num_features = 16
     num_rules = 6
@@ -25,7 +25,8 @@ def test_train():
     mapping_rules_labels_t = np.zeros((num_rules, num_classes))
     mapping_rules_labels_t[:, 1] = 1
 
-    trainer = NoDenoisingTrainer(
+    trainer = AutoTrainer(
+        name="no_denoising",
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,
@@ -36,7 +37,7 @@ def test_train():
 
     y_np = np.ones((num_samples,))
     y_labels = TensorDataset(torch.from_numpy(y_np))
-    metrics, _ = trainer.test(model_input_x, y_labels)
+    metrics = trainer.test(model_input_x, y_labels)
 
     # Check whether the code ran up to here
     assert 2 == 2
