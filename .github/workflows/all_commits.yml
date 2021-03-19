@@ -1,4 +1,4 @@
-name: Lint, test on every commit
+name: lint_n_test
 
 on: [ push ]
 

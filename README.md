@@ -5,8 +5,8 @@
 [![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![PyPI](https://img.shields.io/pypi/v/knodle)
-[![build](https://travis-ci.com/knodle/knodle.svg?branch=develop)](https://travis-ci.com/knodle/knodle?branch=develop)
 
+[![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions)
 ## Installation
 
 ```
@@ -133,3 +133,7 @@ And don't forget to follow [@knodle](https://twitter.com/knodle) on Twitter :)
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - [Marina Speranskaya](https://github.com/marina-sp) 
 - [Benjamin Roth](https://www.benjaminroth.net/)
+
+## Acknowledgments
+
+This research was funded by the WWTF though the project “Knowledge-infused Deep Learning for Natural Language Processing” (WWTF Vienna Research Group VRG19-008).
