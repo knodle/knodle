@@ -71,6 +71,43 @@ The folder [tutorials](https://github.com/knodle/knodle/tree/develop/tutorials/)
 
 Currently the package will be tested on Python 3.7. It is possible to add further versions. The CI/CD pipeline needs to be updated in that case.
 
+## Structure
+
+The structure of the code is as follows
+```
+knodle
+├── knodle
+│    ├── data
+│    ├── evaluation
+│    ├── trainer
+│          ├── baseline
+│          ├── dscrossweigh_denoising
+│          ├── knn_denoising
+│          ├── snorkel
+│          └── utils
+│    ├── transformation
+│    └── utils
+├── tests
+│    ├── data
+│    ├── evaluation
+│    ├── trainer
+│          ├── baseline
+│          ├── dscrossweigh
+│          ├── snorkel
+│          └── utils
+│    └── transformation
+├── tutorials
+│    ├── preprocessing
+│          ├── conll_dataset
+│          ├── imdb_dataset
+│          ├── spam_dataset
+│          └── spouse_dataset
+│    └── training
+│          ├── AutoTrainer
+│          └── dscrossweigh
+
+```
+
 ## License
 
 Licensed under the [Apache 2.0 License](LICENSE).
