@@ -12,8 +12,8 @@ from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
+from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh import DSCrossWeighTrainer
 from tutorials.utils import get_samples_list, read_train_dev_test
 
 CLASS_WEIGHTS = torch.FloatTensor([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
@@ -53,7 +53,7 @@ def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: i
     model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
     cw_model = LogisticRegressionModel(train_tfidf.shape[1], num_classes)
 
-    custom_crossweigh_config = CrossWeighDenoisingConfig(
+    custom_crossweigh_config = DSCrossWeighDenoisingConfig(
         output_classes=num_classes,
         class_weights=CLASS_WEIGHTS,
         filter_non_labelled=False,
@@ -71,7 +71,7 @@ def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: i
         cw_optimizer=torch.optim.Adam(cw_model.parameters(), lr=parameters.get("cw_lr"))
     )
 
-    trainer = CrossWeighTrainer(
+    trainer = DSCrossWeighTrainer(
         model=model,
         cw_model=cw_model,
         mapping_rules_labels_t=t_mapping_rules_labels,

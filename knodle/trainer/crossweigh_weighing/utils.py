@@ -82,7 +82,7 @@ def check_splitting(
         samples: torch.Tensor,
         labels: np.ndarray,
 ) -> None:
-    """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
+    """ Custom function to check that the splitting into train and test sets fro DSCrossWeigh was done correctly"""
 
     rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
     tst_sample = tst_samples.tensors[0][rnd_tst, :]
