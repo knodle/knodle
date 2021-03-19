@@ -2,7 +2,7 @@ import sys
 import re
 
 tag = sys.argv[1]
-version_pattern = re.compile("\d+(.\d+)+")
+version_pattern = re.compile("\d+(.\d+)+(.(dev|post)\d+)?")
 version = re.search(version_pattern, tag).group()
 
 with open("knodle/version.py", "w") as fp:

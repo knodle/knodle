@@ -39,9 +39,6 @@ jobs:
       - name: "Tag Release"
         run: |
           python3 update_version_from_tag.py ${{ github.event.inputs.release-version }}
-          git add knodle/version.py
-          git commit -m "update version to ${{ github.event.inputs.release-version }}"
-          git push
 
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
