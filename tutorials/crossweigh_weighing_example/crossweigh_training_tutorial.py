@@ -11,7 +11,7 @@ from joblib import load
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.other_class_f1 import other_class_classification_report
 from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
@@ -106,7 +106,7 @@ def train_crossweigh(
 
     trainer.train()
     print("Testing on the test dataset....")
-    metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
+    metrics = test(model, trainer, test_dataset, test_labels, ids2labels)
     print(metrics)
 
 
@@ -172,7 +172,7 @@ def add_padding(tokens: list, maxlen: int) -> list:
     return padded_tokens
 
 
-def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
+def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, ids2labels: Dict) -> Dict:
     feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
     feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
 
@@ -187,12 +187,10 @@ def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labe
     predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
                                         all_labels.detach().type(torch.IntTensor).tolist())
 
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in test_labels_idx]
-
-    return score(test_labels, predictions, verbose=True)
+    return other_class_classification_report(
+        y_pred=predictions_idx, y_true=test_labels_idx,
+        ids2labels=ids2labels, other_class_id=41, verbose=True
+    )
 
 
 if __name__ == "__main__":
