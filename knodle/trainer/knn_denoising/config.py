@@ -10,6 +10,7 @@ class KNNConfig(TrainerConfig):
             use_approximation: bool = False,
             activate_no_match_instances: bool = True,
             caching_folder: str = None,  # if set to string, denoised data is cached
+            n_jobs_for_index: int = 4,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -19,6 +20,7 @@ class KNNConfig(TrainerConfig):
         self.use_approximation = use_approximation
         self.activate_no_match_instances = activate_no_match_instances
         self.caching_folder = caching_folder
+        self.n_jobs = n_jobs_for_index
 
         if self.k is not None and self.radius is not None:
             raise RuntimeError(
