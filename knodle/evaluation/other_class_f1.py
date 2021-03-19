@@ -23,14 +23,25 @@ def other_class_classification_report(
     string_prediction, string_gold = translate_predictions(
         predictions=y_pred, labels=y_true, ids2labels=ids2labels
     )
-    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose)
+    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose,
+                       other_class_label=ids2labels[other_class_id])
     return clf_report
 
 
-NO_RELATION = "no_relation"
-
-
-def score(key, prediction, verbose=False):  # key ist ein batch, prediction auch
+def score(
+        key: List[str], prediction: List[str], verbose: bool = False, other_class_label: str = "no_relation"
+) -> Dict[str, float]:
+    """
+    Computes the precision, recall and f1-score with respect to the other_class label.
+    Other class is treated as a separate negative class not included into the evaluation,
+    i.e. the metric counts a correctly predicted absence of a label as a TN rather than a TP.
+    Args:
+        key: List with gold string labels for the batch
+        prediction: List with predicted labels for the batch
+        verbose: Whether to output per-relation statistics
+        other_class_label: Label of the class that should be treated as negative.
+    Returns: Decision per sample. Shape: (instances, )
+    """
     correct_by_relation = Counter()
     guessed_by_relation = Counter()
     gold_by_relation = Counter()
