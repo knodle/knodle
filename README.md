@@ -5,6 +5,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.7-red.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![PyPI](https://img.shields.io/pypi/v/knodle)
+[![build](https://travis-ci.com/knodle/knodle.svg?branch=develop)](https://travis-ci.com/knodle/knodle?branch=develop)
 
 ## Installation
 
