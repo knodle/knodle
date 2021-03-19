@@ -28,10 +28,10 @@ setup(
         "dev_template": "{tag}.dev{ccount}",  # no untracked files, new commits since last tag
         # untracked files and/or new commits since last tag
         # (marina-sp) for some reason this template is always used during git action build
-        "dirty_template": "{tag}.post{ccount}",
+        "dirty_template": "{tag}",
         "count_commits_from_version_file": False
     },
-    setup_requires=['setuptools-git-ver'],
+    setup_requires=['setuptools-git-versioning'],
     url="http://knodle.cc",
     project_urls={
         "github": "https://github.com/knodle/knodle",

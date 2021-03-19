@@ -4,12 +4,16 @@ name: Upload to TestPyPI
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push to the master branch
-  push:
-    branches:
-      - feature/159-pypi
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      release-version:
+        description: 'Release version tag'
+        default: 'v0.1.0'
+        required: true  # Triggers the workflow on push to the master branch
+  #push:
+  #  branches:
+  #    - feature/159-pypi
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -37,6 +41,11 @@ jobs:
           python3 -m pip install --upgrade pip
           # Install build deps
           python3 -m pip install setuptools wheel twine
+
+      - name: "Tag Release"
+        run: |
+          git tag ${{ github.event.inputs.release-version }}
+          git push --tags
 
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
