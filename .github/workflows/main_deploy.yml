@@ -3,8 +3,6 @@ name: Upload to PIP on Release
 on:
   release:
     types: [created]
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
 
 jobs:
   upload:
@@ -24,11 +22,8 @@ jobs:
 
       - name: "Builds and uploads to PyPI"
         run: |
-          git diff --stat
           python3 setup.py sdist bdist_wheel
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
-          #TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
-          TWINE_REPOSITORY: testpypi
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

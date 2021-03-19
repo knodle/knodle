@@ -24,8 +24,6 @@ test_requirements = ["pytest", "pytest-cov"]
 setup(
     name="knodle",
     version_config={
-        "template": "{tag}",  # no untracked files, no new commits
-        "dev_template": "{tag}.dev{ccount}",  # no untracked files, new commits since last tag
         # untracked files and/or new commits since last tag
         # (marina-sp) for some reason this template is always used during git action build
         "dirty_template": "{tag}",

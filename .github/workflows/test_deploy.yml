@@ -7,13 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release-version:
-        description: 'Release version tag'
+        description: 'Test release version tag'
         default: 'v0.1.0'
         required: true  # Triggers the workflow on push to the master branch
-  #push:
-  #  branches:
-  #    - feature/159-pypi
-
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
