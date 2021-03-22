@@ -69,7 +69,7 @@ class NoDenoisingTrainer(Trainer):
 
         train_losses, train_acc = [], []
         if self.dev_model_input_x is not None:
-            dev_losses, dev_acc = [], []
+            dev_losses, dev_metric = [], []
 
         for current_epoch in range(self.trainer_config.epochs):
             logger.info("Epoch: {}".format(current_epoch))
@@ -120,15 +120,16 @@ class NoDenoisingTrainer(Trainer):
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            logger.info("Epoch train loss: {}".format(avg_loss))
-            logger.info("Epoch train accuracy: {}".format(avg_acc))
+            logger.info(f"Epoch train loss: {avg_loss}")
+            logger.info(f"Epoch train accuracy: {avg_loss}")
 
             if self.dev_model_input_x:
                 dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y,
                                                      loss_calculation=True)
                 dev_losses.append(dev_loss)
-                dev_acc.append(dev_clf_report["accuracy"])
-                logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
+                print(dev_clf_report.keys(), self.trainer_config.log_metric)
+                dev_metric.append(dev_clf_report[self.trainer_config.log_metric])
+                logger.info(f"Epoch development {self.trainer_config.log_metric}: {dev_clf_report[self.trainer_config.log_metric]}")
 
             # saving model
             if self.trainer_config.output_dir_path is not None:
@@ -144,7 +145,8 @@ class NoDenoisingTrainer(Trainer):
         if draw_plot:
             if self.dev_model_input_x:
                 draw_loss_accuracy_plot(
-                    {"train loss": train_losses, "train acc": train_acc, "dev loss": dev_losses, "dev acc": dev_acc}
+                    {"train loss": train_losses, "train acc": train_acc, 
+                     "dev loss": dev_losses, f"dev {self.trainer_config.log_metric}": dev_metric}
                 )
             else:
                 draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
@@ -176,7 +178,7 @@ class NoDenoisingTrainer(Trainer):
         self.model.to(self.trainer_config.device)
         self.model.eval()
         predictions_list, label_list = [], []
-        dev_loss, dev_acc = 0.0, 0.0
+        dev_loss = 0.0
 
         i = 0
         # Loop over predictions
@@ -219,7 +221,6 @@ class NoDenoisingTrainer(Trainer):
             clf_report = classification_report(
                 y_true=gold_labels, y_pred=predictions, output_dict=True
             )
-            
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)
         else:

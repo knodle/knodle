@@ -2,7 +2,6 @@ from typing import Dict
 
 
 def sklearn_report_to_knodle_report(sklearn_report: Dict, prefix: str = None):
-
     if prefix is None:
         report = {
             f"accuracy": sklearn_report["accuracy"],

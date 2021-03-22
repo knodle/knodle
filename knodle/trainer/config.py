@@ -52,11 +52,9 @@ class TrainerConfig:
         self.use_probabilistic_labels = use_probabilistic_labels
         self.other_class_id = other_class_id
 
-        if other_class_id < 0:
-            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-
         self.grad_clipping = grad_clipping
         self.evaluate_with_other_class = evaluate_with_other_class
+        self.log_metric = "accuracy" if not evaluate_with_other_class else "f1"
 
         if class_weights is not None and len(class_weights) != self.output_classes:
             raise Exception("Wrong class sample_weights initialisation!")

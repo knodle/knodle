@@ -48,6 +48,8 @@ class Trainer(ABC):
         if self.trainer_config.other_class_id is None:
             if not self.trainer_config.filter_non_labelled:
                 self.trainer_config.other_class_id = self.mapping_rules_labels_t.shape[1]
+        elif self.trainer_config.other_class_id < 0:
+            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
         elif self.trainer_config.other_class_id < self.mapping_rules_labels_t.shape[1] - 1:
             logging.warning(f"Negative class {self.trainer_config.other_class_id} is already present in data")
 
