@@ -70,10 +70,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
             return self.rule_matches_z
 
         # load cached data, if available
-        cache_dir = self.trainer_config.caching_folder
-        if cache_dir is not None:
-            nn_type = "ann" if self.trainer_config.use_approximation else "knn"
-            cache_file = os.path.join(cache_dir, f"denoised_rule_matches_z_{k}_{nn_type}.lib")
+        if self.trainer_config.caching_folder is not None:
+            cache_file = self.trainer_config.get_cache_file()
             if os.path.isfile(cache_file):
                 logger.info(f"Loaded knn matrix from cache: {cache_file}")
                 return joblib.load(cache_file)
@@ -86,12 +84,17 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         else:
             ignore = self.rule_matches_z.sum(-1) == 0
 
+        # ignore zero-match rows for knn construction & activation
+        if self.trainer_config.activate_no_match_instances:
+            ignore = np.zeros((self.knn_feature_matrix.shape[0],), dtype=np.bool)
+        else:
+            ignore = self.rule_matches_z.sum(-1) == 0
+
         # Set up data structure, to quickly find nearest neighbors
         if self.trainer_config.use_approximation:
             # use annoy fast ANN
             if k is not None:
                 knn_matrix_shape = self.knn_feature_matrix.shape
-                
                 logger.info("Creating annoy index...")
                 t = AnnoyIndex(knn_matrix_shape[1], 'dot')
                 for i, v in enumerate(self.knn_feature_matrix):
@@ -104,7 +107,7 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
 
                 logger.info("Retrieving neighbor indices...")
                 indices = ( # make a generator: no memory is allocated at this moment
-                    np.array(t.get_nns_by_item(i, k, search_k=-1, include_distances=False)) 
+                    np.array(t.get_nns_by_item(i, k, search_k=-1, include_distances=False))
                     if not ignore[i] else np.array([])
                     for i in range(knn_matrix_shape[0])
                 )
@@ -131,8 +134,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         self.rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
 
         # save data for caching
-        if cache_dir is not None:
-            os.makedirs(cache_dir, exist_ok=True)
+        if self.trainer_config.caching_folder is not None:
+            os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
             joblib.dump(self.rule_matches_z, cache_file)
 
         return self.rule_matches_z

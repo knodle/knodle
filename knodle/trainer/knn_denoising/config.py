@@ -1,3 +1,5 @@
+import os
+
 from knodle.trainer.config import TrainerConfig
 
 
@@ -10,6 +12,7 @@ class KNNConfig(TrainerConfig):
             use_approximation: bool = False,
             activate_no_match_instances: bool = True,
             caching_folder: str = None,  # if set to string, denoised data is cached
+            caching_suffix: str = "",  # additional info on knn feature matrix (e.g. tfidf parameters)
             n_jobs_for_index: int = 4,
             **kwargs
     ):
@@ -20,6 +23,7 @@ class KNNConfig(TrainerConfig):
         self.use_approximation = use_approximation
         self.activate_no_match_instances = activate_no_match_instances
         self.caching_folder = caching_folder
+        self._caching_suffix = caching_suffix
         self.n_jobs = n_jobs_for_index
 
         if self.k is not None and self.radius is not None:
@@ -40,3 +44,16 @@ class KNNConfig(TrainerConfig):
                 "The Knn trainer with exact neighbor selection always uses all of the instances. "
                 "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
             )
+
+    def get_cache_file(self):
+        nn_type = "ann" if self.use_approximation else "knn"
+        file_tags = f"{self.k}_{nn_type}"
+        if self._caching_suffix:
+            file_tags += f"_{self._caching_suffix}"
+
+        cache_file = os.path.join(
+            self.caching_folder,
+            f"denoised_rule_matches_z_{file_tags}.lib"
+        )
+
+        return cache_file
