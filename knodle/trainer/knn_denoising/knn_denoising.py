@@ -70,10 +70,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
             return self.rule_matches_z
 
         # load cached data, if available
-        cache_dir = self.trainer_config.caching_folder
-        if cache_dir is not None:
-            nn_type = "ann" if self.trainer_config.use_approximation else "knn"
-            cache_file = os.path.join(cache_dir, f"denoised_rule_matches_z_{k}_{nn_type}.lib")
+        if self.trainer_config.caching_folder is not None:
+            cache_file = self.trainer_config.get_cache_file()
             if os.path.isfile(cache_file):
                 logger.info(f"Loaded knn matrix from cache: {cache_file}")
                 return joblib.load(cache_file)
@@ -131,8 +129,8 @@ class KnnDenoisingTrainer(NoDenoisingTrainer):
         self.rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
 
         # save data for caching
-        if cache_dir is not None:
-            os.makedirs(cache_dir, exist_ok=True)
+        if self.trainer_config.caching_folder is not None:
+            os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
             joblib.dump(self.rule_matches_z, cache_file)
 
         return self.rule_matches_z
