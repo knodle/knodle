@@ -5,8 +5,8 @@ from knodle.trainer.auto_config import AutoConfig
 from knodle.trainer.config import BaseTrainerConfig
 
 
-@AutoConfig.register("no_denoising")
-class NoDenoisingConfig(BaseTrainerConfig):
+@AutoConfig.register("majority")
+class MajorityConfig(BaseTrainerConfig):
     def __init__(
             self,
             use_probabilistic_labels: bool = True,

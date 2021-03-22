@@ -9,11 +9,11 @@ import torch
 import torch.nn as nn
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
+from torch.optim import SGD
 from joblib import dump
 from tqdm import tqdm
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.utils import set_seed, check_splitting, return_unique, get_labels
-
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
@@ -41,13 +41,15 @@ class CrossWeighWeightsCalculator:
         self.no_relation_class = other_class_id
 
         if denoising_config is None:
-            self.denoising_config = CrossWeighDenoisingConfig(self.model)
+            self.denoising_config = CrossWeighDenoisingConfig(
+                optimizer=SGD(self.model.parameters(), lr=0.001),
+            )
             logger.info(f"Default CrossWeigh Config is used: {self.denoising_config.__dict__}")
         else:
             self.denoising_config = denoising_config
             logger.info(f"Initalized trainer with custom model config: {self.denoising_config.__dict__}")
 
-        self.sample_weights = self.initialise_sample_weights()
+            self.sample_weights = self.initialise_sample_weights()
 
     def calculate_weights(self) -> torch.FloatTensor:
         """
@@ -164,7 +166,8 @@ class CrossWeighWeightsCalculator:
         return train_loader, test_loader
 
     def _get_cw_samples_labels_idx(
-            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict, check_intersections: np.ndarray = None,
+            self, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict,
+            check_intersections: np.ndarray = None,
     ) -> (torch.Tensor, np.ndarray, np.ndarray):
         """
         Extracts the samples and labels from the original matrices by indices. If intersection is filled with
@@ -246,5 +249,5 @@ class CrossWeighWeightsCalculator:
                         correct_predictions += 1
 
         logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
-            correct_predictions * 100/(correct_predictions+wrong_predictions),
-            wrong_predictions * 100/(correct_predictions+wrong_predictions)))
+            correct_predictions * 100 / (correct_predictions + wrong_predictions),
+            wrong_predictions * 100 / (correct_predictions + wrong_predictions)))

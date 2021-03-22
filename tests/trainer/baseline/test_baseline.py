@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 
 
 def test_train():
@@ -25,7 +25,7 @@ def test_train():
     mapping_rules_labels_t = np.zeros((num_rules, num_classes))
     mapping_rules_labels_t[:, 1] = 1
 
-    trainer = NoDenoisingTrainer(
+    trainer = MajorityVoteTrainer(
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,

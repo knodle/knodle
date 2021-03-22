@@ -20,8 +20,8 @@ from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 logger = logging.getLogger(__name__)
 
 
-@AutoTrainer.register('no_denoising')
-class NoDenoisingTrainer(Trainer):
+@AutoTrainer.register('majority')
+class MajorityVoteTrainer(Trainer):
     """
     The baseline class implements a baseline model for labeling data with weak supervision.
         A simple majority vote is used for this purpose.

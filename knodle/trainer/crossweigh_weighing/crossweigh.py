@@ -13,7 +13,7 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
 from knodle.trainer.crossweigh_weighing.utils import (
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class CrossWeigh(NoDenoisingTrainer):
+class CrossWeigh(MajorityVoteTrainer):
 
     def __init__(
             self,
