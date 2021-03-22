@@ -18,6 +18,7 @@ class CrossWeighDenoisingConfig(MajorityConfig):
             cw_filter_non_labelled: bool = None,
             cw_other_class_id: int = None,
             cw_grad_clipping: int = None,
+            cw_if_set_seed: bool = True,
             **kwargs
     ):
 
@@ -54,3 +55,4 @@ class CrossWeighDenoisingConfig(MajorityConfig):
             self.cw_filter_non_labelled = cw_filter_non_labelled
             self.cw_other_class_id = cw_other_class_id
 
+        self.cw_if_set_seed = cw_if_set_seed

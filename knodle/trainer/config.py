@@ -1,4 +1,5 @@
 from typing import Callable
+import os
 
 from snorkel.classification import cross_entropy_with_probs
 
@@ -19,10 +20,13 @@ class TrainerConfig:
             epochs: int = 35,
             seed: int = 42,
             grad_clipping: int = None,
-            device: str = None
+            device: str = None,
+            output_dir_path: str = None
     ):
         self.criterion = criterion
         self.batch_size = batch_size
+
+        set_seed(seed)
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
@@ -38,6 +42,10 @@ class TrainerConfig:
         self.grad_clipping = grad_clipping
 
         self.device = torch.device("device") if device is not None else check_and_return_device()
+        # create model directory
+        self.output_dir_path = output_dir_path
+        if self.output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
 
 
 class BaseTrainerConfig(TrainerConfig):
