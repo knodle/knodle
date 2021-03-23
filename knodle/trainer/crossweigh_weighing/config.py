@@ -3,7 +3,7 @@ from torch.optim import Optimizer
 from knodle.trainer.config import TrainerConfig
 
 
-class CrossWeighDenoisingConfig(TrainerConfig):
+class DSCrossWeighDenoisingConfig(TrainerConfig):
     def __init__(
             self,
             partitions: int = 2,
