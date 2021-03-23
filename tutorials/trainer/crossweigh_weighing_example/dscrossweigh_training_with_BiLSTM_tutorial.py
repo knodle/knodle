@@ -12,8 +12,8 @@ from torch.utils.data import TensorDataset
 
 from knodle.evaluation.tacred_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
+from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.crossweigh import DSCrossWeighTrainer
 from tutorials.utils import read_train_dev_test, get_samples_list
 
 NUM_CLASSES = 42
@@ -63,7 +63,7 @@ def train_crossweigh(
         word_embedding_matrix.shape[0], word_embedding_matrix.shape[1], word_embedding_matrix, NUM_CLASSES
     )
 
-    custom_crossweigh_config = CrossWeighDenoisingConfig(
+    custom_crossweigh_config = DSCrossWeighDenoisingConfig(
         output_classes=NUM_CLASSES,
         class_weights=CLASS_WEIGHTS,
         filter_non_labelled=True,
@@ -78,7 +78,7 @@ def train_crossweigh(
         samples_start_weights=parameters.get("samples_start_weights")
     )
 
-    trainer = CrossWeighTrainer(
+    trainer = DSCrossWeighTrainer(
         model=model,
         mapping_rules_labels_t=t_mapping_rules_labels,
         model_input_x=train_input_x,
