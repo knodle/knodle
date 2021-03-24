@@ -16,7 +16,7 @@ from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
 
-from knodle.trainer.config import TrainerConfig
+from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 
 NUM_CLASSES = 42
@@ -80,7 +80,7 @@ def train_crossweigh(
         output_classes=NUM_CLASSES
     )
 
-    custom_crossweigh_trainer_config = TrainerConfig(
+    custom_crossweigh_trainer_config = MajorityConfig(
         model=model,
         class_weights=CLASS_WEIGHTS,
         output_classes=NUM_CLASSES,
