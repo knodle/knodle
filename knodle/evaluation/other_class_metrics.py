@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-
-"""
-Score the predictions with gold labels, using precision, recall and F1 metrics.
-"""
-
 import logging
 
 from collections import Counter
@@ -13,10 +7,10 @@ import numpy as np
 
 from knodle.transformation.labels import translate_predictions
 
-
 logger = logging.getLogger(__name__)
 
-def other_class_classification_report(
+
+def classification_report_with_other_class(
         y_pred: np.array, y_true: np.array, ids2labels: Dict, other_class_id: int, verbose: bool = True
 ) -> Dict:
     """ Prepare the batch for the label-based evaluation. """
@@ -29,7 +23,7 @@ def other_class_classification_report(
 
 
 def score(
-        key: List[str], prediction: List[str], verbose: bool = False, other_class_label: str = "no_relation"
+        key: List[str], prediction: List[str], verbose: bool, other_class_label: str
 ) -> Dict[str, float]:
     """
     Computes the precision, recall and f1-score with respect to the other_class label.

@@ -1,5 +1,6 @@
-from typing import Callable
+from typing import Callable, Dict
 import os
+import logging
 
 from snorkel.classification import cross_entropy_with_probs
 
@@ -8,6 +9,8 @@ from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
 from knodle.trainer.utils.utils import check_and_return_device, set_seed
+
+logger = logging.getLogger(__name__)
 
 
 class TrainerConfig:
@@ -39,8 +42,6 @@ class TrainerConfig:
             self.optimizer = optimizer
 
         self.output_classes = output_classes
-        self.device = check_and_return_device()
-        set_seed(seed)
         self.grad_clipping = grad_clipping
 
         self.device = torch.device("device") if device is not None else check_and_return_device()
@@ -63,6 +64,7 @@ class BaseTrainerConfig(TrainerConfig):
             filter_non_labelled: bool = True,
             other_class_id: int = None,
             evaluate_with_other_class: bool = False,
+            ids2labels: Dict = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -70,4 +72,13 @@ class BaseTrainerConfig(TrainerConfig):
         self.other_class_id = other_class_id
         self.evaluate_with_other_class = evaluate_with_other_class
         self.log_metric = "accuracy" if not evaluate_with_other_class else "f1"
+        self.ids2labels = ids2labels
 
+        logger.debug(f"{self.evaluate_with_other_class} and {self.ids2labels}")
+        if self.evaluate_with_other_class and self.ids2labels is None:
+            # check if the selected evaluation type is valid
+            logging.warning(
+                "Labels to label ids correspondence is needed to make other_class specific evaluation. Since it is "
+                "absent now, the standard sklearn metrics will be calculated instead."
+            )
+            self.evaluate_with_other_class = False

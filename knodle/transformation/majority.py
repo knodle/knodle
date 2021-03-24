@@ -71,7 +71,6 @@ def z_t_matrices_to_majority_vote_probs(
             rule_counts[~rule_counts.any(axis=1), other_class] = 1
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
     
-    print(f"Final shape: {rule_counts_probs.shape}")
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
 

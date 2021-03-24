@@ -121,15 +121,15 @@ class MajorityVoteTrainer(Trainer):
             train_acc.append(avg_acc)
 
             logger.info(f"Epoch train loss: {avg_loss}")
-            logger.info(f"Epoch train accuracy: {avg_loss}")
+            logger.info(f"Epoch train accuracy: {avg_acc}")
 
             if self.dev_model_input_x:
                 dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y,
                                                      loss_calculation=True)
                 dev_losses.append(dev_loss)
-                print(dev_clf_report.keys(), self.trainer_config.log_metric)
                 dev_metric.append(dev_clf_report[self.trainer_config.log_metric])
-                logger.info(f"Epoch development {self.trainer_config.log_metric}: {dev_clf_report[self.trainer_config.log_metric]}")
+                logger.info(f"Epoch development {self.trainer_config.log_metric}: "
+                            f"{dev_clf_report[self.trainer_config.log_metric]}")
 
             # saving model
             if self.trainer_config.output_dir_path is not None:
@@ -213,7 +213,7 @@ class MajorityVoteTrainer(Trainer):
         if self.trainer_config.evaluate_with_other_class:
             logger.info("Using specific evaluation for better 'other class' handling.")
             clf_report = other_class_classification_report(
-                y_pred=predictions, y_true=gold_labels, ids2labels=self.ids2labels,
+                y_pred=predictions, y_true=gold_labels, ids2labels=self.trainer_config.ids2labels,
                 verbose=True, other_class_id=self.trainer_config.other_class_id
             )
         else:
