@@ -45,8 +45,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
         label_model.fit(
             L_train,
             n_epochs=self.trainer_config.label_model_num_epochs,
-            log_freq=self.trainer_config.label_model_log_freq,
-            seed=self.trainer_config.seed
+            log_freq=self.trainer_config.label_model_log_freq
         )
         label_probs = label_model.predict_proba(L_train)
 
