@@ -8,7 +8,7 @@ from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer import TrainerConfig
-from knodle.trainer.knn_denoising.knn_denoising import (
+from knodle.trainer.knn_denoising.knn import (
     KnnDenoisingTrainer,
 )
 from torch import Tensor
