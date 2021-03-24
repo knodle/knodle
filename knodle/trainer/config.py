@@ -17,6 +17,7 @@ class TrainerConfig:
             batch_size: int = 32,
             optimizer: Optimizer = None,
             output_classes: int = 2,
+            class_weights: Tensor = None,
             epochs: int = 35,
             seed: int = 42,
             grad_clipping: int = None,
@@ -47,6 +48,13 @@ class TrainerConfig:
         if self.output_dir_path is not None:
             os.makedirs(self.output_dir_path, exist_ok=True)
 
+        if class_weights is None:
+            self.class_weights = torch.tensor([1.0] * self.output_classes)
+        else:
+            if len(class_weights) != self.output_classes:
+                raise Exception("Wrong class sample_weights initialisation!")
+            self.class_weights = class_weights
+
 
 class BaseTrainerConfig(TrainerConfig):
     def __init__(
@@ -58,4 +66,5 @@ class BaseTrainerConfig(TrainerConfig):
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.other_class_id = other_class_id
+
 
