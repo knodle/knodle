@@ -11,13 +11,13 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.baseline.config import MajorityConfig
 
 logger = logging.getLogger(__name__)
 
 
-@AutoTrainer.register('no_denoising')
-class NoDenoisingTrainer(BaseTrainer):
+@AutoTrainer.register('majority')
+class MajorityVoteTrainer(BaseTrainer):
     """
     The baseline class implements a baseline model for labeling data with weak supervision.
         A simple majority vote is used for this purpose.
@@ -30,11 +30,12 @@ class NoDenoisingTrainer(BaseTrainer):
             model_input_x: TensorDataset,
             rule_matches_z: np.ndarray,
             trainer_config: MajorityConfig = None,
+            **kwargs
     ):
         if trainer_config is None:
             trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
         super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config
+            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config, **kwargs
         )
 
     def train(

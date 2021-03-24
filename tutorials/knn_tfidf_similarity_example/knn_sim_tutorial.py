@@ -11,7 +11,7 @@ from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
 from knodle.trainer.knn_denoising.config import KNNConfig
-from knodle.trainer.knn_denoising.knn_denoising import (
+from knodle.trainer.knn_denoising.knn import (
     KnnDenoisingTrainer,
 )
 from tutorials.ImdbDataset.utils import read_train_dev_test, create_tfidf_values, init_logger
@@ -82,7 +82,7 @@ def train_knn_model():
 
         trainer.train()
 
-        clf_report = trainer.test(test_features=test_tfidf, test_labels=y_test)
+        clf_report, _ = trainer.test(test_features=test_tfidf, test_labels=y_test)
         print("-------------------------")
         print(f"k == {k}")
         print(clf_report)

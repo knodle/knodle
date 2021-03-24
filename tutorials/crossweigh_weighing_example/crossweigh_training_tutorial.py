@@ -14,9 +14,9 @@ from torch.utils.data import TensorDataset
 from knodle.evaluation.tacred_metrics import score
 from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
+from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
 
-from knodle.trainer.config import MajorityConfig
+from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
 
 NUM_CLASSES = 42
@@ -88,7 +88,7 @@ def train_crossweigh(
         epochs=3
     )
 
-    trainer = CrossWeigh(
+    trainer = CrossWeighTrainer(
         model=model,
         rule_assignments_t=rule_assignments_t,
         inputs_x=train_input_x,

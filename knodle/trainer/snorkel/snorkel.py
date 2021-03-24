@@ -7,15 +7,15 @@ from torch.utils.data import TensorDataset
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
-from knodle.trainer.knn_denoising.knn_denoising import KnnDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
+from knodle.trainer.knn_denoising.knn import KnnDenoisingTrainer
 
 from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
 from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 
 
 @AutoTrainer.register('snorkel')
-class SnorkelTrainer(NoDenoisingTrainer):
+class SnorkelTrainer(MajorityVoteTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
