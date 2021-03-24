@@ -1,6 +1,6 @@
 import numpy as np
 
-from knodle.trainer.snorkel.snorkel_trainer import SnorkelTrainer
+from knodle.trainer.snorkel.snorkel import SnorkelTrainer
 from knodle.trainer.snorkel.config import SnorkelConfig
 
 
