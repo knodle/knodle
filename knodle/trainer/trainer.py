@@ -37,7 +37,6 @@ class Trainer(ABC):
         self.rule_matches_z = rule_matches_z
         if trainer_config is None:
             self.trainer_config = TrainerConfig(model)
-
         else:
             self.trainer_config = trainer_config
 
