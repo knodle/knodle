@@ -73,6 +73,9 @@ class BaseTrainerConfig(TrainerConfig):
         self.evaluate_with_other_class = evaluate_with_other_class
         self.ids2labels = ids2labels
 
+        if self.other_class_id is not None and self.filter_non_labelled:
+            raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
+
         logger.debug(f"{self.evaluate_with_other_class} and {self.ids2labels}")
         if self.evaluate_with_other_class and self.ids2labels is None:
             # check if the selected evaluation type is valid

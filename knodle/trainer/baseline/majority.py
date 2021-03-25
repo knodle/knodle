@@ -20,6 +20,7 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import Trainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
+from knodle.trainer.utils.checks import check_other_class_id
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 
@@ -52,14 +53,7 @@ class MajorityVoteTrainer(Trainer):
         self.dev_model_input_x = dev_model_input_x
         self.dev_gold_labels_y = dev_gold_labels_y
 
-        # check and derive other_class_id from class mappings if neccessary
-        if self.trainer_config.other_class_id is None:
-            if not self.trainer_config.filter_non_labelled:
-                self.trainer_config.other_class_id = self.mapping_rules_labels_t.shape[1]
-        elif self.trainer_config.other_class_id < 0:
-            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        elif self.trainer_config.other_class_id < self.mapping_rules_labels_t.shape[1] - 1:
-            logging.warning(f"Negative class {self.trainer_config.other_class_id} is already present in data")
+        check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
 
     def _load_batch(self, batch):
 
