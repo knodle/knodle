@@ -143,12 +143,12 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 if rule in rule2rule_id.keys():
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     rules.append(rule)
                     rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
                 elif not filter_out_other:
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     rules.append(None)
                     enc_rules.append(None)
                 else:
@@ -165,7 +165,8 @@ def annotate_conll_data_with_lfs(conll_data: str, rule2rule_id: Dict, filter_out
                     obj[splitted_line[0]] = token
                     sample += " " + token
                 else:
-                    sample += " " + token
+                    if (bool(subj) and not bool(obj)) or (not bool(subj) and bool(obj)):
+                        sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
                 logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
                                                                    conll_data.split("/")[-1]))
@@ -200,20 +201,22 @@ def get_conll_data_with_ent_pairs(
                 subj, obj = {}, {}
                 label = encode_labels(line.split(" ")[3][5:], labels2ids, other_class_id)
             elif line == "":  # Instance ends
+                if len(list(subj.keys())) == 0 or len(list(obj.keys())) == 0:
+                    continue
                 if min(list(subj.keys())) < min(list(obj.keys())):
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
                 else:
                     rule = "_".join(list(subj.values())) + " " + "_".join(list(obj.values()))
 
                 if rule in rule2rule_id.keys():
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     labels.append(label)
                     rules.append(rule)
                     rule_id = rule2rule_id[rule]
                     enc_rules.append(rule_id)
 
                 else:
-                    samples.append(sample)
+                    samples.append(sample.lstrip())
                     labels.append(label)
                     rules.append(None)
                     enc_rules.append(None)
@@ -230,10 +233,12 @@ def get_conll_data_with_ent_pairs(
                     obj[splitted_line[0]] = token
                     sample += " " + token
                 else:
-                    sample += " " + token
+                    if (bool(subj) and not bool(obj)) or (not bool(subj) and bool(obj)):
+                        sample += " " + token
             if processed_lines % PRINT_EVERY == 0:
-                logger.info("Processed {:0.2f}% of {} file".format(100 * processed_lines / num_lines,
-                                                                   conll_data.split("/")[-1]))
+                logger.info("Processed {:0.2f}% of {} file".format(
+                    100 * processed_lines / num_lines, conll_data.split("/")[-1])
+                )
 
     return pd.DataFrame.from_dict({"samples": samples, "rules": rules, "enc_rules": enc_rules, "labels": labels})
 
@@ -246,7 +251,7 @@ def get_t_matrix(lfs: pd.DataFrame, num_labels: int) -> np.ndarray:
     return rule_assignments_t
 
 
-def get_z_matrix(data: pd.DataFrame, num_lfs: int) -> np.ndarray:
+def get_z_matrix(data: pd.DataFrame, num_lfs: int) -> sp.csr_matrix:
     """
     Function calculates the z matrix (samples x rules)
     data: pd.DataFrame (samples, matched rules, matched rules id )
