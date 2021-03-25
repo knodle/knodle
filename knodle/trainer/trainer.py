@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
-from knodle.trainer.config import TrainerConfig
+from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class Trainer(ABC):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: TrainerConfig = None,
+            trainer_config: BaseTrainerConfig = None,
     ):
         """
         Constructor for each Trainer.
@@ -50,7 +50,7 @@ class Trainer(ABC):
         self.dev_gold_labels_y = dev_gold_labels_y
 
         if trainer_config is None:
-            self.trainer_config = TrainerConfig(model)
+            self.trainer_config = BaseTrainerConfig(model)
         else:
             self.trainer_config = trainer_config
 
