@@ -21,6 +21,7 @@ from knodle.trainer.trainer import Trainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class MajorityVoteTrainer(Trainer):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: MajorityConfig = None,
+            trainer_config: MajorityConfig = None
     ):
         if trainer_config is None:
             trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
@@ -50,6 +51,15 @@ class MajorityVoteTrainer(Trainer):
 
         self.dev_model_input_x = dev_model_input_x
         self.dev_gold_labels_y = dev_gold_labels_y
+
+        # check and derive other_class_id from class mappings if neccessary
+        if self.trainer_config.other_class_id is None:
+            if not self.trainer_config.filter_non_labelled:
+                self.trainer_config.other_class_id = self.mapping_rules_labels_t.shape[1]
+        elif self.trainer_config.other_class_id < 0:
+            raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
+        elif self.trainer_config.other_class_id < self.mapping_rules_labels_t.shape[1] - 1:
+            logging.warning(f"Negative class {self.trainer_config.other_class_id} is already present in data")
 
     def _load_batch(self, batch):
 
@@ -117,11 +127,12 @@ class MajorityVoteTrainer(Trainer):
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            logger.info("Epoch train loss: {}".format(avg_loss))
-            logger.info("Epoch train accuracy: {}".format(avg_acc))
+            logger.info(f"Epoch train loss: {avg_loss}")
+            logger.info(f"Epoch train accuracy: {avg_acc}")
 
             if self.dev_model_input_x:
-                dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
+                dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y,
+                                                     loss_calculation=True, is_final_evaluation=False)
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
@@ -163,7 +174,8 @@ class MajorityVoteTrainer(Trainer):
         self.train_loop(feature_label_dataloader)
 
     def test(
-            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+            self, features_dataset: TensorDataset, labels: TensorDataset,
+            loss_calculation: bool = False, is_final_evaluation: bool = True
     ) -> Tuple[Dict, Union[float, None]]:
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
@@ -172,7 +184,7 @@ class MajorityVoteTrainer(Trainer):
         self.model.to(self.trainer_config.device)
         self.model.eval()
         predictions_list, label_list = [], []
-        dev_loss, dev_acc = 0.0, 0.0
+        dev_loss = 0.0
 
         i = 0
         # Loop over predictions
@@ -204,7 +216,17 @@ class MajorityVoteTrainer(Trainer):
         predictions = np.squeeze(np.hstack(predictions_list))
         gold_labels = np.squeeze(np.hstack(label_list))
 
-        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
+        if is_final_evaluation and self.trainer_config.evaluate_with_other_class:
+            logger.info("Using specific evaluation for better 'other class' handling.")
+            clf_report = classification_report_other_class(
+                y_pred=predictions, y_true=gold_labels, ids2labels=self.trainer_config.ids2labels,
+                verbose=True, other_class_id=self.trainer_config.other_class_id
+            )
+        else:
+            logger.info("Using standard scikit-learn evaluation.")
+            clf_report = classification_report(
+                y_true=gold_labels, y_pred=predictions, output_dict=True
+            )
 
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)
