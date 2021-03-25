@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.crossweigh_weighing.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
 from knodle.transformation.filter import filter_empty_probabilities
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
 
-class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
+class CrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def __init__(
             self,
@@ -35,14 +35,14 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
 
     def calculate_weights(self) -> torch.FloatTensor:
         """
-        This function calculates the sample_weights for samples using DSCrossWeigh method
+        This function calculates the sample_weights for samples using CrossWeigh method
         :return matrix of the sample sample_weights
         """
 
         if self.trainer_config.folds < 2:
-            raise ValueError("Number of folds should be at least 2 to perform DSCrossWeigh denoising")
+            raise ValueError("Number of folds should be at least 2 to perform CrossWeigh denoising")
 
-        logger.info("======= Denoising with DSCrossWeigh is started =======")
+        logger.info("======= Denoising with CrossWeigh is started =======")
         os.makedirs(self.path_to_weights, exist_ok=True)
 
         labels = z_t_matrices_to_majority_vote_probs(
@@ -76,7 +76,7 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
             log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
         dump(self.sample_weights, os.path.join(self.path_to_weights, "sample_weights.lib"))
-        logger.info("======= Denoising with DSCrossWeigh is completed =======")
+        logger.info("======= Denoising with CrossWeigh is completed =======")
         return self.sample_weights
 
     def _get_other_sample_ids(self, labels: np.ndarray) -> List[int]:
@@ -111,7 +111,7 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
 
     def calculate_rules_indices(self, rules_idx: list, fold: int) -> (np.ndarray, np.ndarray):
         """
-        Calculates the indices of the samples which are to be included in DSCrossWeigh training and test sets
+        Calculates the indices of the samples which are to be included in CrossWeigh training and test sets
         :param rules_idx: all rules indices (shuffled) that are to be splitted into cw training & cw test set rules
         :param fold: number of a current hold-out fold
         :return: two arrays containing indices of rules that will be used for cw training and cw test set accordingly
@@ -131,7 +131,7 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
             other_sample_ids: List[int]
     ) -> (DataLoader, DataLoader):
         """
-        This function returns train and test dataloaders for DSCrossWeigh training. Each dataloader comprises encoded
+        This function returns train and test dataloaders for CrossWeigh training. Each dataloader comprises encoded
         samples, labels and sample indices in the original matrices
         :param rules_ids: shuffled rules indices
         :param labels: labels of all training samples
@@ -171,7 +171,7 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
         :param indices: indices of rules; samples, where these rules matched & their labels are to be included in set
         :param rules_samples_ids_dict: dictionary {rule_id : sample_ids}
         :param check_intersections: optional parameter that indicates that intersections should be checked (used to
-        exclude the sentences from the DSCrossWeigh training set which are already in DSCrossWeigh test set)
+        exclude the sentences from the CrossWeigh training set which are already in CrossWeigh test set)
         :return: samples, labels and indices in the original matrix
         """
         sample_ids = [list(rules_samples_ids_dict.get(idx)) for idx in indices]
@@ -191,7 +191,7 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
 
     def cw_test(self, test_loader: DataLoader) -> None:
         """
-        This function tests of trained DSCrossWeigh model on a hold-out fold, compared the predicted labels with the
+        This function tests of trained CrossWeigh model on a hold-out fold, compared the predicted labels with the
         ones got with weak supervision and reduces sample_weights of disagreed samples
         :param test_loader: loader with the data which is used for testing (hold-out fold)
         """
@@ -220,5 +220,5 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
                         correct_predictions += 1
 
         logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
-            correct_predictions * 100/(correct_predictions+wrong_predictions),
-            wrong_predictions * 100/(correct_predictions+wrong_predictions)))
+            correct_predictions * 100 / (correct_predictions + wrong_predictions),
+            wrong_predictions * 100 / (correct_predictions + wrong_predictions)))

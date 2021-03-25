@@ -12,5 +12,8 @@ scikit-learn
 torch
 snorkel
 
+# kNN
+annoy
+
 # graphics
 matplotlib
