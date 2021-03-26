@@ -1,9 +1,9 @@
+minio
 cython
 pandas
 numpy
 jupyter
 snorkel
-kaggle
 bs4
 matplotlib
 tqdm
