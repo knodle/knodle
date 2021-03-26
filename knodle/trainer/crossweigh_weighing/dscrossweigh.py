@@ -11,8 +11,8 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
+from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class CrossWeigh(MajorityVoteTrainer):
+class DSCrossWeighTrainer(MajorityVoteTrainer):
 
     def __init__(
             self,
@@ -42,7 +42,7 @@ class CrossWeigh(MajorityVoteTrainer):
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = CrossWeighDenoisingConfig(
+            kwargs["trainer_config"] = DSCrossWeighDenoisingConfig(
                 optimizer=SGD(kwargs.get("model").parameters(), lr=0.001),
                 cw_optimizer=SGD(self.cw_model.parameters(), lr=0.001)
             )
@@ -57,7 +57,7 @@ class CrossWeigh(MajorityVoteTrainer):
         logger.info("CrossWeigh Config is used: {}".format(self.trainer_config.__dict__))
 
     def train(self):
-        """ This function sample_weights the samples with CrossWeigh method and train the model """
+        """ This function sample_weights the samples with DSCrossWeigh method and train the model """
 
         train_labels = self.calculate_labels()
 
@@ -99,14 +99,14 @@ class CrossWeigh(MajorityVoteTrainer):
 
     def _get_sample_weights(self) -> torch.FloatTensor:
         """ This function checks whether there are accessible already pretrained sample weights. If yes, return
-        them. If not, calculates sample weights calling method of CrossWeighWeightsCalculator class"""
+        them. If not, calculates sample weights calling method of DSCrossWeighWeightsCalculator class"""
 
         if os.path.isfile(os.path.join(self.path_to_weights, "sample_weights.lib")):
             logger.info("Already pretrained samples sample_weights will be used.")
             sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
-            sample_weights = CrossWeighWeightsCalculator(
+            sample_weights = DSCrossWeighWeightsCalculator(
                 model=self.cw_model,
                 mapping_rules_labels_t=self.mapping_rules_labels_t,
                 model_input_x=self.cw_model_input_x,
