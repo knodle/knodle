@@ -14,16 +14,21 @@ The IMDB dataset available in the Knodle collection was downloaded from [Kaggle]
 """
 
 import os
+from joblib import dump
 from tqdm import tqdm
 from typing import List
 
 import pandas as pd 
 import numpy as np 
+from scipy.sparse import csr_matrix
 
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, CountVectorizer
 from snorkel.labeling import LabelingFunction, PandasLFApplier, filter_unlabeled_dataframe, LFAnalysis
 from snorkel.labeling.model import MajorityLabelVoter, LabelModel
+
+from knodle.data.labelling_fcts import transform_rule_class_matrix_to_z_t
+from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
 
 # client to access the dataset collection
 from minio import Minio
@@ -201,16 +206,12 @@ for idx, ex in examples.iterrows():
 # 
 # (shape `#rules x #labels`).
 
-from knodle.data.labelling_fcts import transform_rule_class_matrix_to_z_t
-
 rule_matches, mapping_rules_labels = transform_rule_class_matrix_to_z_t(applied_lfs)
 
 
 # ### Majority Vote
 # 
 # Now we make a majority vote based on all rule matches. First we get the `rule_counts` by multiplying `rule_matches` with the `mapping_rules_labels`, then we divide it sumwise by the sum to get a probability value. In the end we counteract the divide with zero issue by setting all nan values to zero. All this happens in the `z_t_matrices_to_majority_vote_labels` function.
-
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
 
 # the ties are resolved randomly internally, so the predictions might slightly vary
 pred_labels = z_t_matrices_to_majority_vote_labels(rule_matches, mapping_rules_labels)
@@ -224,9 +225,6 @@ print(f"Accuracy of majority voting: {acc}")
 
       
 # ## Save Files
-from joblib import dump
-from scipy.sparse import csr_matrix
-
 rule_matches_sparse = csr_matrix(rule_matches)
 dump(rule_matches_sparse, os.path.join(data_path, "rule_matches.lib"))
 dump(mapping_rules_labels,  os.path.join(data_path, "mapping_rules_labels.lib"))
