@@ -64,10 +64,6 @@ print(imdb_dataset_raw.groupby("sentiment").count())
 
 # ## Preprocess dataset
 
-# We begin by removing all common stop words. We use `scikit-learn`'s stopwords that we don't install to many packages.
-imdb_dataset_raw[COLUMN_WITH_TEXT] = imdb_dataset_raw['review'].apply(
-    lambda x: ' '.join([word for word in x.split() if word not in (ENGLISH_STOP_WORDS)]))
-
 # The dataset contains many HTML tags. We'll remove them
 def strip_html(text):
     soup = BeautifulSoup(text, "html.parser")
@@ -98,7 +94,7 @@ all_keywords = pd.concat([positive_keywords, negative_keywords])
 all_keywords.label.value_counts()
 
 # remove overlap of keywords between two sentiments
-all_keywords.drop_duplicates('keyword',inplace=True)
+all_keywords.drop_duplicates('keyword', inplace=True)
 
 
 # ## Labeling Functions
