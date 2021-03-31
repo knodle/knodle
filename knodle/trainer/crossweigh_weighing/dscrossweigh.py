@@ -10,9 +10,9 @@ from torch.nn import Module
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import DSCrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
@@ -23,15 +23,13 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class DSCrossWeighTrainer(NoDenoisingTrainer):
+class DSCrossWeighTrainer(MajorityVoteTrainer):
 
     def __init__(
             self,
             cw_model: Module = None,
             cw_model_input_x: TensorDataset = None,
             cw_rule_matches_z: np.ndarray = None,
-            evaluation_method: str = "sklearn_classification_report",
-            dev_labels_ids: Dict = None,
             path_to_weights: str = "data",
             run_classifier: bool = True,
             use_weights: bool = True,
@@ -48,16 +46,19 @@ class DSCrossWeighTrainer(NoDenoisingTrainer):
             )
         super().__init__(**kwargs)
 
-        self.evaluation_method = evaluation_method
-        self.dev_labels_ids = dev_labels_ids
         self.path_to_weights = path_to_weights
         self.run_classifier = run_classifier
         self.use_weights = use_weights
 
         logger.info("CrossWeigh Config is used: {}".format(self.trainer_config.__dict__))
 
-    def train(self):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
         train_labels = self.calculate_labels()
 
@@ -77,9 +78,6 @@ class DSCrossWeighTrainer(NoDenoisingTrainer):
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
-        if not self.trainer_config.filter_non_labelled and self.trainer_config.other_class_id is None:
-            self.trainer_config.other_class_id = self.mapping_rules_labels_t.shape[1]
-
         train_labels = z_t_matrices_to_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
         )
@@ -128,26 +126,3 @@ class DSCrossWeighTrainer(NoDenoisingTrainer):
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
         weights_calculation_config.if_set_seed = self.trainer_config.cw_if_set_seed
         return weights_calculation_config
-
-    # def calculate_dev_metrics(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Union[Dict, None]:
-    #     """
-    #     Returns the dictionary of metrics calculated on the dev set with one of the evaluation functions
-    #     or None, if the needed evaluation method was not found
-    #     """
-    #
-    #     if self.evaluation_method == "tacred":
-    #         if self.dev_labels_ids is None:
-    #             logging.warning(
-    #                 "Labels to labels ids correspondence is needed to make TACRED specific evaluation. Since it is "
-    #                 "absent now, the standard sklearn metrics will be calculated instead"
-    #             )
-    #             return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-    #
-    #         return calculate_dev_tacred_metrics(predictions, gold_labels, self.dev_labels_ids)
-    #
-    #     elif self.evaluation_method == "sklearn_classification_report":
-    #         return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-    #
-    #     else:
-    #         logging.warning("No evaluation method is given. The evaluation on dev data is skipped")
-    #         return None

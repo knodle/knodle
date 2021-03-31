@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.crossweigh_weighing.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
 from knodle.transformation.filter import filter_empty_probabilities
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
 
-class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
+class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def __init__(
             self,
@@ -220,5 +220,5 @@ class DSCrossWeighWeightsCalculator(NoDenoisingTrainer):
                         correct_predictions += 1
 
         logger.info("Correct predictions: {:.3f}%, wrong predictions: {:.3f}%".format(
-            correct_predictions * 100/(correct_predictions+wrong_predictions),
-            wrong_predictions * 100/(correct_predictions+wrong_predictions)))
+            correct_predictions * 100 / (correct_predictions + wrong_predictions),
+            wrong_predictions * 100 / (correct_predictions + wrong_predictions)))

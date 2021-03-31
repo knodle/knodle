@@ -26,7 +26,7 @@ def test_auto_train():
     mapping_rules_labels_t[:, 1] = 1
 
     trainer = AutoTrainer(
-        name="no_denoising",
+        name="majority",
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=model_input_x,

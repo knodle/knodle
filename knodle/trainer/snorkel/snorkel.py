@@ -7,15 +7,15 @@ from torch.utils.data import TensorDataset
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.baseline.no_denoising import NoDenoisingTrainer
-from knodle.trainer.knn_denoising.knn_denoising import KnnDenoisingTrainer
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
+from knodle.trainer.knn_denoising.knn import KnnDenoisingTrainer
 
 from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
 from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 
 
 @AutoTrainer.register('snorkel')
-class SnorkelTrainer(NoDenoisingTrainer):
+class SnorkelTrainer(MajorityVoteTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
@@ -43,8 +43,13 @@ class SnorkelTrainer(NoDenoisingTrainer):
         label_probs = label_model.predict_proba(L_train)
         return model_input_x, label_probs
 
-    def train(self):
-        # Snorkel denoising
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
         # Standard training
