@@ -12,6 +12,9 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
+from knodle.trainer.utils.checks import check_other_class_id
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 
 logger = logging.getLogger(__name__)
 
