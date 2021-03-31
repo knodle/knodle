@@ -69,7 +69,7 @@ def train_simple_ds_model():
     y_test = y_test.to(custom_model_config.device)
     y_test = TensorDataset(y_test)
 
-    clf_report, _ = trainer.test(test_features=test_tfidf, test_labels=y_test)
+    clf_report, _ = trainer.test(test_tfidf, y_test)
     print(clf_report)
 
 

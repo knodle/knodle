@@ -20,7 +20,7 @@ from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 
-from knodle.evaluation.supported_evaluation_metrics import evaluation_metrics
+from knodle.evaluation.available_evaluation_metrics import evaluation_metrics
 
 logger = logging.getLogger(__name__)
 
