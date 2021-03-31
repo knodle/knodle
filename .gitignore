@@ -4,6 +4,7 @@
 *.so
 
 # Packages
+PKG-INFO
 *.egg
 *.egg-info
 dist
@@ -18,6 +19,9 @@ develop-eggs
 lib
 lib64
 __pycache__
+
+# package helper
+knodle-*
 
 # Installer logs
 pip-log.txt
