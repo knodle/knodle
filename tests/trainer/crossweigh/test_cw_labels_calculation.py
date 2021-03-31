@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.crossweigh_weighing.crossweigh_weights_calculator import CrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
 
 
 @pytest.fixture(scope='session')
@@ -44,7 +44,7 @@ def get_test_data():
                               5: {4},  # no rel sample
                               6: {3}}  # no rel sample
 
-    trainer = CrossWeighWeightsCalculator(
+    trainer = DSCrossWeighWeightsCalculator(
         model=model,
         mapping_rules_labels_t=rule_assignments_t,
         model_input_x=inputs_x,
@@ -100,13 +100,13 @@ def get_cw_data_train(get_test_data):
 
 def test_sample_ids_matched_rules_correspondence(get_test_data):
     # for data in get_sample_ids_matched_rules_correspondence:
-    #     assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
-    assert CrossWeighWeightsCalculator._get_rules_samples_ids_dict(get_test_data[0]) == get_test_data[1]
+    #     assert DSCrossWeighWeightsCalculator._get_rules_samples_ids_dict(data[0]) == data[1]
+    assert DSCrossWeighWeightsCalculator._get_rules_samples_ids_dict(get_test_data[0]) == get_test_data[1]
 
 
 def test_get_cw_data_test(get_cw_data_test):
     for data in get_cw_data_test:
-        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
+        samples, labels, ids = DSCrossWeighWeightsCalculator._get_cw_samples_labels_idx(
             data[0], data[1], data[2], data[3]
         )
 
@@ -117,7 +117,7 @@ def test_get_cw_data_test(get_cw_data_test):
 
 def test_get_cw_data_train(get_cw_data_train):
     for data in get_cw_data_train:
-        samples, labels, ids = CrossWeighWeightsCalculator._get_cw_samples_labels_idx(
+        samples, labels, ids = DSCrossWeighWeightsCalculator._get_cw_samples_labels_idx(
             data[0], data[1], data[2], data[3], data[4]
         )
 

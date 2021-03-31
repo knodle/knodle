@@ -11,7 +11,8 @@ from knodle.model.logistic_regression_model import (
 )
 from knodle.trainer.baseline.baseline import NoDenoisingTrainer
 from knodle.trainer.baseline.majority_config import TrainerConfig
-from tutorials.ImdbDataset.utils import init_logger, read_train_dev_test, create_tfidf_values
+from tutorials.ImdbDataset.utils import init_logger
+from tutorials.utils import create_tfidf_values, read_train_dev_test
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ def train_simple_ds_model():
     X_test = test_df.reviews_preprocessed
 
     tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, True, MAX_FEATURES
+        imdb_dataset.reviews_preprocessed.values, MAX_FEATURES, path_to_cash="tutorials/ImdbDataset/tfidf.lib"
     )
 
     train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
