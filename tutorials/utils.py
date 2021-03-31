@@ -38,13 +38,13 @@ def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = Non
         )
 
 
-def create_tfidf_values(text_data: [str], max_features, path_to_cash: str = None):
-    if path_to_cash and os.path.exists(path_to_cash):
-        cached_data = load(path_to_cash)
+def create_tfidf_values(text_data: [str], max_features, path_to_cach: str = None):
+    if path_to_cach and os.path.exists(path_to_cach):
+        cached_data = load(path_to_cach)
         if cached_data.shape == text_data.shape:
             return cached_data
 
     vectorizer = TfidfVectorizer(max_features=max_features)
     transformed_data = vectorizer.fit_transform(text_data)
-    dump(transformed_data, path_to_cash)
+    dump(transformed_data, path_to_cach)
     return transformed_data

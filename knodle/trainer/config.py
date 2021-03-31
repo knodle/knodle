@@ -41,7 +41,7 @@ class TrainerConfig:
         self.caching = caching
         self.caching_suffix = caching_suffix
         if self.caching:
-            self.caching_folder = os.path.join(self.output_dir_path, "cash")
+            self.caching_folder = os.path.join(self.output_dir_path, "cach")
 
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping

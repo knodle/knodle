@@ -39,7 +39,7 @@ def train_simple_ds_model():
     X_test = test_df.reviews_preprocessed
 
     tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, MAX_FEATURES, path_to_cash="tutorials/ImdbDataset/tfidf.lib"
+        imdb_dataset.reviews_preprocessed.values, MAX_FEATURES, path_to_cach="tutorials/ImdbDataset/tfidf.lib"
     )
 
     train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
