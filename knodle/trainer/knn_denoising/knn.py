@@ -60,7 +60,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
 
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """

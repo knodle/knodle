@@ -13,6 +13,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
@@ -236,7 +237,13 @@ class BaseTrainer(Trainer):
 
         predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
-        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
+        if self.trainer_config.evaluate_with_other_class:
+            clf_report = classification_report_other_class(
+                y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
+                other_class_id=self.trainer_config.other_class_id
+            )
+        else:
+            clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)
