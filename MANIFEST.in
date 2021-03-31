@@ -1,0 +1,32 @@
+#
+# Use .add_data_files and .add_data_dir methods in a appropriate
+# setup.py files to include non-python files such as documentation,
+# data, etc files to distribution (*for installation*).
+# Avoid using MANIFEST.in for that.
+#
+include MANIFEST.in
+include pyproject.toml
+include README.md
+include LICENSE
+
+# Note that sub-directories that don't have __init__ are apparently not
+# included by 'recursive-include', so list those separately
+recursive-include knodle *
+recursive-include tests  *
+prune tutorials
+
+# Exclude generated files
+prune */__pycache__
+global-exclude *.pyc *.pyo *.pyd *.swp *.bak *~
+
+#### save for later ####
+# Exclude license file that we append to the main license when running
+# `python setup.py sdist`
+#exclude LICENSES_bundled.txt
+#include pytest.ini
+#include *.txt
+#include site.cfg.example
+#include runtests.py
+#include tox.ini
+#include .coveragerc
+
