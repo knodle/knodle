@@ -89,7 +89,7 @@ def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: i
     )
 
     trainer = DSCrossWeighTrainer(
-        # general Trainer inputs
+        # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
         mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
         model_input_x=train_input_x_bert,  # x matrix for training the classifier
