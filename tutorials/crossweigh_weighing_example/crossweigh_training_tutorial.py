@@ -11,10 +11,10 @@ from joblib import load
 from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 from tutorials.crossweigh_weighing_example.utils import vocab_and_vectors
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeighTrainer
+from knodle.trainer.crossweigh_weighing.crossweigh import CrossWeigh
 
 from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.crossweigh_weighing.config import CrossWeighDenoisingConfig
@@ -48,7 +48,7 @@ def train_crossweigh(
     :param path_dev_features_labels: path to DataFrame with development data (1st column - samples, 2nd column - labels)
     """
 
-    labels2ids = read_labels_from_file(path_labels, "no_relation")
+    ids2labels = read_labels_from_file(path_labels, "no_relation")
     word2id, word_embedding_matrix = vocab_and_vectors(path_emb)
 
     rule_matches_z = load(path_z)
@@ -88,15 +88,13 @@ def train_crossweigh(
         epochs=3
     )
 
-    trainer = CrossWeighTrainer(
+    trainer = CrossWeigh(
         model=model,
         rule_assignments_t=rule_assignments_t,
         inputs_x=train_input_x,
         rule_matches_z=rule_matches_z,
         dev_features=dev_dataset,
         dev_labels=dev_labels,
-        evaluation_method="tacred",
-        dev_labels_ids=labels2ids,
         path_to_weights=path_to_weights,
         denoising_config=custom_crossweigh_denoising_config,
         trainer_config=custom_crossweigh_trainer_config,
@@ -106,7 +104,7 @@ def train_crossweigh(
 
     trainer.train()
     print("Testing on the test dataset....")
-    metrics = test(model, trainer, test_dataset, test_labels, labels2ids)
+    metrics = test(model, trainer, test_dataset, test_labels, ids2labels)
     print(metrics)
 
 
@@ -140,17 +138,17 @@ def get_dev_data(
 
 def read_labels_from_file(path_labels: str, negative_label: str) -> dict:
     """ Reads the labels from the file and encode them with ids """
-    relation2ids = {}
+    ids2relation = {}
     with open(path_labels, encoding="UTF-8") as file:
         for line in file.readlines():
             relation, relation_enc = line.replace("\n", "").split(",")
-            relation2ids[relation] = int(relation_enc)
+            ids2relation[int(relation_enc)] = relation
 
     # add no_match label
     if negative_label:
-        relation2ids[negative_label] = max(list(relation2ids.values())) + 1
+        ids2relation[max(list(ids2relation.keys())) + 1] = negative_label
 
-    return relation2ids
+    return ids2relation
 
 
 def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
@@ -172,7 +170,7 @@ def add_padding(tokens: list, maxlen: int) -> list:
     return padded_tokens
 
 
-def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labels2ids: Dict) -> Dict:
+def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, ids2labels: Dict) -> Dict:
     feature_labels_dataset = TensorDataset(test_features.tensors[0], test_labels)
     feature_labels_dataloader = trainer._make_dataloader(feature_labels_dataset)
 
@@ -187,12 +185,10 @@ def test(model, trainer, test_features: TensorDataset, test_labels: Tensor, labe
     predictions_idx, test_labels_idx = (all_predictions.detach().type(torch.IntTensor).tolist(),
                                         all_labels.detach().type(torch.IntTensor).tolist())
 
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in test_labels_idx]
-
-    return score(test_labels, predictions, verbose=True)
+    return classification_report_other_class(
+        y_pred=predictions_idx, y_true=test_labels_idx,
+        ids2labels=ids2labels, other_class_id=41, verbose=True
+    )
 
 
 if __name__ == "__main__":
