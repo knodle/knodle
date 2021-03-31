@@ -26,6 +26,7 @@ class TrainerConfig:
             grad_clipping: int = None,
             device: str = None,
             caching: bool = False,
+            caching_folder: str = "",
             caching_suffix: str = "",
             output_dir_path: str = None
     ):
@@ -40,8 +41,12 @@ class TrainerConfig:
         self.batch_size = batch_size
         self.caching = caching
         self.caching_suffix = caching_suffix
+
         if self.caching:
-            self.caching_folder = os.path.join(self.output_dir_path, "cach")
+            if caching_folder:
+                self.caching_folder = caching_folder
+            else:
+                self.caching_folder = os.path.join(self.output_dir_path, "cach")
 
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
