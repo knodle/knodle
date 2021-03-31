@@ -43,7 +43,7 @@ trainer = SimpleDsModelTrainer(
 
 trainer.train()
 
-trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
+trainer.test(,
 ```
 
 For seeing how the imdb dataset was created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset).
