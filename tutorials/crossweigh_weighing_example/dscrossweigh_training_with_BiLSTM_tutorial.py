@@ -10,7 +10,7 @@ from torch import Tensor, LongTensor
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.other_class_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
