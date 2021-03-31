@@ -11,10 +11,10 @@ from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
+from examples.utils import get_samples_list, read_train_dev_test, create_bert_encoded_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.crossweigh import DSCrossWeighTrainer
-from tutorials.utils import get_samples_list, read_train_dev_test
 
 CLASS_WEIGHTS = torch.FloatTensor([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
@@ -32,16 +32,16 @@ def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: i
     train_tfidf_sparse, test_tfidf_sparse, dev_tfidf_sparse = get_tfidf_features(train_df, test_df, dev_df)
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_dataset = TensorDataset(train_tfidf)
-    train_input_x_bert = get_bert_encoded_features(train_df, tokenizer)
+    train_input_x_bert = create_bert_encoded_features(train_df, tokenizer)
 
     if dev_df is not None:
         dev_labels = TensorDataset(LongTensor(list(dev_df.iloc[:, 1])))
-        dev_dataset_bert = get_bert_encoded_features(dev_df, tokenizer)
+        dev_dataset_bert = create_bert_encoded_features(dev_df, tokenizer)
     else:
         dev_labels, dev_dataset_bert = None, None
 
     test_labels = TensorDataset(LongTensor(list(test_df.iloc[:, 1])))
-    test_dataset_bert = get_bert_encoded_features(test_df, tokenizer)
+    test_dataset_bert = create_bert_encoded_features(test_df, tokenizer)
 
     os.makedirs(path_sample_weights, exist_ok=True)
 
@@ -88,16 +88,6 @@ def train_crossweigh(path_to_data: str, path_sample_weights: str, num_classes: i
     trainer.train()
     clf_report, _ = trainer.test(test_dataset_bert, test_labels)
     print(clf_report)
-
-
-def get_bert_encoded_features(
-        input_data: pd.Series, tokenizer: DistilBertTokenizer, column_num: int = None
-) -> TensorDataset:
-    """ Convert input data to BERT encoded features """
-    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    return TensorDataset(input_ids, attention_mask)
 
 
 def get_tfidf_features(
