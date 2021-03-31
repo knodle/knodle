@@ -56,8 +56,13 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         logger.info("CrossWeigh Config is used: {}".format(self.trainer_config.__dict__))
 
-    def train(self):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
         train_labels = self.calculate_labels()
 
