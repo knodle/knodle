@@ -85,7 +85,6 @@ def train_crossweigh(
         dev_model_input_x=dev_dataset,
         dev_gold_labels_y=dev_labels_dataset,
         rule_matches_z=z_train_rule_matches,
-        path_to_weights=path_sample_weights,
         trainer_config=custom_crossweigh_config,
         evaluation_method="tacred",
         dev_labels_ids=labels2ids,

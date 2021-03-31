@@ -96,7 +96,10 @@ class BaseTrainer(Trainer):
 
         return input_batch, label_batch
 
-    def _train_loop(self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False):
+    def _train_loop(
+            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
+            draw_plot: bool = False
+    ):
         log_section("Training starts", logger)
 
         self.model.to(self.trainer_config.device)
@@ -165,9 +168,9 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.output_dir_path is not None:
+            if self.trainer_config.output_dir_path is not None and save_models:
                 model_path = os.path.join(
-                    self.trainer_config.output_dir_path,
+                    self.trainer_config.caching_folder,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)

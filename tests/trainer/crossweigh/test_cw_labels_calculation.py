@@ -48,8 +48,7 @@ def get_test_data():
         model=model,
         mapping_rules_labels_t=rule_assignments_t,
         model_input_x=inputs_x,
-        rule_matches_z=rule_matches_z,
-        path_to_weights="test"
+        rule_matches_z=rule_matches_z
     )
 
     return trainer, rules_samples_ids_dict

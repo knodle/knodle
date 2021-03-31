@@ -14,9 +14,9 @@ def read_train_dev_test(
     """This function loads the matrices as well as train, test (occasionally, also dev) data from corresponding files"""
     df_train = load(os.path.join(target_path, 'df_train.lib'))
     df_test = load(os.path.join(target_path, 'df_test.lib'))
-    z_train_rule_matches = load(os.path.join(target_path, 'z_train_rule_matches.lib'))
-    z_test_rule_matches = load(os.path.join(target_path, 'z_test_rule_matches.lib'))
-    t_mapping_rules_labels = load(os.path.join(target_path, 't_mapping_rules_labels.lib'))
+    z_train_rule_matches = load(os.path.join(target_path, 'train_rule_matches_z.lib'))
+    z_test_rule_matches = load(os.path.join(target_path, 'test_rule_matches_z.lib'))
+    t_mapping_rules_labels = load(os.path.join(target_path, 'mapping_rules_labels_t.lib'))
 
     if if_dev_data:
         dev_df = load(os.path.join(target_path, 'df_dev.lib'))
@@ -27,9 +27,10 @@ def read_train_dev_test(
 
 def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = None) -> List:
     """ Extracts the data from the Series/DataFrame and returns it as a list"""
+    column_num = int(column_num)
     if isinstance(data, pd.Series):
         return list(data)
-    elif isinstance(data, pd.DataFrame) and column_num:
+    elif isinstance(data, pd.DataFrame) and column_num is not None:
         return list(data.iloc[:, column_num])
     else:
         raise ValueError(
