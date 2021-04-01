@@ -14,11 +14,11 @@ class TrainerConfig:
     def __init__(
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
-            batch_size: int = 32,
+            batch_size: int = 256,
             optimizer: Optimizer = None,
             output_classes: int = 2,
             class_weights: Tensor = None,
-            epochs: int = 35,
+            epochs: int = 3,
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,

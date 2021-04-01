@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 import torch.nn as nn
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 from torch.utils.data import TensorDataset
 
 from knodle.transformation.majority import input_to_majority_vote_input
@@ -33,7 +33,7 @@ class MajorityVoteTrainer(BaseTrainer):
             **kwargs
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
+            trainer_config = MajorityConfig(optimizer=Adam(model.parameters(), lr=0.0001))
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config, **kwargs
         )
