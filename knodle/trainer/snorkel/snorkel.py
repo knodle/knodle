@@ -43,8 +43,13 @@ class SnorkelTrainer(MajorityVoteTrainer):
         label_probs = label_model.predict_proba(L_train)
         return model_input_x, label_probs
 
-    def train(self):
-        # Snorkel denoising
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
         # Standard training

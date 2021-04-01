@@ -5,6 +5,8 @@ import joblib
 import numpy as np
 
 from torch.optim import SGD
+from torch.utils.data import TensorDataset
+
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from annoy import AnnoyIndex
@@ -36,13 +38,16 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         else:
             self.knn_feature_matrix = knn_feature_matrix
 
+
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
         self.rule_matches_z = self.rule_matches_z.astype(np.int8)
         self.mapping_rules_labels_t = self.mapping_rules_labels_t.astype(np.int8)
-
-    def train(self):
-        """
-        This function gets final labels with a majority vote approach and trains the provided model.
-        """
 
         self._knn_denoise_rule_matches()
 
