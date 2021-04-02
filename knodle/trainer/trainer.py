@@ -13,14 +13,12 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
-from knodle.evaluation.other_class_metrics import classification_report_other_class, checks_evaluation_inputs
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
-
-from knodle.evaluation.available_evaluation_metrics import evaluation_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -99,11 +97,9 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False,
-            eval_metric: str = "sklearn", ids2labels: dict = None, other_class_id: int = None):
-
-        self._check_evaluation(eval_metric, ids2labels, other_class_id)
-
+            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
+            draw_plot: bool = False
+    ):
         log_section("Training starts", logger)
 
         self.model.to(self.trainer_config.device)
@@ -165,18 +161,16 @@ class BaseTrainer(Trainer):
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x:
-                dev_clf_report, dev_loss = self.test(self.dev_model_input_x, self.dev_gold_labels_y,
-                                                     eval_metric=eval_metric, ids2labels=ids2labels,
-                                                     other_class_id=other_class_id, loss_calculation=True)
-
+                dev_clf_report, dev_loss = self.test(
+                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.output_dir_path is not None:
+            if self.trainer_config.output_dir_path is not None and save_models:
                 model_path = os.path.join(
-                    self.trainer_config.output_dir_path,
+                    self.trainer_config.caching_folder,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)
@@ -238,8 +232,7 @@ class BaseTrainer(Trainer):
         return loss.detach()
 
     def test(
-            self, features_dataset: TensorDataset, labels: TensorDataset, eval_metric: str = "sklearn",
-            ids2labels: dict = None, other_class_id: int = None, loss_calculation: bool = False
+            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
@@ -247,24 +240,15 @@ class BaseTrainer(Trainer):
 
         predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
-        if eval_metric == "sklearn":
-            clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-        elif eval_metric == "eval_with_other_class":
+        if self.trainer_config.evaluate_with_other_class:
             clf_report = classification_report_other_class(
-                y_true=gold_labels, y_pred=predictions, ids2labels=ids2labels, other_class_id=other_class_id)
+                y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
+                other_class_id=self.trainer_config.other_class_id
+            )
+        else:
+            clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)
         else:
             return clf_report, None
-
-    def check_evaluation(self, eval_metric: str, ids2labels: Dict = None, other_class_id: int = None):
-        """ This function checks whether the evaluation method is valid and all needed parameters are given """
-        if eval_metric == "sklearn":
-            return
-        elif eval_metric == "eval_with_other_class":
-            checks_evaluation_inputs(ids2labels, other_class_id)
-            return
-        else:
-            raise ValueError(f"The given evaluation method is currently not supported by Knodle. Please select one of "
-                             f"following evaluation methods: {evaluation_metrics}")

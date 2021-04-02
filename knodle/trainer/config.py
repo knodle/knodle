@@ -25,12 +25,32 @@ class TrainerConfig:
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,
+            caching: bool = False,
+            caching_folder: str = "",
+            caching_suffix: str = "",
             output_dir_path: str = None
     ):
+        set_seed(seed)
+
+        # create model directory
+        self.output_dir_path = output_dir_path
+        if self.output_dir_path is not None:
+            os.makedirs(self.output_dir_path, exist_ok=True)
+
         self.criterion = criterion
         self.batch_size = batch_size
+        self.caching = caching
+        self.caching_suffix = caching_suffix
 
-        set_seed(seed)
+        if self.caching:
+            if caching_folder:
+                self.caching_folder = caching_folder
+            else:
+                self.caching_folder = os.path.join(self.output_dir_path, "cach")
+
+        self.output_classes = output_classes
+        self.grad_clipping = grad_clipping
+        self.device = torch.device("device") if device is not None else check_and_return_device()
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
@@ -40,15 +60,6 @@ class TrainerConfig:
             raise ValueError("An optimizer needs to be provided")
         else:
             self.optimizer = optimizer
-
-        self.output_classes = output_classes
-        self.grad_clipping = grad_clipping
-
-        self.device = torch.device("device") if device is not None else check_and_return_device()
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
@@ -67,6 +78,8 @@ class BaseTrainerConfig(TrainerConfig):
             ids2labels: Dict = None,
             **kwargs
     ):
+        """ Additionally provided parameters needed for handling the cases where there are data samples with no rule
+         matched (filtering OR introducing the other class + training&evaluation with other class) """
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.other_class_id = other_class_id
