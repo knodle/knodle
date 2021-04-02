@@ -10,7 +10,7 @@ from joblib import dump
 import numpy as np
 import pandas as pd
 
-from tutorials.conll_relation_extraction_dataset.utils import (
+from tutorials.data_preprocessing.tac_based_dataset.utils.utils import (
     get_analysed_conll_data, get_id, update_dict, get_match_matrix_row, save_dict, convert_pattern_to_regex
 )
 
