@@ -1,7 +1,6 @@
 import logging
 import os
 from copy import copy
-from typing import Dict
 
 import numpy as np
 import torch
@@ -76,7 +75,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().numpy(), train_labels)
         )
 
-        self.train_loop(train_loader, use_sample_weights=True, draw_plot=True)
+        self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
