@@ -57,8 +57,6 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
-    def train(self):
-        """ This function sample_weights the samples with DSCrossWeigh method and train the model """
 
         train_labels = self.calculate_labels()
 
@@ -123,9 +121,10 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config = copy(self.trainer_config)
         weights_calculation_config.epochs = self.trainer_config.cw_epochs
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
+        weights_calculation_config.lr = self.trainer_config.cw_lr
         weights_calculation_config.batch_size = self.trainer_config.cw_batch_size
         weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
-        weights_calculation_config.if_set_seed = self.trainer_config.cw_if_set_seed
+        weights_calculation_config.seed = self.trainer_config.seed
         return weights_calculation_config

@@ -26,3 +26,12 @@ def input_info_labels_to_tensordataset(
     input_ids_label_dataset = TensorDataset(*model_tensors, torch.from_numpy(input_info), torch.from_numpy(labels))
 
     return input_ids_label_dataset
+
+
+def input_to_2_dim_numpy(model_input_x: TensorDataset) -> np.ndarray:
+    if len(model_input_x.tensors) == 1:
+        return model_input_x.tensors[0].numpy()
+    else:
+        raise ValueError(f"Selected denoising method accepts only two-dimensional encoded input features (features x "
+                         f"samples matrices), while {len(model_input_x.tensors) + 1}-dimensional input features were "
+                         f"given. Please use another input encoding or another denoising method.")

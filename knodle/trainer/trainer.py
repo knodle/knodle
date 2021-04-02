@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset
+from knodle.transformation.torch_input import input_labels_to_tensordataset, input_to_2_dim_numpy
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -55,6 +55,8 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
     @abstractmethod
     def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
         pass
@@ -62,6 +64,9 @@ class Trainer(ABC):
     @abstractmethod
     def test(self, test_features: TensorDataset, test_labels: TensorDataset):
         pass
+
+    def initialise_optimizer(self):
+        return self.trainer_config.optimizer(self.model.parameters(), self.trainer_config.lr)
 
 
 class BaseTrainer(Trainer):
@@ -235,10 +240,14 @@ class BaseTrainer(Trainer):
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
-        feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        gold_labels = labels.tensors[0].cpu().numpy()
 
-        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+        if hasattr(self.model, "predict"):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+            predictions = self.model.predict(input_to_2_dim_numpy(features_dataset))
+        else:
+            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
         if self.trainer_config.evaluate_with_other_class:
             clf_report = classification_report_other_class(
