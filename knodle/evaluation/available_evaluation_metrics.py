@@ -1,1 +1,0 @@
-evaluation_metrics = [sklearn, eval_with_other_class]
