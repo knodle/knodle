@@ -16,7 +16,7 @@ from knodle.transformation.torch_input import input_to_2_dim_numpy
 class CleanLabTrainer(MajorityVoteTrainer):
     def __init__(self, test_x, test_y, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = CleanLabConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = CleanLabConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
         self.test_x = test_x
         self.test_y = test_y
