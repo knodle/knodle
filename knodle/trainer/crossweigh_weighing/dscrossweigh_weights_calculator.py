@@ -65,7 +65,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 train_loader, test_loader = self.get_cw_data(
                     shuffled_rules_ids, rules_samples_ids_dict, labels, fold, other_sample_ids
                 )
-                self._train_loop(train_loader, save_models=False)
+                self._train_loop(train_loader)
                 self.cw_test(test_loader)
 
             log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
