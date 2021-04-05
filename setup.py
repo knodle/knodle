@@ -23,29 +23,34 @@ with open("requirements.txt") as f:
 
 test_requirements = ["pytest", "pytest-cov"]
 
+# use external package to extract tag of the latest release as version
+# https://pypi.org/project/setuptools-git-versioning/
+
 setup(
     name="knodle",
     version=VERSION.get("__version__"),
-    url="https://github.com/knodle/knodle",
-    license="TBC",
+    url="http://knodle.cc",
+    project_urls={
+        "github": "https://github.com/knodle/knodle",
+        "Bug Tracker": "https://github.com/knodle/knodle/issues"
+    },
+    license="Apache 2.0",
     author="knodle",
     author_email="knodle@cs.univie.ac.at",
     description="Knowledge infused deep learning framework",
     long_description=read("README.md"),
-    packages=find_packages(exclude=("tests",)),
+    long_description_content_type="text/markdown",
+    packages=find_packages(exclude=["tests"]),
+    package_dir={'knodle': 'knodle'},
     install_requires=requirements,
     tests_require=test_requirements,
     extras_require={"test": test_requirements},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8"
     ],
 )

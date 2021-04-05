@@ -3,14 +3,17 @@ joblib
 tqdm
 
 # Computation
-numpy
+numpy<1.20.0,>=1.16.5
 scipy
 pandas
 
 # ML frameworks
 scikit-learn
 torch
-snorkel
+snorkel<=0.9.7
+
+# kNN
+annoy
 
 # graphics
 matplotlib

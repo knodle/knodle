@@ -129,9 +129,10 @@ And don't forget to follow [@knodle](https://twitter.com/knodle) on Twitter :)
 
 - [Anastasiia Sedova](https://github.com/agsedova)
 - [Andreas Stephan](https://github.com/AndSt)
-- [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - [Marina Speranskaya](https://github.com/marina-sp) 
 - [Benjamin Roth](https://www.benjaminroth.net/)
+- [Alessandro Volpicella](https://github.com/AlessandroVol23)
+
 
 ## Acknowledgments
 
