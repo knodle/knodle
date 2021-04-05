@@ -5,6 +5,7 @@ from typing import Union, Tuple
 
 import pandas as pd
 import numpy as np
+import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
 from torch.optim import SGD
@@ -34,7 +35,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         read_train_dev_test(path_to_data, if_dev_data=True)
 
     # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    train_tfidf_sparse, _, _ = get_tfidf_features(train_df, 0)
+    train_tfidf_sparse, _ , _ = get_tfidf_features(train_df, 0)
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_tfidf_dataset = TensorDataset(train_tfidf)
 
@@ -85,16 +86,16 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         weight_reducing_rate=parameters.get("weight_rr"),  # sample weights reducing coefficient
         samples_start_weights=parameters.get("samples_start_weights"),  # the start weight of sample weights
         cw_epochs=parameters.get("cw_epochs"),  # number of epochs each dscrossweigh model is to be trained
-        cw_optimizer=SGD,       # dscrossweigh model optimiser
-        cw_lr=parameters.get("cw_lr"),          # dscrossweigh model lr
+        cw_optimizer=SGD,
+        cw_lr=parameters.get("cw_lr")
     )
 
     trainer = DSCrossWeighTrainer(
         # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
         mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
-        model_input_x=train_bert_dataset,           # x matrix for training the classifier
-        rule_matches_z=z_train_rule_matches,                # z matrix
+        model_input_x=train_bert_dataset,  # x matrix for training the classifier
+        rule_matches_z=z_train_rule_matches,  # z matrix
         trainer_config=custom_crossweigh_config,
 
         # additional dev set used for classification model evaluation during training

@@ -5,9 +5,6 @@ import pandas as pd
 import numpy as np
 from joblib import load, dump
 from sklearn.feature_extraction.text import TfidfVectorizer
-from tokenizers import Tokenizer
-from torch.utils.data import TensorDataset
-from transformers import DistilBertTokenizer, DistilBertModel
 
 
 def read_train_dev_test(
@@ -30,6 +27,7 @@ def read_train_dev_test(
 
 def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = None) -> List:
     """ Extracts the data from the Series/DataFrame and returns it as a list"""
+    column_num = int(column_num)
     if isinstance(data, pd.Series):
         return list(data)
     elif isinstance(data, pd.DataFrame) and column_num is not None:
@@ -40,37 +38,13 @@ def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = Non
         )
 
 
-def create_tfidf_values(text_data: [str], max_features, path_to_cash: str = None):
-    if path_to_cash and os.path.exists(path_to_cash):
-        cached_data = load(path_to_cash)
+def create_tfidf_values(text_data: [str], max_features, path_to_cach: str = None):
+    if path_to_cach and os.path.exists(path_to_cach):
+        cached_data = load(path_to_cach)
         if cached_data.shape == text_data.shape:
             return cached_data
 
     vectorizer = TfidfVectorizer(max_features=max_features)
     transformed_data = vectorizer.fit_transform(text_data)
-    dump(transformed_data, path_to_cash)
+    dump(transformed_data, path_to_cach)
     return transformed_data
-
-
-def create_bert_encoded_features(
-        input_data: pd.Series, tokenizer: Tokenizer, column_num: int = None
-) -> TensorDataset:
-    """ Convert input data to BERT encoded features """
-    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    return TensorDataset(input_ids, attention_mask)
-
-
-def create_bert_encoded_features_hidden_states(
-        input_data: pd.Series, tokenizer: Tokenizer, column_num: int = None
-) -> TensorDataset:
-    """ Convert input data to BERT encoded features and outputs the hidden states for the input sentence """
-    model = DistilBertModel.from_pretrained('distilbert-base-uncased')
-    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    output = model(input_ids, attention_mask)
-    embeddings_of_last_layer = output[0]
-    cls_embeddings = embeddings_of_last_layer[0]
-    return cls_embeddings

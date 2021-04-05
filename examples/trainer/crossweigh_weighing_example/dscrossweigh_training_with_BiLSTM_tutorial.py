@@ -10,10 +10,10 @@ from torch import Tensor, LongTensor
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation.tacred_metrics import score
+from knodle.evaluation.other_class_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.crossweigh import DSCrossWeighTrainer
+from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
 from tutorials.utils import read_train_dev_test, get_samples_list
 
 NUM_CLASSES = 42
@@ -70,7 +70,7 @@ def train_crossweigh(
         if_set_seed=True,
         epochs=parameters.get("epochs"),
         batch_size=16,
-        optimizer=Adam(model.parameters(), lr=parameters.get("lr")),
+        optimizer=Adam,
         grad_clipping=5,
         partitions=parameters.get("cw_partitions"),
         folds=parameters.get("cw_folds"),
@@ -85,7 +85,6 @@ def train_crossweigh(
         dev_model_input_x=dev_dataset,
         dev_gold_labels_y=dev_labels_dataset,
         rule_matches_z=z_train_rule_matches,
-        path_to_weights=path_sample_weights,
         trainer_config=custom_crossweigh_config,
         evaluation_method="tacred",
         dev_labels_ids=labels2ids,
