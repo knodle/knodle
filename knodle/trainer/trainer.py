@@ -13,6 +13,7 @@ from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
+from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
@@ -95,7 +96,10 @@ class BaseTrainer(Trainer):
 
         return input_batch, label_batch
 
-    def _train_loop(self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False):
+    def _train_loop(
+            self, feature_label_dataloader, use_sample_weights: bool = False,
+            draw_plot: bool = False
+    ):
         log_section("Training starts", logger)
 
         self.model.to(self.trainer_config.device)
@@ -156,7 +160,7 @@ class BaseTrainer(Trainer):
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x:
+            if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
                     self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
                 dev_losses.append(dev_loss)
@@ -164,9 +168,9 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.output_dir_path is not None:
+            if self.trainer_config.saved_models_dir is not None:
                 model_path = os.path.join(
-                    self.trainer_config.output_dir_path,
+                    self.trainer_config.saved_models_dir,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)
@@ -236,7 +240,13 @@ class BaseTrainer(Trainer):
 
         predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
-        clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
+        if self.trainer_config.evaluate_with_other_class:
+            clf_report = classification_report_other_class(
+                y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
+                other_class_id=self.trainer_config.other_class_id
+            )
+        else:
+            clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
         if loss_calculation:
             return clf_report, dev_loss / len(feature_label_dataloader)

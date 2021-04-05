@@ -23,14 +23,9 @@ torch.set_printoptions(edgeitems=100)
 
 class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
-    def __init__(
-            self,
-            path_to_weights: str,
-            **kwargs
-    ):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.crossweigh_model = copy.deepcopy(self.model)
-        self.path_to_weights = path_to_weights
         self.sample_weights = torch.empty(0)
 
     def calculate_weights(self) -> torch.FloatTensor:
@@ -43,7 +38,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             raise ValueError("Number of folds should be at least 2 to perform DSCrossWeigh denoising")
 
         logger.info("======= Denoising with DSCrossWeigh is started =======")
-        os.makedirs(self.path_to_weights, exist_ok=True)
+        os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
 
         labels = z_t_matrices_to_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
@@ -70,17 +65,20 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 train_loader, test_loader = self.get_cw_data(
                     shuffled_rules_ids, rules_samples_ids_dict, labels, fold, other_sample_ids
                 )
-                self.train_loop(train_loader)
+                self._train_loop(train_loader)
                 self.cw_test(test_loader)
 
             log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
-        dump(self.sample_weights, os.path.join(self.path_to_weights, "sample_weights.lib"))
+        dump(
+            self.sample_weights, os.path.join(self.trainer_config.caching_folder,
+                                              f"sample_weights_{self.trainer_config.caching_suffix}.lib")
+             )
         logger.info("======= Denoising with DSCrossWeigh is completed =======")
         return self.sample_weights
 
     def _get_other_sample_ids(self, labels: np.ndarray) -> List[int]:
-        return np.where(labels[:, self.trainer_config.other_sample_ids] == 1)[0].tolist()
+        return np.where(labels[:, self.trainer_config.other_class_id] == 1)[0].tolist()
 
     def _get_shuffled_rules_idx(self) -> List[int]:
         """ Get shuffled row indices of dataset """

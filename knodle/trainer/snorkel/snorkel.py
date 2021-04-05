@@ -56,7 +56,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
 
 
 @AutoTrainer.register('snorkel_knn')
@@ -75,4 +75,4 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
