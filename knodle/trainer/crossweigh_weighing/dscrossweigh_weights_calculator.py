@@ -70,8 +70,9 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
             log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
-        dump(self.sample_weights, os.path.join(
-            self.trainer_config.caching_folder, "sample_weights.lib")
+        dump(
+            self.sample_weights, os.path.join(self.trainer_config.caching_folder,
+                                              f"sample_weights_{self.trainer_config.caching_suffix}.lib")
              )
         logger.info("======= Denoising with DSCrossWeigh is completed =======")
         return self.sample_weights

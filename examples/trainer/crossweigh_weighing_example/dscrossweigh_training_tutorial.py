@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 import pandas as pd
 import numpy as np
@@ -11,10 +11,10 @@ from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
+from examples.utils import get_samples_list, read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
-from tutorials.utils import get_samples_list, read_train_dev_test
 
 
 def train_crossweigh(path_to_data: str, num_classes: int) -> None:
@@ -34,7 +34,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         read_train_dev_test(path_to_data, if_dev_data=True)
 
     # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    train_tfidf_sparse, _ , _ = get_tfidf_features(train_df, 0)
+    train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
+
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_dataset = TensorDataset(train_tfidf)
 
@@ -57,6 +58,10 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         "lr": 1e-4, "cw_lr": 0.8, "epochs": 5, "cw_partitions": 2, "cw_folds": 5, "cw_epochs": 2, "weight_rr": 0.7,
         "samples_start_weights": 4.0
     }
+    # to have sample weights saved with some specific index in the file name, you can use "caching_suffix" variable
+    caching_suffix = f"dscw_{parameters.get('cw_partitions')}part_" \
+                     f"{parameters.get('cw_folds')}folds_" \
+                     f"{parameters.get('weight_rr')}wrr"
 
     # define LogReg and BERT models for training sample weights and final classifier correspondingly
     cw_model = LogisticRegressionModel(train_tfidf.shape[1], num_classes)
@@ -74,9 +79,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         batch_size=16,
         optimizer=AdamW(model.parameters(), lr=parameters.get("lr")),
         grad_clipping=5,
-        caching=True,           # the sample weights will be saved
-        caching_suffix=f"{parameters.get('cw_partitions')}_{parameters.get('cw_folds')}",
-        output_dir_path=path_to_data,
+        caching_suffix=caching_suffix,
+        saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
         # dscrossweigh specific parameters
         partitions=parameters.get("cw_partitions"),  # number of dscrossweigh iterations (= splitting into folds)
@@ -131,8 +135,7 @@ def get_bert_encoded_features(
 
 
 def get_tfidf_features(
-        train_data: Union[pd.DataFrame, pd.Series], column_num: int = None,
-        test_data: Union[pd.DataFrame, pd.Series] = None, dev_data: Union[pd.DataFrame, pd.Series] = None
+        train_data: List, test_data: List = None, dev_data: List = None
 ) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
     """
     Convert input data to a matrix of TF-IDF features.
@@ -146,12 +149,12 @@ def get_tfidf_features(
     """
     dev_transformed_data, test_transformed_data = None, None
     vectorizer = TfidfVectorizer()
-    train_transformed_data = vectorizer.fit_transform(get_samples_list(train_data, column_num))
 
+    train_transformed_data = vectorizer.fit_transform(train_data)
     if test_data is not None:
-        test_transformed_data = vectorizer.transform(get_samples_list(test_data, column_num))
+        test_transformed_data = vectorizer.transform(test_data)
     if dev_data is not None:
-        dev_transformed_data = vectorizer.transform(get_samples_list(dev_data, column_num))
+        dev_transformed_data = vectorizer.transform(dev_data)
 
     return train_transformed_data, test_transformed_data, dev_transformed_data
 

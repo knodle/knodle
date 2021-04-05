@@ -1,3 +1,4 @@
+import pathlib
 from typing import Callable, Dict
 import os
 import logging
@@ -25,32 +26,28 @@ class TrainerConfig:
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,
-            caching: bool = False,
-            caching_folder: str = "",
+            caching_folder: str = None,
             caching_suffix: str = "",
-            output_dir_path: str = None
+            saved_models_dir: str = None
     ):
         set_seed(seed)
 
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
+        # create directory where saved models will be stored
+        self.saved_models_dir = saved_models_dir
+        if self.saved_models_dir is not None:
+            os.makedirs(self.saved_models_dir, exist_ok=True)
 
         self.criterion = criterion
         self.batch_size = batch_size
-        self.caching = caching
-        self.caching_suffix = caching_suffix
-
-        if self.caching:
-            if caching_folder:
-                self.caching_folder = caching_folder
-            else:
-                self.caching_folder = os.path.join(self.output_dir_path, "cach")
-
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
         self.device = torch.device("device") if device is not None else check_and_return_device()
+
+        self.caching_suffix = caching_suffix
+        if caching_folder is not None:
+            self.caching_folder = caching_folder
+        else:
+            self.caching_folder = os.path.join(pathlib.Path().absolute(), "cache")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

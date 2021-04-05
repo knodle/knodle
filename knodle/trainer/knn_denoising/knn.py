@@ -73,7 +73,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             return self.rule_matches_z
 
         # load cached data, if available
-        if self.trainer_config.caching:
+        if self.trainer_config.caching_folder:
             cache_file = self.trainer_config.get_cache_file()
             if os.path.isfile(cache_file):
                 logger.info(f"Loaded knn matrix from cache: {cache_file}")
@@ -132,7 +132,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         self.rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
 
         # save data for caching
-        if self.trainer_config.caching:
+        if self.trainer_config.caching_folder:
             os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
             joblib.dump(self.rule_matches_z, cache_file)
 

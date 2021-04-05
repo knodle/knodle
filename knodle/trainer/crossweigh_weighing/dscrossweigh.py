@@ -29,8 +29,8 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             cw_model: Module = None,
             cw_model_input_x: TensorDataset = None,
             cw_rule_matches_z: np.ndarray = None,
-            run_classifier: bool = True,    # set to False if you want only the calculation of the sample weights
-            use_weights: bool = True,           # set to False if you want to use weights = 1 (baseline)
+            run_classifier: bool = True,  # set to False if you want only the calculation of the sample weights
+            use_weights: bool = True,  # set to False if you want to use weights = 1 (baseline)
             **kwargs
     ):
         self.cw_model = cw_model if cw_model else kwargs.get("model")
@@ -46,7 +46,6 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         self.run_classifier = run_classifier
         self.use_weights = use_weights
-        self.trainer_config.caching_folder = os.path.join(self.trainer_config.caching_folder, self.trainer_config.caching_suffix)
 
         logger.info("CrossWeigh Config is used: {}".format(self.trainer_config.__dict__))
 
@@ -98,11 +97,11 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         them. If not, calculates sample weights calling method of DSCrossWeighWeightsCalculator class"""
 
         if os.path.isfile(os.path.join(
-                self.trainer_config.caching_folder, "sample_weights.lib")
+                self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib")
         ):
             logger.info("Already pretrained samples sample_weights will be used.")
             sample_weights = load(os.path.join(
-                self.trainer_config.caching_folder, "sample_weights.lib")
+                self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib")
             )
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
@@ -125,5 +124,5 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
-        weights_calculation_config.if_set_seed = self.trainer_config.cw_if_set_seed
+        weights_calculation_config.seed = self.trainer_config.cw_seed
         return weights_calculation_config
