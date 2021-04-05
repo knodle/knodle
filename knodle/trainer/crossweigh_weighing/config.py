@@ -3,6 +3,7 @@ from torch.optim import Optimizer
 from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.auto_config import AutoConfig
 
+
 @AutoConfig.register("crossweigh")
 class DSCrossWeighDenoisingConfig(MajorityConfig):
     def __init__(
@@ -57,3 +58,4 @@ class DSCrossWeighDenoisingConfig(MajorityConfig):
 
         self.cw_seed = cw_seed
         self.cw_lr = cw_lr
+
