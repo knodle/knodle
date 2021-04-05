@@ -97,7 +97,7 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
+            self, feature_label_dataloader, use_sample_weights: bool = False,
             draw_plot: bool = False
     ):
         log_section("Training starts", logger)
@@ -168,7 +168,7 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.saved_models_dir is not None and save_models:
+            if self.trainer_config.saved_models_dir is not None:
                 model_path = os.path.join(
                     self.trainer_config.saved_models_dir,
                     f"model_state_dict_epoch_{current_epoch}.pt"

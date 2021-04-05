@@ -111,6 +111,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
                 model_input_x=self.cw_model_input_x,
                 rule_matches_z=self.cw_rule_matches_z,
                 trainer_config=self.get_denoising_config(),
+                saved_models_dir=None
             ).calculate_weights()
             logger.info(f"Sample weights are calculated and saved to {self.trainer_config.caching_folder} folder")
         return sample_weights
