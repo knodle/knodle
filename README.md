@@ -1,5 +1,4 @@
-class LogisticRegressionModel(object):
-    pass<img src="./knodle_logo.png" height="150"/>
+<img src="./knodle_logo.png" height="150"/>
 
 ### Knowledge infused deep learning framework
 
