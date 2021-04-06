@@ -1,4 +1,5 @@
-<img src="./knodle_logo.png" height="150"/>
+class LogisticRegressionModel(object):
+    pass<img src="./knodle_logo.png" height="150"/>
 
 ### Knowledge infused deep learning framework
 
@@ -26,27 +27,35 @@ There are four mandatory inputs for knodle:
 Example for training the baseline classifier:
 
 ```python
-from knodle.model import LogisticRegressionModel
-from knodle.trainer import TrainerConfig
-from knodle.trainer.baseline.baseline import NoDenoisingTrainer
+from knodle.model.logistic_regression_model import LogisticRegressionModel
+from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.data import get_imdb_dataset
+from knodle.data.transformer import get_labels
+from knodle.data.tfidf import get_tfidf_features
 
-OUTPUT_CLASSES = 2
+NUM_OUTPUT_CLASSES = 2
 
-model_input_x, mapping_rules_labels_t, rule_matches_z = get_imdb_dataset()
+train_df, dev_df, test_df, z_train_rule_matches, train_rule_matches_z, mapping_rules_labels_t = \
+        get_imdb_dataset()
 
-model = LogisticRegressionModel(model_input_x.shape[1], OUTPUT_CLASSES)
+train_tfidf, test_tfidf, dev_tfidf = get_tfidf_features(train_df, test_df, dev_df)
+test_labels = get_labels(test_df)
+dev_labels = get_labels(dev_df)
 
-trainer = SimpleDsModelTrainer(
+model = LogisticRegressionModel(train_tfidf.shape[1], NUM_OUTPUT_CLASSES)
+
+trainer = MajorityVoteTrainer(
   model,
   mapping_rules_labels_t=mapping_rules_labels_t,
-  model_input_x=train_dataset,
-  rule_matches_z=train_rule_matches_z
+  model_input_x=train_tfidf,
+  rule_matches_z=train_rule_matches_z,
+  dev_model_input_x=dev_tfidf,
+  dev_gold_labels_y=dev_labels
 )
 
 trainer.train()
 
-trainer.test(test_features=test_tfidf, test_labels=Tensor(y_test))
+trainer.test(test_tfidf, test_labels)
 ```
 
 For seeing how the imdb dataset was created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset).
@@ -85,6 +94,7 @@ knodle
 │    ├── evaluation
 │    ├── trainer
 │          ├── baseline
+│          ├── cleanlab
 │          ├── dscrossweigh_denoising
 │          ├── knn_denoising
 │          ├── snorkel
@@ -100,12 +110,10 @@ knodle
 │          ├── snorkel
 │          └── utils
 │    └── transformation
-└── tutorials
-     ├── preprocessing
-           ├── conll_dataset
+└── examples
+     ├── data_preprocessing
            ├── imdb_dataset
-           ├── spam_dataset
-           └── spouse_dataset
+           └── tac_based_dataset
      └── training
            ├── AutoTrainer
            └── dscrossweigh
@@ -130,8 +138,8 @@ And don't forget to follow [@knodle](https://twitter.com/knodle) on Twitter :)
 - [Anastasiia Sedova](https://github.com/agsedova)
 - [Andreas Stephan](https://github.com/AndSt)
 - [Marina Speranskaya](https://github.com/marina-sp) 
-- [Benjamin Roth](https://www.benjaminroth.net/)
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
+- [Benjamin Roth](https://www.benjaminroth.net/)
 
 
 ## Acknowledgments

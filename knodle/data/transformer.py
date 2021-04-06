@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Union
 
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import TensorDataset
 from transformers import AutoTokenizer
@@ -39,3 +40,20 @@ def create_bert_input(
         train_ids_mask, train_rule_matches_z, mapping_rules_labels_t, train_y,
         test_ids_mask, test_y
     )
+
+
+def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = None) -> List:
+    """ Extracts the data from the Series/DataFrame and returns it as a list"""
+    if isinstance(data, pd.Series):
+        return list(data)
+    elif isinstance(data, pd.DataFrame) and column_num:
+        return list(data.iloc[:, column_num])
+    else:
+        raise ValueError(
+            "Please pass input data either as a Series or as a DataFrame with number of the column with samples"
+        )
+
+
+def get_labels(data: pd.DataFrame) -> TensorDataset:
+    """ Derives labels from the dataframe (assuming the labels are stored in the last column) """
+    return TensorDataset(torch.LongTensor(list(data.iloc[:, -1])))

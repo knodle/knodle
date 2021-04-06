@@ -12,6 +12,7 @@ from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
 from examples.utils import get_samples_list, read_train_dev_test
+from knodle.data.tfidf import get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
@@ -132,31 +133,6 @@ def get_bert_encoded_features(
     input_ids = encoding['input_ids']
     attention_mask = encoding['attention_mask']
     return TensorDataset(input_ids, attention_mask)
-
-
-def get_tfidf_features(
-        train_data: List, test_data: List = None, dev_data: List = None
-) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
-    """
-    Convert input data to a matrix of TF-IDF features.
-    :param train_data: training samples that are to be encoded with TF-IDF features. Can be given as Series or
-    as DataFrames with specified column number where the sample are stored.
-    :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples
-    are stored
-    :param test_data: if DataFrame/Series with test data is provided
-    :param dev_data: if DataFrame/Series with development data is provided, it will be encoded as well
-    :return: TensorDataset with encoded data
-    """
-    dev_transformed_data, test_transformed_data = None, None
-    vectorizer = TfidfVectorizer()
-
-    train_transformed_data = vectorizer.fit_transform(train_data)
-    if test_data is not None:
-        test_transformed_data = vectorizer.transform(test_data)
-    if dev_data is not None:
-        dev_transformed_data = vectorizer.transform(dev_data)
-
-    return train_transformed_data, test_transformed_data, dev_transformed_data
 
 
 if __name__ == "__main__":
