@@ -48,6 +48,7 @@ class TrainerConfig:
             self.caching_folder = caching_folder
         else:
             self.caching_folder = os.path.join(pathlib.Path().absolute(), "cache")
+        logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
