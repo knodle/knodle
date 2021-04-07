@@ -1,4 +1,4 @@
-<img src="img/knodle_logo_1.jpg" height="300"/>
+<img src="img/knodle_logo_1.jpg" height="200"/>
 
 ### Knowledge infused deep learning framework
 
@@ -15,7 +15,7 @@ pip install knodle
 ## Main Principles
 
 
-<img src="img/schema.png" height="400"/>
+<img src="img/schema.png" height="300"/>
 
 ## Usage
 
