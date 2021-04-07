@@ -1,4 +1,4 @@
-<img src="./knodle_logo.png" height="150"/>
+<img src="img/knodle_logo_1.png" height="150"/>
 
 ### Knowledge infused deep learning framework
 
@@ -12,6 +12,11 @@
 pip install knodle
 ```
 
+## Main Principles
+
+
+<img src="img/schema.png" height="150"/>
+
 ## Usage
 
 knodle offers various methods for denoising weak supervision sources and improve them. There are several methods available for denoising. Examples can be seen in the tutorials folder.
@@ -22,6 +27,8 @@ There are four mandatory inputs for knodle:
 2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules x n_classes
 3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances x n_rules
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
+
+If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle/tree/style_guide#denoising-methods)).
 
 Example for training the baseline classifier:
 
@@ -63,21 +70,28 @@ For seeing how the imdb dataset was created please have a look at the [dedicated
 
 There are several denoising methods available.
 
-| Name                 | Module                                  | Description                                                                                                                                                                                                   |
-| -------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Baseline             | `knodle.trainer.baseline`               | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
-| kNN TFIDF Similarity | `knodle.trainer.knn_tfidf_similarities` | This method looks at the similarities in tfidf values of the sentences. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
-| DSCrossWeigh         | `knodle.trainer.crossweigh`             | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
+| Name                 | Trainer                 | Module                                            | Description                                                                                                                                                                                                   |
+| -------------------- | ------------------------| --------------------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baseline             | MajorityVoteTrainer     |`knodle.trainer.baseline.majority`                 | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
+| Autotrainer          | AutoTrainer             |`knodle.trainer.autotrainer`                       | This incorporates all denoising methods currently provided in Knodle. |
+| kNN Denoising        | KnnDenoisingTrainer     |`knodle.trainer.knn_denoising.knn`                 | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
+| DSCrossWeigh         | DSCrossWeighTrainer     |`knodle.trainer.dscrossweigh_weighing.dscrossweigh`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
+| Snorkel              | SnorkelTrainer          |`knodle.trainer.snorkel.snorkel`                   | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
+| Cleanlab             | CleanLabTrainer         |`knodle.trainer.cleanlab.cleanlab`                 | A wrapper of the Cleanlab system. |
+
+Each of the methods has its own default config file, which will be used in training if no custom config is provided. 
+
+## Details about negative samples
 
 ## Tutorials
 
-We also aimed at providing the users with basic tutorials that would explain how to use our framework. All of them are stored in [tutorials](https://github.com/knodle/knodle/tree/develop/tutorials/) folder and logically divided into two groups:
+We also aimed at providing the users with basic tutorials that would explain how to use our framework. All of them are stored in [examples](https://github.com/knodle/knodle/tree/develop/examples/) folder and logically divided into two groups:
 - tutorials that demonstrate how to prepare the input data for Knodle Framework...
-    - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources (LINK)
-    - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources (LINK)
+    - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/imdb_dataset)).
+    - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
 - tutorials how to work with Knodle Framework
-    - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle. (LINK)
-    - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained. (LINK)
+    - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
+    - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
 
 ## Compatibility
 
