@@ -13,27 +13,6 @@
 pip install knodle
 ```
 
-## Main Principles
-
-The framework provides a simple tensor-driven abstraction based on PyTorch allowing researchers to efficiently develop and compare their methods. The emergence of machine learning software frameworks is the biggest enabler for the wide spread adoption of machine learning and its speed of development. With Knodle we want to empower researchers in a similar fashion.
-
-Knodle main goals:
-- *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
-variants and is applicable to a large number of tasks.
-- *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
-- *Accessibility*. There is a high level access to the library, what makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
-
-Apart from that, Knodle includes a election of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
-
-<img src="img/schema.png" height="300"/>
-
-Datasets:
-
-- Spam Dataset - a dataset, based on the YouTube comments dataset from Alberto et al. (2015). Here, the task is to classify whether a text is relevant to the video or holds spam, such as adver- tisement.
-- Spouse Dataset - relation extraction dataset is based on the Signal Media One-Million News Articles Dataset2 from Corney et al. (2016). 
-- IMDb Dataset - a dataset, that consists of short movie reviews. The task is to determine whether a review holds a positive or negative sentiment. 
-- TAC-based Relation Extraction Dataset - a dataset built over Knowledge Base Population challenges in the Text Analysis Conference. For development and test purposes the corpus annotated via crowdsourcing and human labeling from KBP is used (Zhang et al. (2017)). The training is done on a weakly-supervised noisy dataset based on TAC KBP corpora (Surdeanu (2013)), also used in Roth (2014). 
-
 ## Usage
 
 knodle offers various methods for denoising weak supervision sources and improve them. There are several methods available for denoising. Examples can be seen in the tutorials folder.
@@ -81,7 +60,30 @@ trainer.train()
 trainer.test(test_tfidf, test_labels)
 ```
 
-For seeing how the imdb dataset was created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset).
+## Main Principles
+
+The framework provides a simple tensor-driven abstraction based on PyTorch allowing researchers to efficiently develop and compare their methods. The emergence of machine learning software frameworks is the biggest enabler for the wide spread adoption of machine learning and its speed of development. With Knodle we want to empower researchers in a similar fashion.
+
+Knodle main goals:
+- *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
+variants and is applicable to a large number of tasks.
+- *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
+- *Accessibility*. There is a high level access to the library, what makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
+
+
+<img src="img/schema.png" height="300"/>
+
+Apart from that, Knodle includes a election of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
+
+Datasets currently provided in Knodle:
+
+- Spam Dataset - a dataset, based on the YouTube comments dataset from Alberto et al. (2015). Here, the task is to classify whether a text is relevant to the video or holds spam, such as adver- tisement.
+- Spouse Dataset - relation extraction dataset is based on the Signal Media One-Million News Articles Dataset2 from Corney et al. (2016). 
+- IMDb Dataset - a dataset, that consists of short movie reviews. The task is to determine whether a review holds a positive or negative sentiment. 
+- TAC-based Relation Extraction Dataset - a dataset built over Knowledge Base Population challenges in the Text Analysis Conference. For development and test purposes the corpus annotated via crowdsourcing and human labeling from KBP is used (Zhang et al. (2017)). The training is done on a weakly-supervised noisy dataset based on TAC KBP corpora (Surdeanu (2013)), also used in Roth (2014). 
+
+All datasets are added to the Knodle framework in the tensor format described above. To see how the datasets were created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing).
+
 
 ## Denoising Methods
 
