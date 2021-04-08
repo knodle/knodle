@@ -71,12 +71,12 @@ Knodle main goals:
 - *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
 variants and is applicable to a large number of tasks.
 - *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
-- *Accessibility*. There is a high level access to the library, what makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
+- *Accessibility*. There is a high-level access to the library, that makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
 
 
 <img src="img/schema.png" height="300"/>
 
-Apart from that, Knodle includes a election of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
+Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
 Datasets currently provided in Knodle:
 
@@ -111,7 +111,7 @@ We also aimed at providing the users with basic tutorials that would explain how
 - tutorials that demonstrate how to prepare the input data for Knodle Framework...
     - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/imdb_dataset)).
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
-- tutorials how to work with Knodle Framework
+- tutorials how to work with Knodle Framework...
     - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
     - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
 
