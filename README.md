@@ -27,6 +27,13 @@ Apart from that, Knodle includes a election of well-known data sets from prior w
 
 <img src="img/schema.png" height="300"/>
 
+Datasets:
+
+- Spam Dataset - a dataset, based on the YouTube comments dataset from Alberto et al. (2015). Here, the task is to classify whether a text is relevant to the video or holds spam, such as adver- tisement.
+- Spouse Dataset - relation extraction dataset is based on the Signal Media One-Million News Articles Dataset2 from Corney et al. (2016). 
+- IMDb Dataset - a dataset, that consists of short movie reviews. The task is to determine whether a review holds a positive or negative sentiment. 
+- TAC-based Relation Extraction Dataset - a dataset built over Knowledge Base Population challenges in the Text Analysis Conference. For development and test purposes the corpus annotated via crowdsourcing and human labeling from KBP is used (Zhang et al. (2017)). The training is done on a weakly-supervised noisy dataset based on TAC KBP corpora (Surdeanu (2013)), also used in Roth (2014). 
+
 ## Usage
 
 knodle offers various methods for denoising weak supervision sources and improve them. There are several methods available for denoising. Examples can be seen in the tutorials folder.
