@@ -1,5 +1,4 @@
 <img src="http://knodle.cc/static/logo-866f6c91f8135d66107abccbec7bf77e.png" height="120">
- 
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
