@@ -1,6 +1,8 @@
 <img src="img/knodle_logo_1.jpg" height="100"/>
 
-### Knowledge infused deep learning framework that provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
+### Knowledge infused deep learning framework 
+
+Knodle provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
