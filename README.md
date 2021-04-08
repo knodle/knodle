@@ -110,7 +110,7 @@ We also aimed at providing the users with basic tutorials that would explain how
 - tutorials that demonstrate how to prepare the input data for Knodle Framework...
     - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/imdb_dataset)).
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
-- tutorials how to work with Knodle Framework
+- tutorials how to work with Knodle Framework...
     - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
     - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
 
