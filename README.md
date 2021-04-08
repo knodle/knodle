@@ -165,7 +165,7 @@ If you notices a problem in the code, you can report it by [submitting an issue]
 If you want to share your feedback with us or take part in the project, contact us via 
 <knodle@cs.univie.ac.at>. 
 
-And don't forget to follow [@knodle](https://twitter.com/knodle) on Twitter :)
+And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitter :)
 
 ## Authors
 
