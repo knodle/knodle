@@ -1,4 +1,4 @@
-<img src="img/knodle_logo_1.jpg" height="100"/>
+<img src="img/knodle_logo_1.jpg" height="120"/>
  
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
@@ -7,7 +7,7 @@
 [![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()  
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
 
-Knodle (_Knowledge infused deep learning framework_)provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
+Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
 ## Installation
 
