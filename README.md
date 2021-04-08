@@ -70,7 +70,7 @@ Knodle main goals:
 - *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
 variants and is applicable to a large number of tasks.
 - *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
-- *Accessibility*. There is a high level access to the library, what makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
+- *Accessibility*. There is a high-level access to the library, that makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
 
 
 <img src="img/schema.png" height="300"/>
