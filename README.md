@@ -75,7 +75,7 @@ variants and is applicable to a large number of tasks.
 
 <img src="img/schema.png" height="300"/>
 
-Apart from that, Knodle includes a election of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
+Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
 Datasets currently provided in Knodle:
 
