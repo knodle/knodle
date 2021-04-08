@@ -15,6 +15,15 @@ pip install knodle
 
 ## Main Principles
 
+The framework provides a simple tensor-driven abstraction based on PyTorch allowing researchers to efficiently develop and compare their methods. The emergence of machine learning software frameworks is the biggest enabler for the wide spread adoption of machine learning and its speed of development. With Knodle we want to empower researchers in a similar fashion.
+
+Knodle main goals:
+- *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
+variants and is applicable to a large number of tasks.
+- *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
+- *Accessibility*. There is a high level access to the library, what makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
+
+Apart from that, Knodle includes a election of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
 <img src="img/schema.png" height="300"/>
 
