@@ -30,7 +30,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             **kwargs
     ):
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = KNNConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = KNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
         if knn_feature_matrix is None:

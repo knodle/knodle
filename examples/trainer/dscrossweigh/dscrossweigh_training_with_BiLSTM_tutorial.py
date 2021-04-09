@@ -70,7 +70,7 @@ def train_crossweigh(
         if_set_seed=True,
         epochs=parameters.get("epochs"),
         batch_size=16,
-        optimizer=Adam(model.parameters(), lr=parameters.get("lr")),
+        optimizer=Adam,
         grad_clipping=5,
         partitions=parameters.get("cw_partitions"),
         folds=parameters.get("cw_folds"),

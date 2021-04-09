@@ -39,7 +39,7 @@ def z_t_matrices_to_majority_vote_probs(
 ) -> np.ndarray:
     """
     This function calculates a majority vote probability for all rule_matches_z. The difference from simple
-    get_majority_vote_probs function is the following: samples, where no rules matched (that is, all elements in
+    trget_majority_vote_probs function is the following: samples, where no rules matched (that is, all elements in
     the corresponding raw in rule_matches_z matrix equal 0), are assigned to no_match_class (that is, a value in the
     corresponding column in rule_counts_probs matrix is changed to 1).
 
@@ -55,7 +55,8 @@ def z_t_matrices_to_majority_vote_probs(
                          f"T matrix has shape {mapping_rules_labels_t.shape}")
 
     if isinstance(rule_matches_z, sp.csr_matrix):
-        rule_counts = rule_matches_z.dot(mapping_rules_labels_t).toarray()
+        # rule_counts = rule_matches_z.dot(mapping_rules_labels_t).toarray()
+        rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 

@@ -17,8 +17,9 @@ def classification_report_other_class(
     string_prediction, string_gold = translate_predictions(
         predictions=y_pred, labels=y_true, ids2labels=ids2labels
     )
-    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose,
-                       other_class_label=ids2labels[other_class_id])
+    clf_report = score(
+        key=string_gold, prediction=string_prediction, verbose=verbose, other_class_label=ids2labels[other_class_id]
+    )
     return clf_report
 
 
@@ -99,3 +100,16 @@ def score(
     logger.info("\n")
 
     return {"precision": prec_micro, "recall": recall_micro, "f1": f1_micro}
+
+
+def checks_evaluation_inputs(ids2labels: Dict, other_class_id: int) -> None:
+    """ This function checks whether the arguments are valid for validation with other class id """
+    if ids2labels is None or isinstance(ids2labels, Dict):
+        raise ValueError("Please specify the id to labels dictionary in order to provide correct validation with other"
+                         "class id. Alternatively you can change the validation method to the default classification "
+                         "report with sklearn (used by default).")
+    if other_class_id is None or isinstance(other_class_id, int):
+        raise ValueError("Please specify the id of other class in order to provide correct validation with other"
+                         "class id. Alternatively you can change the validation method to the default classification "
+                         "report with sklearn (used by default).")
+
