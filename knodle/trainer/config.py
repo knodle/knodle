@@ -1,3 +1,4 @@
+import pathlib
 from typing import Callable, Dict
 import os
 import logging
@@ -25,12 +26,30 @@ class TrainerConfig:
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,
-            output_dir_path: str = None
+            caching_folder: str = None,
+            caching_suffix: str = "",
+            saved_models_dir: str = None
     ):
+        set_seed(seed)
+
+        # create directory where saved models will be stored
+        self.saved_models_dir = saved_models_dir
+        if self.saved_models_dir is not None:
+            os.makedirs(self.saved_models_dir, exist_ok=True)
+
         self.criterion = criterion
         self.batch_size = batch_size
+        self.output_classes = output_classes
+        self.grad_clipping = grad_clipping
+        self.device = torch.device(device) if device is not None else check_and_return_device()
+        logger.info(f"Model will be trained on {self.device}")
 
-        set_seed(seed)
+        self.caching_suffix = caching_suffix
+        if caching_folder is not None:
+            self.caching_folder = caching_folder
+        else:
+            self.caching_folder = os.path.join(pathlib.Path().absolute(), "cache")
+        logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
@@ -40,15 +59,6 @@ class TrainerConfig:
             raise ValueError("An optimizer needs to be provided")
         else:
             self.optimizer = optimizer
-
-        self.output_classes = output_classes
-        self.grad_clipping = grad_clipping
-
-        self.device = torch.device("device") if device is not None else check_and_return_device()
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
@@ -67,6 +77,8 @@ class BaseTrainerConfig(TrainerConfig):
             ids2labels: Dict = None,
             **kwargs
     ):
+        """ Additionally provided parameters needed for handling the cases where there are data samples with no rule
+         matched (filtering OR introducing the other class + training&evaluation with other class) """
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.other_class_id = other_class_id

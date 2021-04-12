@@ -108,10 +108,10 @@ def _save_train_data(
     """
     dump(rule_assignments_t, os.path.join(path_output, T_MATRIX_OUTPUT))
     dump(rule_matches_z, os.path.join(path_output, Z_MATRIX_OUTPUT))
-    train_samples.to_csv(os.path.join(path_output, TRAIN_SAMPLES_OUTPUT), columns=["samples", "raw_retrieved_patterns",
+    train_samples.to_csv(os.path.join(path_output, TRAIN_SAMPLES_OUTPUT), columns=["sample", "raw_retrieved_patterns",
                                                                                    "labels", "enc_labels"])
     neg_train_samples.to_csv(os.path.join(path_output, NO_PATTERN_TRAIN_SAMPLES_OUTPUT),
-                             columns=["samples", "labels", "enc_labels"])
+                             columns=["sample", "labels", "enc_labels"])
 
 
 def _get_dev_data(path_dev_data: str, path_output: str) -> None:
@@ -122,7 +122,7 @@ def _get_dev_data(path_dev_data: str, path_output: str) -> None:
     logger.info("Processing of dev data has started")
 
     dev_data, _ = get_analysed_conll_data(path_dev_data, pattern2regex, relation2id)
-    dev_data.to_csv(os.path.join(path_output, DEV_SAMPLES_OUTPUT), columns=["samples", "enc_labels", "labels"])
+    dev_data.to_csv(os.path.join(path_output, DEV_SAMPLES_OUTPUT), columns=["sample", "enc_labels", "labels"])
 
     logger.info("Processing of dev data has finished")
 

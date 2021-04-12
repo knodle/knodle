@@ -38,7 +38,6 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         else:
             self.knn_feature_matrix = knn_feature_matrix
 
-
     def train(
             self,
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
@@ -60,7 +59,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
 
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """
@@ -74,7 +73,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             return self.rule_matches_z
 
         # load cached data, if available
-        if self.trainer_config.caching_folder is not None:
+        if self.trainer_config.caching_folder:
             cache_file = self.trainer_config.get_cache_file()
             if os.path.isfile(cache_file):
                 logger.info(f"Loaded knn matrix from cache: {cache_file}")
@@ -105,7 +104,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
                 self.knn_feature_matrix = None
 
                 logger.info("Retrieving neighbor indices...")
-                indices = ( # make a generator: no memory is allocated at this moment
+                indices = (         # make a generator: no memory is allocated at this moment
                     np.array(t.get_nns_by_item(i, k, search_k=-1, include_distances=False))
                     if not ignore[i] else np.array([])
                     for i in range(knn_matrix_shape[0])
@@ -133,7 +132,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
         self.rule_matches_z = activate_neighbors(self.rule_matches_z, indices)
 
         # save data for caching
-        if self.trainer_config.caching_folder is not None:
+        if self.trainer_config.caching_folder:
             os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
             joblib.dump(self.rule_matches_z, cache_file)
 
