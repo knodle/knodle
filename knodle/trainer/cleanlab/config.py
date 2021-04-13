@@ -12,6 +12,7 @@ class CleanLabConfig(MajorityConfig):
             converge_latent_estimates=False,
             pulearning=None,
             n_jobs=None,
+            psx_with_dscrossweigh=False,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -20,3 +21,4 @@ class CleanLabConfig(MajorityConfig):
         self.converge_latent_estimates = converge_latent_estimates
         self.pulearning = pulearning
         self.n_jobs = n_jobs
+        self.psx_with_dscrossweigh = psx_with_dscrossweigh

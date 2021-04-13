@@ -3,10 +3,10 @@ import os
 import sys
 from typing import Union, Tuple, List
 
-import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
+from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
@@ -71,8 +71,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     custom_crossweigh_config = DSCrossWeighDenoisingConfig(
         # general trainer parameters
         output_classes=num_classes,
-        filter_non_labelled=False,
-        other_class_id=3,
+        filter_non_labelled=True,
+        # other_class_id=3,
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,

@@ -67,10 +67,6 @@ class TrainerConfig:
         self.grad_clipping = grad_clipping
 
         self.device = torch.device("device") if device is not None else check_and_return_device()
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)

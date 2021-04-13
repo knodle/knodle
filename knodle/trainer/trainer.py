@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset, input_to_2_dim_numpy
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -54,8 +54,6 @@ class Trainer(ABC):
             self.trainer_config = BaseTrainerConfig(model)
         else:
             self.trainer_config = trainer_config
-
-        self.trainer_config.optimizer = self.initialise_optimizer()
 
     @abstractmethod
     def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
@@ -102,7 +100,7 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False,
+            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
             draw_plot: bool = False
     ):
         log_section("Training starts", logger)
@@ -165,7 +163,7 @@ class BaseTrainer(Trainer):
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x is not None:
+            if self.dev_model_input_x:
                 dev_clf_report, dev_loss = self.test(
                     self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
                 dev_losses.append(dev_loss)
@@ -173,9 +171,9 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.saved_models_dir is not None:
+            if self.trainer_config.output_dir_path is not None and save_models:
                 model_path = os.path.join(
-                    self.trainer_config.saved_models_dir,
+                    self.trainer_config.caching_folder,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)
@@ -243,7 +241,7 @@ class BaseTrainer(Trainer):
         gold_labels = labels.tensors[0].cpu().numpy()
 
         if hasattr(self.model, "predict"):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
-            predictions = self.model.predict(input_to_2_dim_numpy(features_dataset))
+            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)

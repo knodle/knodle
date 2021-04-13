@@ -45,6 +45,9 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
         self.rule_matches_z = self.rule_matches_z.astype(np.int8)
         self.mapping_rules_labels_t = self.mapping_rules_labels_t.astype(np.int8)
 

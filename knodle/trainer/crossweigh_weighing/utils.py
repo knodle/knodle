@@ -86,7 +86,9 @@ def check_splitting(
     rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
     tst_sample = tst_samples.tensors[0][rnd_tst, :]
     tst_idx = tst_idx[rnd_tst]
-    tst_label = tst_labels[rnd_tst, :]
+
+    tst_label = tst_labels[rnd_tst, :] if len(tst_labels.shape) > 1 else tst_labels[rnd_tst]
+    tst_label_true = labels[tst_idx, :] if len(labels.shape) > 1 else tst_labels[rnd_tst]
 
     if not torch.equal(tst_sample, samples[tst_idx, :]):
         raise RuntimeError(
@@ -94,7 +96,7 @@ def check_splitting(
             "incorrectly! A sample does not correspond to one in original dataset"
         )
 
-    if not np.array_equal(tst_label, labels[tst_idx, :]):
+    if not np.array_equal(tst_label, tst_label_true):
         raise RuntimeError(
             "The splitting of original training set into cw train and test sets have been done "
             "incorrectly! A sample label does not correspond to one in original dataset"

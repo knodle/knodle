@@ -11,7 +11,7 @@ from torch.utils.data import TensorDataset
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
+from knodle.trainer.crossweigh_weighing.sample_weights_calculator import DSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
@@ -61,6 +61,9 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
         train_labels = self.calculate_labels()
 
