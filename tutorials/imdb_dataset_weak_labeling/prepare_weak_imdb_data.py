@@ -2,14 +2,16 @@
 # coding: utf-8
 
 """
-IMDB Dataset - Create Weak Supervision Sources
- 
-This code creates labeling functions on the IMDB Movie Review dataset and apply them on text data.
- 
-The original dataset has gold labels, but we will use these labels only for evaluation purposes, since we want to test models under the weak supervision setting with Knodle. The idea behind it is that you don't have a dataset which is purely labeled with strong supervision (manual) and instead use heuristics (e.g. rules) to obtain a weak labeling. In the following tutorial, we will look for certain keywords in texts that can be helpful to distinguish between classes.
- 
-First, we load the dataset from a Knodle dataset collection. Then, we will create labeling functions from simple keywords and apply them to the IMDB reviews. Each labeling function will be associated with a target label (positive or negative). To estimate how good our weak labeling works on its own, we will use the resulting keyword matches together with a basic majority vote model. Finally, the preprocessed data will be saved in a knodle-friendly format, so that other denoising models can be trained with the IMDB dataset.
+IMDB Dataset - Create Weak Supervision Sources and Get the Weak Data Annotations
 
+This notebook shows how to use keywords as a weak supervision source on the example of a well-known IMDB Movie Review dataset, which targets a binary sentiment analysis task.
+
+The original dataset has gold labels, but we will use these labels only for evaluation purposes, since we want to test models under the weak supervision setting with Knodle. The idea behind it is that you don't have a dataset which is purely labeled with strong supervision (manual) and instead use heuristics (e.g. rules) to obtain a weak labeling. In the following tutorial, we will look for certain keywords expressing positive and negative sentiments that can be helpful to distinguish between classes. Specifically, we use the [Opinion lexicon](https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html) of the University of Illinois at Chicago.
+
+First, we load the dataset from a Knodle dataset collection. Then, we will create [Snorkel](https://www.snorkel.org/) labeling functions from two sets of keywords and apply them to the IMDB reviews. Please keep in mind, that keyword matching can be done without Snorkel; however, we enjoy the transparent annotation functionality of this library in our tutorial. 
+Each labeling function (i.e. keyword) will be further associated with a respective target label. This concludes the annotation step.
+
+To estimate how good our weak labeling works on its own, we will use the resulting keyword matches together with a basic majority vote model. Finally, the preprocessed data will be saved in a knodle-friendly format, so that other denoising models can be trained with the IMDB dataset.
 The IMDB dataset available in the Knodle collection was downloaded from [Kaggle](https://www.kaggle.com/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews) in January 2021. 
 """
 
