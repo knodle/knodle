@@ -20,6 +20,7 @@ class TrainerConfig:
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
             optimizer: Optimizer = None,
+            lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
             epochs: int = 35,
@@ -30,6 +31,7 @@ class TrainerConfig:
             caching_suffix: str = "",
             saved_models_dir: str = None
     ):
+        self.seed = seed
         set_seed(seed)
 
         # create directory where saved models will be stored
@@ -38,6 +40,7 @@ class TrainerConfig:
             os.makedirs(self.saved_models_dir, exist_ok=True)
 
         self.criterion = criterion
+        self.lr = lr
         self.batch_size = batch_size
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
