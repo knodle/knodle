@@ -1,22 +1,19 @@
-<img src="img/knodle_logo_1.jpg" height="100"/>
-
-### Knowledge infused deep learning framework
+<img src="http://knodle.cc/static/logo-866f6c91f8135d66107abccbec7bf77e.png" height="150">
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![PyPI](https://img.shields.io/pypi/v/knodle)
 [![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()  
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
+
+Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
+
 ## Installation
 
+(Since the project is still on development phase, it is not public available yet. Stay tuned :))
 ```
 pip install knodle
 ```
-
-## Main Principles
-
-
-<img src="img/schema.png" height="300"/>
 
 ## Usage
 
@@ -65,7 +62,30 @@ trainer.train()
 trainer.test(test_tfidf, test_labels)
 ```
 
-For seeing how the imdb dataset was created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/tutorials/ImdbDataset).
+## Main Principles
+
+The framework provides a simple tensor-driven abstraction based on PyTorch allowing researchers to efficiently develop and compare their methods. The emergence of machine learning software frameworks is the biggest enabler for the wide spread adoption of machine learning and its speed of development. With Knodle we want to empower researchers in a similar fashion.
+
+Knodle main goals:
+- *Data abstraction*. The interface is a tensor-driven data abstraction which unifies a large number of input
+variants and is applicable to a large number of tasks.
+- *Method independence*. We distinguish between weak supervision and prediction model. This enables comparability and accounts for a domain-specific inductive biases.
+- *Accessibility*. There is a high-level access to the library, that makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
+
+
+<img src="img/schema.png" height="300"/>
+
+Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
+
+Datasets currently provided in Knodle:
+
+- Spam Dataset - a dataset, based on the YouTube comments dataset from [Alberto et al. (2015)](https://www.researchgate.net/publication/300414679_TubeSpam_Comment_Spam_Filtering_on_YouTube). Here, the task is to classify whether a text is relevant to the video or holds spam, such as adver- tisement.
+- Spouse Dataset - relation extraction dataset is based on the Signal Media One-Million News Articles Dataset from [Corney et al. (2016)](http://ceur-ws.org/Vol-1568/paper8.pdf). 
+- IMDb Dataset - a dataset, that consists of short movie reviews. The task is to determine whether a review holds a positive or negative sentiment. 
+- TAC-based Relation Extraction Dataset - a dataset built over Knowledge Base Population challenges in the Text Analysis Conference. For development and test purposes the corpus annotated via crowdsourcing and human labeling from KBP is used ([Zhang et al. (2017)](https://www.aclweb.org/anthology/D17-1004.pdf). The training is done on a weakly-supervised noisy dataset based on TAC KBP corpora ([Surdeanu (2013)](https://tac.nist.gov/publications/2013/additional.papers/KBP2013_English_and_Temporal_Slot_Filling_overview.TAC2013.proceedings.pdf)). 
+
+All datasets are added to the Knodle framework in the tensor format described above. To see how the datasets were created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing).
+
 
 ## Denoising Methods
 
@@ -90,7 +110,7 @@ We also aimed at providing the users with basic tutorials that would explain how
 - tutorials that demonstrate how to prepare the input data for Knodle Framework...
     - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/imdb_dataset)).
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
-- tutorials how to work with Knodle Framework
+- tutorials how to work with Knodle Framework...
     - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
     - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
 
@@ -145,7 +165,7 @@ If you notices a problem in the code, you can report it by [submitting an issue]
 If you want to share your feedback with us or take part in the project, contact us via 
 <knodle@cs.univie.ac.at>. 
 
-And don't forget to follow [@knodle](https://twitter.com/knodle) on Twitter :)
+And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitter :)
 
 ## Authors
 

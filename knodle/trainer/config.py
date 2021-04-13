@@ -41,13 +41,15 @@ class TrainerConfig:
         self.batch_size = batch_size
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
-        self.device = torch.device("device") if device is not None else check_and_return_device()
+        self.device = torch.device(device) if device is not None else check_and_return_device()
+        logger.info(f"Model will be trained on {self.device}")
 
         self.caching_suffix = caching_suffix
         if caching_folder is not None:
             self.caching_folder = caching_folder
         else:
             self.caching_folder = os.path.join(pathlib.Path().absolute(), "cache")
+        logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

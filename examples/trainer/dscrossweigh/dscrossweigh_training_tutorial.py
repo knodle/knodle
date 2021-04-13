@@ -11,8 +11,7 @@ from torch import Tensor, LongTensor
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
-from examples.utils import get_samples_list, read_train_dev_test
-from knodle.data.tfidf import get_tfidf_features
+from examples.utils import read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
@@ -42,14 +41,14 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
 
     # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    train_input_x_bert = get_bert_encoded_features(train_df, tokenizer, 0)
+    train_input_x_bert = get_bert_encoded_features(train_df["sample"].tolist(), tokenizer)
     test_labels = TensorDataset(LongTensor(list(test_df.iloc[:, 1])))
-    test_dataset_bert = get_bert_encoded_features(test_df, tokenizer, 0)
+    test_dataset_bert = get_bert_encoded_features(test_df["sample"].tolist(), tokenizer)
 
     # for some datasets dev set is not provided. If it is not the case, is would be encoded with BERT features
     # (since it is used only for final training) and passed to a class constructor or to train function
     if dev_df is not None:
-        dev_dataset_bert = get_bert_encoded_features(dev_df, tokenizer, 0)
+        dev_dataset_bert = get_bert_encoded_features(dev_df["sample"].tolist(), tokenizer)
         dev_labels = TensorDataset(LongTensor(list(dev_df.iloc[:, 1])))
     else:
         dev_labels, dev_dataset_bert = None, None
@@ -74,7 +73,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # general trainer parameters
         output_classes=num_classes,
         filter_non_labelled=False,
-        other_class_id=2,
+        other_class_id=3,
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,
@@ -117,9 +116,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     print(clf_report)
 
 
-def get_bert_encoded_features(
-        input_data: Union[pd.Series, pd.DataFrame], tokenizer: DistilBertTokenizer, column_num: int = None
-) -> TensorDataset:
+def get_bert_encoded_features(input_data: List, tokenizer: DistilBertTokenizer) -> TensorDataset:
     """
     Convert input data to BERT encoded features (more details about DistilBert Model could be found at
     https://huggingface.co/transformers/model_doc/distilbert.html)
@@ -129,10 +126,35 @@ def get_bert_encoded_features(
     :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples are stored
     :return: TensorDataset with encoded data
     """
-    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
+    encoding = tokenizer(input_data, return_tensors='pt', padding=True, truncation=True)
     input_ids = encoding['input_ids']
     attention_mask = encoding['attention_mask']
     return TensorDataset(input_ids, attention_mask)
+
+
+def get_tfidf_features(
+        train_data: List, test_data: List = None, dev_data: List = None
+) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
+    """
+    Convert input data to a matrix of TF-IDF features.
+    :param train_data: training samples that are to be encoded with TF-IDF features. Can be given as Series or
+    as DataFrames with specified column number where the sample are stored.
+    :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples
+    are stored
+    :param test_data: if DataFrame/Series with test data is provided
+    :param dev_data: if DataFrame/Series with development data is provided, it will be encoded as well
+    :return: TensorDataset with encoded data
+    """
+    dev_transformed_data, test_transformed_data = None, None
+    vectorizer = TfidfVectorizer()
+
+    train_transformed_data = vectorizer.fit_transform(train_data)
+    if test_data is not None:
+        test_transformed_data = vectorizer.transform(test_data)
+    if dev_data is not None:
+        dev_transformed_data = vectorizer.transform(dev_data)
+
+    return train_transformed_data, test_transformed_data, dev_transformed_data
 
 
 if __name__ == "__main__":
