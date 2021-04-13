@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset
+from knodle.transformation.torch_input import input_labels_to_tensordataset, input_to_2_dim_numpy
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig

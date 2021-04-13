@@ -3,11 +3,10 @@ import os
 import sys
 from typing import Union, Tuple, List
 
-import pandas as pd
 import numpy as np
-import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
+from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
@@ -91,7 +90,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         weight_reducing_rate=parameters.get("weight_rr"),  # sample weights reducing coefficient
         samples_start_weights=parameters.get("samples_start_weights"),  # the start weight of sample weights
         cw_epochs=parameters.get("cw_epochs"),  # number of epochs each dscrossweigh model is to be trained
-        cw_optimizer=SGD,  # dscrossweigh model optimiser
+        cw_optimizer=Adam,  # dscrossweigh model optimiser
         cw_lr=parameters.get("cw_lr")  # dscrossweigh model lr
     )
 
