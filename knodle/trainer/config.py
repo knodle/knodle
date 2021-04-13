@@ -1,3 +1,4 @@
+import pathlib
 from typing import Callable, Dict
 import os
 import logging
@@ -26,34 +27,32 @@ class TrainerConfig:
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,
-            caching: bool = False,
-            caching_folder: str = "",
+            caching_folder: str = None,
             caching_suffix: str = "",
-            output_dir_path: str = None
+            saved_models_dir: str = None
     ):
         self.seed = seed
         set_seed(seed)
 
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
+        # create directory where saved models will be stored
+        self.saved_models_dir = saved_models_dir
+        if self.saved_models_dir is not None:
+            os.makedirs(self.saved_models_dir, exist_ok=True)
 
         self.criterion = criterion
         self.lr = lr
         self.batch_size = batch_size
-        self.caching = caching
-        self.caching_suffix = caching_suffix
-
-        if self.caching:
-            if caching_folder:
-                self.caching_folder = caching_folder
-            else:
-                self.caching_folder = os.path.join(self.output_dir_path, "cach")
-
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
-        self.device = torch.device("device") if device is not None else check_and_return_device()
+        self.device = torch.device(device) if device is not None else check_and_return_device()
+        logger.info(f"Model will be trained on {self.device}")
+
+        self.caching_suffix = caching_suffix
+        if caching_folder is not None:
+            self.caching_folder = caching_folder
+        else:
+            self.caching_folder = os.path.join(pathlib.Path().absolute(), "cache")
+        logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
@@ -63,15 +62,6 @@ class TrainerConfig:
             raise ValueError("An optimizer needs to be provided")
         else:
             self.optimizer = optimizer
-
-        self.output_classes = output_classes
-        self.grad_clipping = grad_clipping
-
-        self.device = torch.device("device") if device is not None else check_and_return_device()
-        # create model directory
-        self.output_dir_path = output_dir_path
-        if self.output_dir_path is not None:
-            os.makedirs(self.output_dir_path, exist_ok=True)
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)

@@ -65,13 +65,14 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 train_loader, test_loader = self.get_cw_data(
                     shuffled_rules_ids, rules_samples_ids_dict, labels, fold, other_sample_ids
                 )
-                self._train_loop(train_loader, save_models=False)
+                self._train_loop(train_loader)
                 self.cw_test(test_loader)
 
             log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
 
-        dump(self.sample_weights, os.path.join(
-            self.trainer_config.caching_folder, "sample_weights.lib")
+        dump(
+            self.sample_weights, os.path.join(self.trainer_config.caching_folder,
+                                              f"sample_weights_{self.trainer_config.caching_suffix}.lib")
              )
         logger.info("======= Denoising with DSCrossWeigh is completed =======")
         return self.sample_weights

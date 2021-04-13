@@ -1,17 +1,17 @@
 import argparse
 import os
 import sys
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 import pandas as pd
 import numpy as np
+import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
-from torch.optim import SGD
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
-from examples.utils import get_samples_list, read_train_dev_test
+from examples.utils import read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
 from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
@@ -33,21 +33,24 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     train_df, dev_df, test_df, z_train_rule_matches, z_test_rule_matches, t_mapping_rules_labels = \
         read_train_dev_test(path_to_data, if_dev_data=True)
 
-    # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    train_tfidf_sparse, _, _ = get_tfidf_features(train_df, 0)
+    # we calculate sample weights using logistic regression model and use the BERT model for final classifier training.
+    # For the LogReg model we encode train samples with TF-IDF features.
+    # Dev and test data is not used in training the sample weights.
+    train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
+
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_tfidf_dataset = TensorDataset(train_tfidf)
 
     # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    train_bert_dataset = get_bert_encoded_features(train_df, tokenizer, 0)
+    train_input_x_bert = get_bert_encoded_features(train_df["sample"].tolist(), tokenizer)
     test_labels = TensorDataset(LongTensor(list(test_df.iloc[:, 1])))
-    test_bert_dataset = get_bert_encoded_features(test_df, tokenizer, 0)
+    test_dataset_bert = get_bert_encoded_features(test_df["sample"].tolist(), tokenizer)
 
     # for some datasets dev set is not provided. If it is not the case, is would be encoded with BERT features
     # (since it is used only for final training) and passed to a class constructor or to train function
     if dev_df is not None:
-        dev_dataset_bert = get_bert_encoded_features(dev_df, tokenizer, 0)
+        dev_dataset_bert = get_bert_encoded_features(dev_df["sample"].tolist(), tokenizer)
         dev_labels = TensorDataset(LongTensor(list(dev_df.iloc[:, 1])))
     else:
         dev_labels, dev_dataset_bert = None, None
@@ -57,6 +60,10 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         "lr": 1e-4, "cw_lr": 0.8, "epochs": 5, "cw_partitions": 2, "cw_folds": 5, "cw_epochs": 2, "weight_rr": 0.7,
         "samples_start_weights": 4.0
     }
+    # to have sample weights saved with some specific index in the file name, you can use "caching_suffix" variable
+    caching_suffix = f"dscw_{parameters.get('cw_partitions')}part_" \
+                     f"{parameters.get('cw_folds')}folds_" \
+                     f"{parameters.get('weight_rr')}wrr"
 
     # define LogReg and BERT models for training sample weights and final classifier correspondingly
     cw_model = LogisticRegressionModel(train_tfidf.shape[1], num_classes)
@@ -68,16 +75,15 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # general trainer parameters
         output_classes=num_classes,
         filter_non_labelled=False,
-        other_class_id=2,
+        other_class_id=3,
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,
         optimizer=AdamW,
         lr=parameters.get("lr"),
         grad_clipping=5,
-        caching=True,           # the sample weights will be saved
-        caching_suffix=f"{parameters.get('cw_partitions')}_{parameters.get('cw_folds')}",
-        output_dir_path=path_to_data,
+        caching_suffix=caching_suffix,
+        saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
         # dscrossweigh specific parameters
         partitions=parameters.get("cw_partitions"),  # number of dscrossweigh iterations (= splitting into folds)
@@ -93,7 +99,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
         mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
-        model_input_x=train_bert_dataset,  # x matrix for training the classifier
+        model_input_x=train_input_x_bert,  # x matrix for training the classifier
         rule_matches_z=z_train_rule_matches,  # z matrix
         trainer_config=custom_crossweigh_config,
 
@@ -104,19 +110,17 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # dscrossweigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
         cw_model=cw_model,  # model that will be used for dscrossweigh weights calculation
-        cw_model_input_x=train_tfidf_dataset,  # x matrix for training the dscrossweigh models
+        cw_model_input_x=train_dataset,  # x matrix for training the dscrossweigh models
     )
 
     # the DSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
-    clf_report, _ = trainer.test(test_bert_dataset, test_labels)
+    clf_report, _ = trainer.test(test_dataset_bert, test_labels)
     print(clf_report)
 
 
-def get_bert_encoded_features(
-        input_data: Union[pd.Series, pd.DataFrame], tokenizer: DistilBertTokenizer, column_num: int = None
-) -> TensorDataset:
+def get_bert_encoded_features(input_data: List, tokenizer: DistilBertTokenizer) -> TensorDataset:
     """
     Convert input data to BERT encoded features (more details about DistilBert Model could be found at
     https://huggingface.co/transformers/model_doc/distilbert.html)
@@ -126,15 +130,14 @@ def get_bert_encoded_features(
     :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples are stored
     :return: TensorDataset with encoded data
     """
-    encoding = tokenizer(get_samples_list(input_data, column_num), return_tensors='pt', padding=True, truncation=True)
+    encoding = tokenizer(input_data, return_tensors='pt', padding=True, truncation=True)
     input_ids = encoding['input_ids']
     attention_mask = encoding['attention_mask']
     return TensorDataset(input_ids, attention_mask)
 
 
 def get_tfidf_features(
-        train_data: Union[pd.DataFrame, pd.Series], column_num: int = None,
-        test_data: Union[pd.DataFrame, pd.Series] = None, dev_data: Union[pd.DataFrame, pd.Series] = None
+        train_data: List, test_data: List = None, dev_data: List = None
 ) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
     """
     Convert input data to a matrix of TF-IDF features.
@@ -148,12 +151,12 @@ def get_tfidf_features(
     """
     dev_transformed_data, test_transformed_data = None, None
     vectorizer = TfidfVectorizer()
-    train_transformed_data = vectorizer.fit_transform(get_samples_list(train_data, column_num))
 
+    train_transformed_data = vectorizer.fit_transform(train_data)
     if test_data is not None:
-        test_transformed_data = vectorizer.transform(get_samples_list(test_data, column_num))
+        test_transformed_data = vectorizer.transform(test_data)
     if dev_data is not None:
-        dev_transformed_data = vectorizer.transform(get_samples_list(dev_data, column_num))
+        dev_transformed_data = vectorizer.transform(dev_data)
 
     return train_transformed_data, test_transformed_data, dev_transformed_data
 

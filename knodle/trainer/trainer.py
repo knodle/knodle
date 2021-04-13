@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset, input_to_2_dim_numpy
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -102,7 +102,7 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
+            self, feature_label_dataloader, use_sample_weights: bool = False,
             draw_plot: bool = False
     ):
         log_section("Training starts", logger)
@@ -165,7 +165,7 @@ class BaseTrainer(Trainer):
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x:
+            if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
                     self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
                 dev_losses.append(dev_loss)
@@ -173,9 +173,9 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.output_dir_path is not None and save_models:
+            if self.trainer_config.saved_models_dir is not None:
                 model_path = os.path.join(
-                    self.trainer_config.caching_folder,
+                    self.trainer_config.saved_models_dir,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)
