@@ -109,7 +109,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # dscrossweigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
         cw_model=cw_model,  # model that will be used for dscrossweigh weights calculation
-        cw_model_input_x=train_dataset,  # x matrix for training the dscrossweigh models
+        cw_model_input_x=train_tfidf_dataset,  # x matrix for training the dscrossweigh models
     )
 
     # the DSCrossWeighTrainer is trained
