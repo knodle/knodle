@@ -8,7 +8,7 @@ from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
-from knodle.transformation.torch_input import input_to_2_dim_numpy
+from knodle.transformation.torch_input import dataset_to_numpy_input
 
 
 @AutoTrainer.register('cleanlab')
@@ -38,7 +38,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
             device=self.trainer_config.device
         )
         # turn input to the CL-compatible format
-        model_input_x_numpy = input_to_2_dim_numpy(self.model_input_x)
+        model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
 
         # calculate labels based on t and z
         noisy_y_train = np.argmax(

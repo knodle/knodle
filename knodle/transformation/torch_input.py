@@ -28,7 +28,7 @@ def input_info_labels_to_tensordataset(
     return input_ids_label_dataset
 
 
-def input_to_2_dim_numpy(model_input_x: TensorDataset) -> np.ndarray:
+def dataset_to_numpy_input(model_input_x: TensorDataset) -> np.ndarray:
     if len(model_input_x.tensors) == 1:
         return model_input_x.tensors[0].numpy()
     else:

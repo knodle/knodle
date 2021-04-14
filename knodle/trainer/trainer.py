@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset, input_to_2_dim_numpy
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -245,7 +245,7 @@ class BaseTrainer(Trainer):
         gold_labels = labels.tensors[0].cpu().numpy()
 
         if hasattr(self.model, "predict"):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
-            predictions = self.model.predict(input_to_2_dim_numpy(features_dataset))
+            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
