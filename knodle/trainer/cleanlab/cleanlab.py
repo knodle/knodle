@@ -1,6 +1,5 @@
 import numpy as np
 from cleanlab.classification import LearningWithNoisyLabels
-from sklearn.metrics import accuracy_score
 from skorch import NeuralNetClassifier
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
@@ -14,7 +13,7 @@ from knodle.transformation.torch_input import input_to_2_dim_numpy
 
 @AutoTrainer.register('cleanlab')
 class CleanLabTrainer(MajorityVoteTrainer):
-    def __init__(self, test_x, test_y, **kwargs):
+    def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = CleanLabConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)

@@ -55,7 +55,6 @@ def z_t_matrices_to_majority_vote_probs(
                          f"T matrix has shape {mapping_rules_labels_t.shape}")
 
     if isinstance(rule_matches_z, sp.csr_matrix):
-        # rule_counts = rule_matches_z.dot(mapping_rules_labels_t).toarray()
         rule_counts = rule_matches_z.dot(mapping_rules_labels_t)
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
