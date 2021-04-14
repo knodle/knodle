@@ -48,7 +48,6 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         self.run_classifier = run_classifier
         self.use_weights = use_weights
-        self.trainer_config.caching_folder = os.path.join(self.trainer_config.caching_folder, self.trainer_config.caching_suffix)
 
         logger.info("CrossWeigh Config is used: {}".format(self.trainer_config.__dict__))
 

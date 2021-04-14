@@ -58,15 +58,12 @@ def train_cleanlab(path_to_data: str) -> None:
             psx_calculation_method=psx_calculation_method,
             prune_method=prune_method
         )
-
         trainer = CleanLabTrainer(
             model=model,
             mapping_rules_labels_t=mapping_rules_labels_t,
             model_input_x=train_features_dataset,
             rule_matches_z=train_rule_matches_z,
-            trainer_config=custom_cleanlab_config,
-            test_x=test_features_dataset,
-            test_y=test_labels_dataset
+            trainer_config=custom_cleanlab_config
         )
 
         trainer.train()

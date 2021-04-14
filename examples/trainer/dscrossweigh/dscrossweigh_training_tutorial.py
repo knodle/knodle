@@ -33,17 +33,16 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         read_train_dev_test(path_to_data, if_dev_data=True)
 
     # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    # For the LogReg model we encode train samples with TF-IDF features.
-    # Dev and test data is not used in training the sample weights.
     train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
+
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
-    train_tfidf_dataset = TensorDataset(train_tfidf)
+    train_dataset_tfidf = TensorDataset(train_tfidf)
 
     # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    train_bert_dataset = get_bert_encoded_features(train_df["sample"].tolist(), tokenizer)
+    train_input_x_bert = get_bert_encoded_features(train_df["sample"].tolist(), tokenizer)
     test_labels = TensorDataset(LongTensor(list(test_df.iloc[:, 1])))
-    test_bert_dataset = get_bert_encoded_features(test_df["sample"].tolist(), tokenizer)
+    test_dataset_bert = get_bert_encoded_features(test_df["sample"].tolist(), tokenizer)
 
     # for some datasets dev set is not provided. If it is not the case, is would be encoded with BERT features
     # (since it is used only for final training) and passed to a class constructor or to train function
@@ -97,7 +96,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
         mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
-        model_input_x=train_bert_dataset,  # x matrix for training the classifier
+        model_input_x=train_input_x_bert,  # x matrix for training the classifier
         rule_matches_z=z_train_rule_matches,  # z matrix
         trainer_config=custom_crossweigh_config,
 
@@ -108,13 +107,13 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # dscrossweigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
         cw_model=cw_model,  # model that will be used for dscrossweigh weights calculation
-        cw_model_input_x=train_tfidf_dataset,  # x matrix for training the dscrossweigh models
+        cw_model_input_x=train_dataset_tfidf,  # x matrix for training the dscrossweigh models
     )
 
     # the DSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
-    clf_report, _ = trainer.test(test_bert_dataset, test_labels)
+    clf_report, _ = trainer.test(test_dataset_bert, test_labels)
     print(clf_report)
 
 
