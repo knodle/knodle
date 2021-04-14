@@ -1,7 +1,6 @@
 import copy
 
 import numpy as np
-from torch import nn
 from sklearn.base import RegressorMixin
 from tqdm import tqdm
 

@@ -16,20 +16,21 @@ logger = logging.getLogger(__name__)
 
 
 def k_folds_splitting(
-        model_input_x: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, folds: int,
+        data_features: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, folds: int,
         other_class_id: int = None
 ):
-    # todo: here and further: rename model_input_x!
+    # todo: here and further: rename data_features!
     train_datasets, test_datasets = [], []
     other_sample_ids = get_other_sample_ids(labels, other_class_id) if other_class_id else None
     rules_samples_ids_dict = get_rules_samples_ids_dict(rule_matches_z)
+    rel_rules_ids = [rule_idx for rule_idx in range(0, rule_matches_z.shape[1])]
 
     for partition in range(partitions):
         logger.info(f"CrossWeigh Partition {partition + 1}/{partitions}:")
-        shuffled_rules_ids = get_shuffled_rules_idx(rule_matches_z)  # shuffle anew for each cw round
+        random.shuffle(rel_rules_ids)      # shuffle anew for each cw round
         for fold in range(folds):
             train_dataset, test_dataset = get_train_test_datasets_by_rule_indices(
-                model_input_x, shuffled_rules_ids, rules_samples_ids_dict, labels, fold, folds, other_sample_ids
+                data_features, rel_rules_ids, rules_samples_ids_dict, labels, fold, folds, other_sample_ids
             )
             train_datasets.append(train_dataset)
             test_datasets.append(test_dataset)
@@ -58,13 +59,6 @@ def get_rules_samples_ids_dict(rule_matches_z):
             for rule in rules:
                 rules_samples_ids_dict[rule].add(row_idx)
     return rules_samples_ids_dict
-
-
-def get_shuffled_rules_idx(rule_matches_z: np.ndarray) -> List[int]:
-    """ Get shuffled row indices of dataset """
-    rel_rules_ids = [rule_idx for rule_idx in range(0, rule_matches_z.shape[1])]
-    random.shuffle(rel_rules_ids)
-    return rel_rules_ids
 
 
 def get_train_test_datasets_by_rule_indices(

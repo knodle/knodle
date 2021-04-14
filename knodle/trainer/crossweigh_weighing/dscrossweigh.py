@@ -34,7 +34,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             **kwargs
     ):
         self.cw_model = cw_model if cw_model else kwargs.get("model")
-        self.cw_model_input_x = cw_model_input_x if cw_model_input_x else kwargs.get("model_input_x")
+        self.cw_model_input_x = cw_model_input_x if cw_model_input_x else kwargs.get("data_features")
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:

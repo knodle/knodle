@@ -72,13 +72,19 @@ class CleanLabTrainer(MajorityVoteTrainer):
         # uncomment the following line if you want to calculate the baseline
         # self.calculate_baseline(model_input_x_numpy, noisy_y_train)
 
-        # calculate psx as in ds-crossweigh
-        if self.trainer_config.psx_with_dscrossweigh:
+        # calculate psx in advance with splitting by rules
+        if self.trainer_config.psx_calculation_method == "split_by_rules":
             psx = estimate_cv_predicted_probabilities_split_by_rules(
                 self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
-                cv_n_folds=self.trainer_config.cv_n_folds)
-        else:
+                cv_n_folds=self.trainer_config.cv_n_folds
+            )
+
+        elif self.trainer_config.psx_calculation_method == "random":
+            # if no psx calculation method is specified, psx will be calculated in CL with random folder splitting
             psx = None
+
+        else:
+            raise ValueError("Unknown psx calculation method.")
 
         # CL denoising and training
         rp = LearningWithNoisyLabels(

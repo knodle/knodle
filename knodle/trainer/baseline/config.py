@@ -1,6 +1,3 @@
-import torch
-from torch import Tensor
-
 from knodle.trainer.auto_config import AutoConfig
 from knodle.trainer.config import BaseTrainerConfig
 

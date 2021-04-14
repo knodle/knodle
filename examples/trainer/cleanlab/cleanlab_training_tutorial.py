@@ -20,7 +20,7 @@ def train_cleanlab(path_to_data: str) -> None:
 
     parameters = dict(
         seed=[12345], lr=[0.1], cv_n_folds=[3, 5, 8], prune_method=['prune_by_class', 'prune_by_noise_rate', 'both'],
-        epochs=[200], batch_size=[128], psx_with_dscw=[True, False],
+        epochs=[200], batch_size=[128], psx_calculation_method=['split_by_rules', 'random'],
     )
     parameter_values = [v for v in parameters.values()]
 
@@ -37,12 +37,12 @@ def train_cleanlab(path_to_data: str) -> None:
     num_classes = max(test_labels) + 1
     model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
 
-    for run_id, (seed, lr, cv_n_folds, prune_method, epochs, batch_size, psx_with_dscw) in \
+    for run_id, (seed, lr, cv_n_folds, prune_method, epochs, batch_size, psx_calculation_method) in \
             enumerate(product(*parameter_values)):
 
         print("======================================")
-        params = f' seed = {seed} lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
-                 f'batch_size = {batch_size} psx_with_dscw = {psx_with_dscw}'
+        params = f'seed = {seed} lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
+                 f'batch_size = {batch_size} psx_calculation_method = {psx_calculation_method}'
         print(f"Parameters: {params}")
         print("======================================")
 
@@ -55,7 +55,7 @@ def train_cleanlab(path_to_data: str) -> None:
             lr=lr,
             epochs=epochs,
             batch_size=batch_size,
-            psx_with_dscrossweigh=psx_with_dscw,
+            psx_calculation_method=psx_calculation_method,
             prune_method=prune_method
         )
 
