@@ -31,8 +31,6 @@ def test_cleanlab_base_test():
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=inputs_x,
         rule_matches_z=train_rule_matches_z,
-        test_x=test_dataset,
-        test_y=test_labels,
         trainer_config=config
     )
 
