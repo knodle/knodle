@@ -1,8 +1,6 @@
-import pytest
 import numpy as np
 import torch
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
