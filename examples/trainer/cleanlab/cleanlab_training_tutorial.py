@@ -80,25 +80,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     train_cleanlab(args.path_to_data)
-
-
-
-'''
-psx=None:
-Test accuracy: 0.56
-{'0': {'precision': 0.5477178423236515, 'recall': 1.0, 'f1-score': 0.707774798927614, 'support': 132}, 
-'1': {'precision': 1.0, 'recall': 0.07627118644067797, 'f1-score': 0.14173228346456693, 'support': 118}, 
-'accuracy': 0.564, 
-'macro avg': {'precision': 0.7738589211618258, 'recall': 0.538135593220339, 'f1-score': 0.42475354119609043, 'support': 250}, 
-'weighted avg': {'precision': 0.761195020746888, 'recall': 0.564, 'f1-score': 0.4406027316290557, 'support': 250}}
-'''
-
-'''
-psx calculated as in DSCW:
-Test accuracy: 0.53
-{'0': {'precision': 0.528, 'recall': 1.0, 'f1-score': 0.6910994764397906, 'support': 132}, 
-'1': {'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 118}, 
-'accuracy': 0.528, 
-'macro avg': {'precision': 0.264, 'recall': 0.5, 'f1-score': 0.3455497382198953, 'support': 250}, 
-'weighted avg': {'precision': 0.278784, 'recall': 0.528, 'f1-score': 0.36490052356020947, 'support': 250}}
-'''

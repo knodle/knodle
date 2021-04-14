@@ -39,8 +39,6 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         if kwargs.get("trainer_config") is None:
             kwargs["trainer_config"] = DSCrossWeighDenoisingConfig(
-                # optimizer=SGD(kwargs.get("model").parameters(), lr=0.001),
-                # cw_optimizer=SGD(self.cw_model.parameters(), lr=0.001)
                 optimizer=SGD,
                 cw_optimizer=SGD,
                 lr=0.001,
