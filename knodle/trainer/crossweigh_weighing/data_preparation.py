@@ -137,6 +137,7 @@ def get_cw_samples_labels_idx(
 
     if check_intersections is not None:
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
+
     cw_samples_dataset = TensorDataset(torch.Tensor(model_input_x.tensors[0][sample_ids]))
     cw_labels = np.array(labels[sample_ids])
     cw_samples_idx = np.array(sample_ids)
