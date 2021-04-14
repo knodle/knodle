@@ -71,6 +71,7 @@ def train_crossweigh(
         epochs=parameters.get("epochs"),
         batch_size=16,
         optimizer=Adam,
+        lr=parameters.get("lr"),
         grad_clipping=5,
         partitions=parameters.get("cw_partitions"),
         folds=parameters.get("cw_folds"),

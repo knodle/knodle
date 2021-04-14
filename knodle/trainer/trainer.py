@@ -55,8 +55,6 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
-        self.trainer_config.optimizer = self.initialise_optimizer()
-
     @abstractmethod
     def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
         pass
@@ -66,7 +64,11 @@ class Trainer(ABC):
         pass
 
     def initialise_optimizer(self):
-        return self.trainer_config.optimizer(self.model.parameters(), self.trainer_config.lr)
+        try:
+            return self.trainer_config.optimizer(params=self.model.parameters(), lr=self.trainer_config.lr)
+        except TypeError:
+            logger.info("Wrong optimizer parameters. Optimizer should belong to torch.optim class or be PyTorch "
+                        "compatible.")
 
 
 class BaseTrainer(Trainer):
