@@ -7,6 +7,7 @@ from snorkel.classification import cross_entropy_with_probs
 
 import torch
 from torch import Tensor
+from torch.optim import SGD
 from torch.optim.optimizer import Optimizer
 
 from knodle.trainer.utils.utils import check_and_return_device, set_seed
@@ -19,7 +20,7 @@ class TrainerConfig:
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
-            optimizer: Optimizer = None,
+            optimizer: Optimizer = SGD,
             lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
@@ -58,10 +59,7 @@ class TrainerConfig:
             raise ValueError("Epochs needs to be positive")
         self.epochs = epochs
 
-        if optimizer is None:
-            raise ValueError("An optimizer needs to be provided")
-        else:
-            self.optimizer = optimizer
+        self.optimizer = optimizer
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)

@@ -5,7 +5,7 @@ from itertools import product
 
 from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam, SGD
+from torch.optim import Adam
 from torch.utils.data import TensorDataset
 
 from examples.trainer.dscrossweigh.dscrossweigh_training_tutorial import get_tfidf_features

@@ -22,7 +22,6 @@ def estimate_cv_predicted_probabilities_split_by_rules(
 
     psx = np.zeros((len(labels), num_classes))
 
-    filled_indices = []
     for k, (cv_train_dataset, cv_holdout_dataset) in tqdm(enumerate(zip(cv_train_datasets, cv_holdout_datasets))):
         model_copy = copy.deepcopy(model)
         X_train_cv, y_train_cv = cv_train_dataset.tensors[0].cpu().detach().numpy(), \
@@ -34,12 +33,7 @@ def estimate_cv_predicted_probabilities_split_by_rules(
         # y_train_cv = np.argmax(y_train_cv, axis=1)
         model_copy.fit(X_train_cv, y_train_cv)
         psx_cv = model_copy.predict_proba(X_holdout_cv)  # P(s = k|x) # [:,1]
-        # for ind in indices_holdout_cv.tolist():
-        #     if ind not in filled_indices:
-        #         filled_indices.append(ind)
-        #     else:
-        #         print("ALARMAAAAAAA")
 
-        psx[indices_holdout_cv] = psx_cv  # todo: double triple whatever check - intuition only!
+        psx[indices_holdout_cv] = psx_cv
 
     return psx

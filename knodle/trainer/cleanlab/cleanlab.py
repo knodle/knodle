@@ -33,9 +33,8 @@ class CleanLabTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ) -> None:
 
-        # todo: add multiprocessing as in the original Cleanlab
-
-        # todo: add development data
+        if dev_model_input_x is not None and dev_gold_labels_y is not None:
+            logger.info("Validation data is not used during Cleanlab training")
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
@@ -69,9 +68,6 @@ class CleanLabTrainer(MajorityVoteTrainer):
         # turn label probs to labels
         noisy_y_train = np.argmax(noisy_y_train, axis=1)
 
-        # uncomment the following line if you want to calculate the baseline
-        # self.calculate_baseline(model_input_x_numpy, noisy_y_train)
-
         # calculate psx in advance with splitting by rules
         if self.trainer_config.psx_calculation_method == "split_by_rules":
             psx = estimate_cv_predicted_probabilities_split_by_rules(
@@ -97,24 +93,3 @@ class CleanLabTrainer(MajorityVoteTrainer):
         )
         _ = rp.fit(model_input_x_numpy, noisy_y_train, psx=psx)
         logging.info("Training is done.")
-
-        pred = rp.predict(dataset_to_numpy_input(self.test_x))
-        print("Test accuracy:", round(accuracy_score(pred, self.test_y.tensors[0].numpy()), 2))
-
-    def calculate_baseline(self, model_input_x: np.ndarray, noisy_y_train: np.ndarray) -> None:
-        baseline_model = NeuralNetClassifier(
-            self.model,
-            criterion=self.trainer_config.criterion,
-            optimizer=self.trainer_config.optimizer,
-            lr=self.trainer_config.lr,
-            max_epochs=self.trainer_config.epochs,
-            batch_size=self.trainer_config.batch_size,
-            train_split=None,
-            # callbacks="disable",
-            device=self.trainer_config.device
-        )
-
-        baseline_model.fit(model_input_x, noisy_y_train)
-        baseline_pred_baseline = baseline_model.predict(dataset_to_numpy_input(self.test_x))
-        print("Baseline test accuracy:", round(accuracy_score(baseline_pred_baseline, self.test_y.tensors[0].numpy()), 2))
-
