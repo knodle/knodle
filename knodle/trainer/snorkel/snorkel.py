@@ -22,6 +22,10 @@ class SnorkelTrainer(MajorityVoteTrainer):
         super().__init__(**kwargs)
 
     def _snorkel_denoising(self, model_input_x, rule_matches_z):
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
         non_zero_indices = np.where(rule_matches_z.sum(axis=1) != 0)[0]
         rule_matches_z = rule_matches_z[non_zero_indices]
         tensors = list(model_input_x.tensors)

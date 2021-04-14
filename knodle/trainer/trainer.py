@@ -55,8 +55,6 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
-        self.trainer_config.optimizer = self.initialise_optimizer()
-
     @abstractmethod
     def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
         pass

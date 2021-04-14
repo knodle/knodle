@@ -59,6 +59,9 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
         train_labels = self.calculate_labels()
 
         sample_weights = self._get_sample_weights() if self.use_weights \
