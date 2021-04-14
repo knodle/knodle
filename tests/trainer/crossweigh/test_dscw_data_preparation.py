@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from knodle.trainer.crossweigh_weighing.data_preparation import get_rules_samples_ids_dict, get_cw_samples_labels_idx
+from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import get_rules_samples_ids_dict, get_cw_samples_labels_idx
 
 
 @pytest.fixture(scope='session')

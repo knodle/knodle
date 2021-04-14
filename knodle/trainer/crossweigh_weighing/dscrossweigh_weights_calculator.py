@@ -7,7 +7,8 @@ from torch.utils.data import DataLoader
 from joblib import dump
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.crossweigh_weighing.data_preparation import k_folds_splitting
+from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import k_folds_splitting_by_rules
+from knodle.trainer.utils import log_section
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 
@@ -19,6 +20,9 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # save the copy of the original model; later dscrossweigh models for each training with a new hold-out fold
+        # will be copied from it
         self.crossweigh_model = copy.deepcopy(self.model)
         self.sample_weights = torch.empty(0)
 
@@ -27,6 +31,9 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         This function calculates the sample_weights for samples using DSCrossWeigh method
         :return matrix of the sample sample_weights
         """
+
+        # initialize optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
         if self.trainer_config.folds < 2:
             raise ValueError("Number of folds should be at least 2 to perform DSCrossWeigh denoising")
@@ -43,10 +50,11 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 self.model_input_x, labels, self.rule_matches_z
             )
 
-        sample_weights = self.initialise_sample_weights()
+        # initialise sample weights
+        self.sample_weights = self.initialise_sample_weights()
 
         train_datasets, test_datasets = \
-            k_folds_splitting(
+            k_folds_splitting_by_rules(
                 self.model_input_x,
                 labels,
                 self.rule_matches_z,
@@ -56,35 +64,22 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             )
 
         for iter, (train_dataset, test_dataset) in enumerate(zip(train_datasets, test_datasets)):
+            log_section(
+                f"CrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:", logger
+            )
+
             # for each fold the model is trained from scratch
-            self.crossweigh_model = copy.deepcopy(self.model).to(self.trainer_config.device)
-            # todo: ???? WTF ??? self.model = copy.deepcopy(self.model).to(self.trainer_config.device) ???
+            self.model = copy.deepcopy(self.crossweigh_model).to(self.trainer_config.device)
             test_loader = self._make_dataloader(test_dataset)
             train_loader = self._make_dataloader(train_dataset)
             self._train_loop(train_loader)
             self.cw_test(test_loader)
 
-        # other_sample_ids = self._get_other_sample_ids(labels) if self.trainer_config.other_class_id else None
-        # rules_samples_ids_dict = self._get_rules_samples_ids_dict()
-        #
-        # self.sample_weights = self.initialise_sample_weights()
-        #
-        # for partition in range(self.trainer_config.partitions):
-        #     log_section(f"CrossWeigh Partition {partition + 1}/{self.trainer_config.partitions}:", logger)
-        #     shuffled_rules_ids = self._get_shuffled_rules_idx()  # shuffle anew for each cw round
-        #     for fold in range(self.trainer_config.folds):
-        #         # for each fold the model is trained from scratch
-        #         self.crossweigh_model = copy.deepcopy(self.model).to(self.trainer_config.device)
-        #         train_loader, test_loader = self.get_cw_data(
-        #             shuffled_rules_ids, rules_samples_ids_dict, labels, fold, other_sample_ids
-        #         )
-        #         self._train_loop(train_loader)
-        #         self.cw_test(test_loader)
-        #     log_section(f"CrossWeigh Partition {partition + 1} is done", logger)
+            log_section(f"CrossWeigh Partition {iter + 1} is done", logger)
 
-        dump(sample_weights, os.path.join(
-            self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib"
-        ))
+        dump(self.sample_weights, os.path.join(
+            self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib"))
+
         logger.info("======= Denoising with DSCrossWeigh is completed =======")
         return self.sample_weights
 

@@ -69,7 +69,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
         if self.trainer_config.psx_calculation_method == "split_by_rules":
             psx = estimate_cv_predicted_probabilities_split_by_rules(
                 self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
-                cv_n_folds=self.trainer_config.cv_n_folds
+                seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
             )
 
         elif self.trainer_config.psx_calculation_method == "random":

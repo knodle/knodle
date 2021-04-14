@@ -1,6 +1,6 @@
 import logging
 import random
-from typing import List, Dict
+from typing import List, Dict, Union, Tuple
 
 import scipy.sparse as sp
 import numpy as np
@@ -12,14 +12,39 @@ from knodle.transformation.torch_input import input_info_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
-# todo: check the tests!
 
-
-def k_folds_splitting(
+def k_folds_splitting_by_rules(
         data_features: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, folds: int,
-        other_class_id: int = None
-):
-    # todo: here and further: rename data_features!
+        seed: int = None, other_class_id: int = None
+) -> Tuple[List, List]:
+    """
+    This function allows to perform the splitting of the data instances into k folds according to the rules matched
+    in them. The logic is the following:
+        - the rules are shuffled
+        - the rules are splitted into k folds
+        - each fold iteratively becomes a hold-out fold
+        - the samples that matched the rules from the hold-out fold are added to the hold-out test set
+        - other samples are added to the train set
+    The train and test folds do not intersect: if a sample matched several rules and one of them happened to be included
+    in the test set (and the corresponding sample), it won't be included in the training set. Correspondingly, such
+    sentences are included into several hold-out folds depending on which of the matched rules is selected to the
+    hold-out fold in this splitting.
+
+    :param data_features: encoded data samples
+    :param labels: array of labels
+    :param rule_matches_z: matrix of rule matches (samples x rules)
+    :param partitions: number of partitions that are to be performed
+    :param folds: number of folds the data instances are to be slitted into in each partition
+    :param seed: optionally, the seed could be fixed in order to provide reproducibility
+    :param other_class_id: if you don't want to include the negative samples (the ones that belong to the other class)
+     to the test set, but only to the training set, you can pass the id of other class
+    should be
+    :return: two lists; the first contains the training sets, the second contains the test (hold-out) sets.
+    """
+
+    if seed is not None:
+        random.seed(seed)
+
     train_datasets, test_datasets = [], []
     other_sample_ids = get_other_sample_ids(labels, other_class_id) if other_class_id else None
     rules_samples_ids_dict = get_rules_samples_ids_dict(rule_matches_z)
@@ -43,11 +68,11 @@ def get_other_sample_ids(labels: np.ndarray, other_class_id: int) -> List[int]:
     return np.where(labels[:, other_class_id] == 1)[0].tolist()
 
 
-def get_rules_samples_ids_dict(rule_matches_z):
+def get_rules_samples_ids_dict(rule_matches_z: Union[np.ndarray, sp.csr_matrix]) -> Dict:
     """
     This function creates a dictionary {rule id : sample id where this rule matched}. The dictionary is needed as a
     support tool for faster calculation of cw train and cw test sets
-     """
+    """
     if isinstance(rule_matches_z, sp.csr_matrix):
         rules_samples_ids_dict = {key: [] for key in range(rule_matches_z.shape[1])}
         for row, col in zip(*rule_matches_z.nonzero()):
@@ -62,27 +87,33 @@ def get_rules_samples_ids_dict(rule_matches_z):
 
 
 def get_train_test_datasets_by_rule_indices(
-        model_input_x: np.ndarray, rules_ids: List[int], rules_samples_ids_dict: Dict, labels: np.ndarray, fold: int,
+        data_features: np.ndarray, rules_ids: List[int], rules_samples_ids_dict: Dict, labels: np.ndarray, fold: int,
         num_folds: int, other_sample_ids: List[int]
 ) -> (TensorDataset, TensorDataset):
     """
     This function returns train and test datasets for DSCrossWeigh training. Each dataloader comprises encoded
     samples, labels and sample indices in the original matrices
-    :param rules_ids: shuffled rules indices
-    :param labels: labels of all training samples
+    :param data_features: numpy array with encoded data samples; shape = (num_samples, num_features)
+    :param rules_ids: list of shuffled rules indices
+    :param rules_samples_ids_dict: dictionary that contains information about corresponding from rules to sample ids.
+    :param labels: labels of all training samples, shape = (num_samples, num_classes)
     :param fold: number of a current hold-out fold
+    :param num_folds: the whole number of folds the data should be splitted into
+    :param other_sample_ids: if you don't want to include the negative samples (the ones that belong to the other class)
+     to the test set, but only to the training set, you can pass the id of other class
+    should be
     :return: dataloaders for cw training and testing
     """
     train_rules_idx, test_rules_idx = calculate_rules_indices(rules_ids, fold, num_folds)
 
     # select train and test samples and labels according to the selected rules idx
     test_samples, test_labels, test_idx = get_cw_samples_labels_idx(
-        model_input_x, labels, test_rules_idx, rules_samples_ids_dict, check_intersections=None,
+        data_features, labels, test_rules_idx, rules_samples_ids_dict, check_intersections=None,
         other_sample_ids=other_sample_ids
     )
 
     train_samples, train_labels, _ = get_cw_samples_labels_idx(
-        model_input_x, labels, train_rules_idx, rules_samples_ids_dict, check_intersections=test_idx,
+        data_features, labels, train_rules_idx, rules_samples_ids_dict, check_intersections=test_idx,
         other_sample_ids=other_sample_ids
     )
 
@@ -116,17 +147,18 @@ def calculate_rules_indices(rules_idx: list, fold: int, num_folds: int) -> (np.n
 
 
 def get_cw_samples_labels_idx(
-        model_input_x: np.ndarray, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict,
+        data_features: np.ndarray, labels: np.ndarray, indices: list, rules_samples_ids_dict: Dict,
         check_intersections: np.ndarray = None, other_sample_ids: list = None
 ) -> (torch.Tensor, np.ndarray, np.ndarray):
     """
     Extracts the samples and labels from the original matrices by indices. If intersection is filled with
     another sample matrix, it also checks whether the sample is not in this other matrix yet.
-    :param labels: all training samples labels, shape=(num_samples, num_classes)
+    :param data_features: numpy array with encoded data samples; shape = (num_samples, num_features)
+    :param labels: all training samples labels; shape = (num_samples, num_classes)
     :param indices: indices of rules; samples, where these rules matched & their labels are to be included in set
-    :param rules_samples_ids_dict: dictionary {rule_id : sample_ids}
+    :param rules_samples_ids_dict: dictionary that contains information about corresponding from rules to sample ids.
     :param check_intersections: optional parameter that indicates that intersections should be checked (used to
-    exclude the sentences from the DSCrossWeigh training set which are already in DSCrossWeigh test set)
+    exclude the sentences from the training set which are already in the test set)
     :return: samples, labels and indices in the original matrix
     """
     sample_ids = [list(rules_samples_ids_dict.get(idx)) for idx in indices]
@@ -138,9 +170,9 @@ def get_cw_samples_labels_idx(
     if check_intersections is not None:
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
 
-    cw_samples_dataset = TensorDataset(torch.Tensor(model_input_x.tensors[0][sample_ids]))
+    cw_samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
     cw_labels = np.array(labels[sample_ids])
     cw_samples_idx = np.array(sample_ids)
 
-    check_splitting(cw_samples_dataset, cw_labels, cw_samples_idx, model_input_x.tensors[0], labels)
+    check_splitting(cw_samples_dataset, cw_labels, cw_samples_idx, data_features.tensors[0], labels)
     return cw_samples_dataset, cw_labels, cw_samples_idx
