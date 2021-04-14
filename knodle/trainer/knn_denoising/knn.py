@@ -30,7 +30,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             **kwargs
     ):
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = KNNConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = KNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
         if knn_feature_matrix is None:
@@ -44,6 +44,9 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
         self.rule_matches_z = self.rule_matches_z.astype(np.int8)
         self.mapping_rules_labels_t = self.mapping_rules_labels_t.astype(np.int8)

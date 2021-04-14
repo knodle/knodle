@@ -36,7 +36,7 @@ class MajorityVoteTrainer(BaseTrainer):
             **kwargs
     ):
         if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer=SGD(model.parameters(), lr=0.001))
+            trainer_config = MajorityConfig(optimizer=SGD, lr=0.001)
         super().__init__(
             model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config, **kwargs
         )
@@ -50,6 +50,10 @@ class MajorityVoteTrainer(BaseTrainer):
         This function gets final labels with a majority vote approach and trains the provided model.
         """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
         model_input_x, label_probs = input_to_majority_vote_input(
             self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
             filter_non_labelled=self.trainer_config.filter_non_labelled,

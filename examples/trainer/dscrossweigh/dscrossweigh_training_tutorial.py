@@ -3,11 +3,10 @@ import os
 import sys
 from typing import Union, Tuple, List
 
-import pandas as pd
 import numpy as np
-import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
+from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
@@ -37,7 +36,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
 
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
-    train_dataset = TensorDataset(train_tfidf)
+    train_dataset_tfidf = TensorDataset(train_tfidf)
 
     # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
@@ -77,7 +76,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,
-        optimizer=AdamW(model.parameters(), lr=parameters.get("lr")),
+        optimizer=AdamW,
+        lr=parameters.get("lr"),
         grad_clipping=5,
         caching_suffix=caching_suffix,
         saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
@@ -88,7 +88,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         weight_reducing_rate=parameters.get("weight_rr"),  # sample weights reducing coefficient
         samples_start_weights=parameters.get("samples_start_weights"),  # the start weight of sample weights
         cw_epochs=parameters.get("cw_epochs"),  # number of epochs each dscrossweigh model is to be trained
-        cw_optimizer=torch.optim.Adam(cw_model.parameters(), lr=parameters.get("cw_lr"))  # dscrossweigh model optimiser
+        cw_optimizer=Adam,  # dscrossweigh model optimiser
+        cw_lr=parameters.get("cw_lr")  # dscrossweigh model lr
     )
 
     trainer = DSCrossWeighTrainer(
@@ -106,7 +107,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         # dscrossweigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
         cw_model=cw_model,  # model that will be used for dscrossweigh weights calculation
-        cw_model_input_x=train_dataset,  # x matrix for training the dscrossweigh models
+        cw_model_input_x=train_dataset_tfidf,  # x matrix for training the dscrossweigh models
     )
 
     # the DSCrossWeighTrainer is trained

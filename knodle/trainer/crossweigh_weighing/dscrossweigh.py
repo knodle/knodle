@@ -39,8 +39,10 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         if kwargs.get("trainer_config") is None:
             kwargs["trainer_config"] = DSCrossWeighDenoisingConfig(
-                optimizer=SGD(kwargs.get("model").parameters(), lr=0.001),
-                cw_optimizer=SGD(self.cw_model.parameters(), lr=0.001)
+                optimizer=SGD,
+                cw_optimizer=SGD,
+                lr=0.001,
+                cw_lr=0.001,
             )
         super().__init__(**kwargs)
 
@@ -56,6 +58,9 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
         train_labels = self.calculate_labels()
 
@@ -120,6 +125,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config = copy(self.trainer_config)
         weights_calculation_config.epochs = self.trainer_config.cw_epochs
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
+        weights_calculation_config.lr = self.trainer_config.cw_lr
         weights_calculation_config.batch_size = self.trainer_config.cw_batch_size
         weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
