@@ -55,6 +55,7 @@ class Trainer(ABC):
         else:
             self.trainer_config = trainer_config
 
+        self.trainer_config.optimizer = self.initialise_optimizer()
     @abstractmethod
     def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
         pass
@@ -100,7 +101,7 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False, save_models: bool = True,
+            self, feature_label_dataloader, use_sample_weights: bool = False,
             draw_plot: bool = False
     ):
         log_section("Training starts", logger)
@@ -163,7 +164,7 @@ class BaseTrainer(Trainer):
             logger.info("Epoch train loss: {}".format(avg_loss))
             logger.info("Epoch train accuracy: {}".format(avg_acc))
 
-            if self.dev_model_input_x:
+            if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
                     self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
                 dev_losses.append(dev_loss)
@@ -171,9 +172,9 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.output_dir_path is not None and save_models:
+            if self.trainer_config.saved_models_dir is not None:
                 model_path = os.path.join(
-                    self.trainer_config.caching_folder,
+                    self.trainer_config.saved_models_dir,
                     f"model_state_dict_epoch_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)

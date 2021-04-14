@@ -63,11 +63,6 @@ class TrainerConfig:
         else:
             self.optimizer = optimizer
 
-        self.output_classes = output_classes
-        self.grad_clipping = grad_clipping
-
-        self.device = torch.device("device") if device is not None else check_and_return_device()
-
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
         else:

@@ -33,8 +33,9 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         read_train_dev_test(path_to_data, if_dev_data=True)
 
     # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    train_tfidf_sparse, _, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
-
+    # For the LogReg model we encode train samples with TF-IDF features.
+    # Dev and test data is not used in training the sample weights.
+    train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_tfidf_dataset = TensorDataset(train_tfidf)
 
@@ -71,8 +72,8 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     custom_crossweigh_config = DSCrossWeighDenoisingConfig(
         # general trainer parameters
         output_classes=num_classes,
-        filter_non_labelled=True,
-        # other_class_id=3,
+        filter_non_labelled=False,
+        other_class_id=3,
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,
