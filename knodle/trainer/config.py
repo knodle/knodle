@@ -25,7 +25,7 @@ class TrainerConfig:
             output_classes: int = 2,
             class_weights: Tensor = None,
             epochs: int = 35,
-            seed: int = 42,
+            seed: int = None,
             grad_clipping: int = None,
             device: str = None,
             caching_folder: str = None,
@@ -33,7 +33,8 @@ class TrainerConfig:
             saved_models_dir: str = None
     ):
         self.seed = seed
-        set_seed(seed)
+        if self.seed is not None:
+            set_seed(seed)
 
         # create directory where saved models will be stored
         self.saved_models_dir = saved_models_dir
