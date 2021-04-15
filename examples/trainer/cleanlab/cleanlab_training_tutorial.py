@@ -20,7 +20,7 @@ def train_cleanlab(path_to_data: str) -> None:
 
     parameters = dict(
         seed=[12345], lr=[0.1], cv_n_folds=[3, 5, 8], prune_method=['prune_by_class', 'prune_by_noise_rate', 'both'],
-        epochs=[200], batch_size=[128], psx_calculation_method=['split_by_rules', 'random'],
+        epochs=[200], batch_size=[128], psx_calculation_method=['split_by_signatures', 'split_by_rules', 'random'],
     )
     parameter_values = [v for v in parameters.values()]
 

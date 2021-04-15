@@ -9,7 +9,8 @@ from torch.utils.data import TensorDataset
 from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
-from knodle.trainer.cleanlab.latent_estimation import estimate_cv_predicted_probabilities_split_by_rules
+from knodle.trainer.cleanlab.latent_estimation import estimate_cv_predicted_probabilities_split_by_rules, \
+    estimate_cv_predicted_probabilities_split_by_signatures
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 from knodle.transformation.torch_input import dataset_to_numpy_input
@@ -68,6 +69,12 @@ class CleanLabTrainer(MajorityVoteTrainer):
         # calculate psx in advance with splitting by rules
         if self.trainer_config.psx_calculation_method == "split_by_rules":
             psx = estimate_cv_predicted_probabilities_split_by_rules(
+                self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
+                seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
+            )
+
+        elif self.trainer_config.psx_calculation_method == "split_by_signatures":
+            psx = estimate_cv_predicted_probabilities_split_by_signatures(
                 self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
                 seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
             )

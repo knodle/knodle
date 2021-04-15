@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import get_rules_samples_ids_dict, get_cw_samples_labels_idx
+from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import get_rules_sample_ids, get_samples_labels_idx_by_rule_id
 
 
 @pytest.fixture(scope='session')
@@ -91,12 +91,12 @@ def get_cw_data_train(get_test_data):
 
 
 def test_sample_ids_matched_rules_correspondence(get_test_data):
-    assert get_rules_samples_ids_dict(get_test_data[1]) == get_test_data[3]
+    assert get_rules_sample_ids(get_test_data[1]) == get_test_data[3]
 
 
 def test_get_cw_data_test(get_cw_data_test):
     for data in get_cw_data_test:
-        samples, labels, ids = get_cw_samples_labels_idx(
+        samples, labels, ids = get_samples_labels_idx_by_rule_id(
             data[0], data[1], data[2], data[3]
         )
 
@@ -107,7 +107,7 @@ def test_get_cw_data_test(get_cw_data_test):
 
 def test_get_cw_data_train(get_cw_data_train):
     for data in get_cw_data_train:
-        samples, labels, ids = get_cw_samples_labels_idx(
+        samples, labels, ids = get_samples_labels_idx_by_rule_id(
             data[0], data[1], data[2], data[3], data[4]
         )
 
