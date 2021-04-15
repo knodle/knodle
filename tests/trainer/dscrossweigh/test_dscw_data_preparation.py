@@ -4,7 +4,9 @@ import pytest
 
 import numpy as np
 
-from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import get_rules_sample_ids, get_samples_labels_idx_by_rule_id
+from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import (
+    get_rules_sample_ids, get_samples_labels_idx_by_rule_id
+)
 
 
 @pytest.fixture(scope='session')
@@ -18,14 +20,14 @@ def get_test_data():
                                    [0, 0, 1],
                                    [0, 0, 1]])
 
-    inputs_x = TensorDataset(torch.Tensor(np.array([[1, 1, 1, 1, 1, 1, 1, 1],
+    inputs_x = TensorDataset(torch.Tensor(np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                                                    [1, 1, 1, 1, 1, 1, 1, 1],
                                                     [2, 2, 2, 2, 2, 2, 2, 2],
                                                     [3, 3, 3, 3, 3, 3, 3, 3],
                                                     [4, 4, 4, 4, 4, 4, 4, 4],
                                                     [5, 5, 5, 5, 5, 5, 5, 5],
                                                     [6, 6, 6, 6, 6, 6, 6, 6],
-                                                    [7, 7, 7, 7, 7, 7, 7, 7],
-                                                    [8, 8, 8, 8, 8, 8, 8, 8]])))
+                                                    [7, 7, 7, 7, 7, 7, 7, 7]])))
 
     rule_matches_z = np.array([[0, 1, 1, 0, 0, 0, 0],
                                [1, 0, 1, 1, 0, 0, 0],
@@ -58,10 +60,10 @@ def get_cw_data_test(get_test_data):
              labels,
              test_rules_idx,
              get_test_data[3],
-             torch.Tensor(np.array([[1, 1, 1, 1, 1, 1, 1, 1],
-                                    [2, 2, 2, 2, 2, 2, 2, 2],
-                                    [6, 6, 6, 6, 6, 6, 6, 6],
-                                    [7, 7, 7, 7, 7, 7, 7, 7]])),
+             torch.Tensor(np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                                    [1, 1, 1, 1, 1, 1, 1, 1],
+                                    [5, 5, 5, 5, 5, 5, 5, 5],
+                                    [6, 6, 6, 6, 6, 6, 6, 6]])),
              np.array([[0.5, 0.5, 0], [0.3, 0.7, 0], [0.5, 0.5, 0], [0.5, 0.5, 0]]),
              np.array([0, 1, 5, 6])
              ]]
@@ -81,10 +83,10 @@ def get_cw_data_train(get_test_data):
              train_rules_idx,
              get_test_data[3],
              test_samples_idx,
-             torch.Tensor(np.array([[3, 3, 3, 3, 3, 3, 3, 3],
+             torch.Tensor(np.array([[2, 2, 2, 2, 2, 2, 2, 2],
+                                    [3, 3, 3, 3, 3, 3, 3, 3],
                                     [4, 4, 4, 4, 4, 4, 4, 4],
-                                    [5, 5, 5, 5, 5, 5, 5, 5],
-                                    [8, 8, 8, 8, 8, 8, 8, 8]])),
+                                    [7, 7, 7, 7, 7, 7, 7, 7]])),
              np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 1, 0]]),
              np.array([2, 3, 4, 7])
              ]]

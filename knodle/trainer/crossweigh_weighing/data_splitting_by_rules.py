@@ -282,8 +282,8 @@ def get_samples_labels_idx_by_rule_id(
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
 
     samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
-    labels = np.array(labels[sample_ids])
+    samples_labels = np.array(labels[sample_ids])
     samples_idx = np.array(sample_ids)
 
-    check_splitting(samples_dataset, labels, samples_idx, data_features.tensors[0], labels)
-    return samples_dataset, labels, samples_idx
+    check_splitting(samples_dataset, samples_labels, samples_idx, data_features.tensors[0], labels)
+    return samples_dataset, samples_labels, samples_idx
