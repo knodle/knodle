@@ -18,10 +18,14 @@ from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 class SnorkelTrainer(MajorityVoteTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
     def _snorkel_denoising(self, model_input_x, rule_matches_z):
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
+
         non_zero_indices = np.where(rule_matches_z.sum(axis=1) != 0)[0]
         rule_matches_z = rule_matches_z[non_zero_indices]
         tensors = list(model_input_x.tensors)
@@ -56,14 +60,14 @@ class SnorkelTrainer(MajorityVoteTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
 
 
 @AutoTrainer.register('snorkel_knn')
 class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer_=SGD(kwargs.get("model").parameters(), lr=0.001))
+            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
     def train(self):
@@ -75,4 +79,4 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
         feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
-        self.train_loop(feature_label_dataloader)
+        self._train_loop(feature_label_dataloader)
