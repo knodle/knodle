@@ -29,7 +29,7 @@ def remove_stop_words(text: str) -> str:
     return text
 
 
-def np_to_tensor_dataset(x: np.ndarray):
+def np_array_to_tensor_dataset(x: np.ndarray):
     if isinstance(x, sp.csr_matrix):
         x = x.toarray()
     x = torch.from_numpy(x)
@@ -44,7 +44,7 @@ def create_tfidf_dataset(
     text_data = [remove_stop_words(t) for t in text_data]
     vectorizer = TfidfVectorizer(min_df=2, max_features=max_features)
     transformed_data = vectorizer.fit_transform(text_data)
-    dataset = np_to_tensor_dataset(transformed_data)
+    dataset = np_array_to_tensor_dataset(transformed_data)
     return dataset
 
 
@@ -86,8 +86,8 @@ X_train = create_tfidf_dataset(df_train["sample"].tolist(), max_features=5000)
 X_dev = create_tfidf_dataset(df_dev["sample"].tolist(), max_features=5000)
 X_test = create_tfidf_dataset(df_test["sample"].tolist(), max_features=5000)
 
-y_dev = np_to_tensor_dataset(df_dev['label'].values)
-y_test = np_to_tensor_dataset(df_test['label'].values)
+y_dev = np_array_to_tensor_dataset(df_dev['label'].values)
+y_test = np_array_to_tensor_dataset(df_test['label'].values)
 
 # Load AutoTrainer
 model = LogisticRegressionModel(X_train.tensors[0].shape[1], 2)
