@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from knodle.transformation.majority import (
-    probabilies_to_majority_vote, z_t_matrices_to_majority_vote_probs, z_t_matrices_to_majority_vote_labels
+    probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, z_t_matrices_to_majority_vote_labels
 )
 
 
@@ -20,7 +20,7 @@ def test_probabilies_to_majority_vote_fixed():
     ]
 
     for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
         assert isinstance(result, int)
         assert result == gold_label
@@ -38,7 +38,7 @@ def test_probabilies_to_majority_vote_random():
     ]
 
     for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
         assert isinstance(result, int)
         assert result in gold_label
@@ -50,7 +50,7 @@ def test_probabilies_to_majority_vote_errors():
     )
 
     with pytest.raises(ValueError):
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
 
 @pytest.fixture
