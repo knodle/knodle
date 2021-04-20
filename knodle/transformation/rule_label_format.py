@@ -2,8 +2,8 @@ import numpy as np
 
 
 def transform_snorkel_matrix_to_z_t(class_matrix: np.ndarray) -> [np.ndarray, np.ndarray]:
-    """Takes a rule-label matrix in the Snorkel format and transforms it to z / t matrices.
-    Lambda format:
+    """Takes a matrix in format used by e.g. Snorkel (https://github.com/snorkel-team/snorkel)
+    and transforms it to z / t matrices. Format
         - class_matrix_ij = -1, iff the rule doesn't apply
         - class_matrix_ij = k, iff the rule labels class k
 
