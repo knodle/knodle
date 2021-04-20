@@ -1,7 +1,6 @@
 import logging
 import os
 from copy import copy
-from typing import Dict
 
 import numpy as np
 import torch
@@ -30,9 +29,8 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             cw_model: Module = None,
             cw_model_input_x: TensorDataset = None,
             cw_rule_matches_z: np.ndarray = None,
-            path_to_weights: str = "data",
-            run_classifier: bool = True,
-            use_weights: bool = True,
+            run_classifier: bool = True,  # set to False if you want only the calculation of the sample weights
+            use_weights: bool = True,  # set to False if you want to use weights = 1 (baseline)
             **kwargs
     ):
         self.cw_model = cw_model if cw_model else kwargs.get("model")
@@ -41,12 +39,13 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
         if kwargs.get("trainer_config") is None:
             kwargs["trainer_config"] = DSCrossWeighDenoisingConfig(
-                optimizer=SGD(kwargs.get("model").parameters(), lr=0.001),
-                cw_optimizer=SGD(self.cw_model.parameters(), lr=0.001)
+                optimizer=SGD,
+                cw_optimizer=SGD,
+                lr=0.001,
+                cw_lr=0.001,
             )
         super().__init__(**kwargs)
 
-        self.path_to_weights = path_to_weights
         self.run_classifier = run_classifier
         self.use_weights = use_weights
 
@@ -59,6 +58,9 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with DSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        # initialise optimizer
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
         train_labels = self.calculate_labels()
 
@@ -74,7 +76,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().numpy(), train_labels)
         )
 
-        self.train_loop(train_loader, use_sample_weights=True, draw_plot=True)
+        self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
@@ -99,9 +101,13 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         """ This function checks whether there are accessible already pretrained sample weights. If yes, return
         them. If not, calculates sample weights calling method of DSCrossWeighWeightsCalculator class"""
 
-        if os.path.isfile(os.path.join(self.path_to_weights, "sample_weights.lib")):
+        if os.path.isfile(os.path.join(
+                self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib")
+        ):
             logger.info("Already pretrained samples sample_weights will be used.")
-            sample_weights = load(os.path.join(self.path_to_weights, "sample_weights.lib"))
+            sample_weights = load(os.path.join(
+                self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib")
+            )
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
             sample_weights = DSCrossWeighWeightsCalculator(
@@ -109,10 +115,9 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
                 mapping_rules_labels_t=self.mapping_rules_labels_t,
                 model_input_x=self.cw_model_input_x,
                 rule_matches_z=self.cw_rule_matches_z,
-                path_to_weights=self.path_to_weights,
                 trainer_config=self.get_denoising_config(),
             ).calculate_weights()
-            logger.info(f"Sample weights are calculated and saved to {self.path_to_weights} file")
+            logger.info(f"Sample weights are calculated and saved to {self.trainer_config.caching_folder} folder")
         return sample_weights
 
     def get_denoising_config(self):
@@ -120,9 +125,11 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config = copy(self.trainer_config)
         weights_calculation_config.epochs = self.trainer_config.cw_epochs
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
+        weights_calculation_config.lr = self.trainer_config.cw_lr
         weights_calculation_config.batch_size = self.trainer_config.cw_batch_size
         weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
-        weights_calculation_config.if_set_seed = self.trainer_config.cw_if_set_seed
+        weights_calculation_config.seed = self.trainer_config.cw_seed
+        weights_calculation_config.saved_models_dir = None
         return weights_calculation_config

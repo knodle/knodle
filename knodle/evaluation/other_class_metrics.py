@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def classification_report_other_class(
-        y_pred: np.array, y_true: np.array, ids2labels: Dict, other_class_id: int, verbose: bool = True
+        y_true: np.array, y_pred: np.array, ids2labels: Dict, other_class_id: int, verbose: bool = True
 ) -> Dict:
     """ Prepare the batch for the label-based evaluation. """
     string_prediction, string_gold = translate_predictions(
