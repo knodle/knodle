@@ -6,24 +6,21 @@ from knodle.transformation.filter import filter_empty_probabilities
 
 
 def probabilities_to_majority_vote(
-        probs: np.ndarray, choose_random_label: bool = False, other_class_id: int = None,
-        multiple_instances: bool = False
+        probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None
 ) -> int:
     """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
-    If there are more than one class with equal probabilities: either select one of the classes randomly, return a
-    vector containing all of them or assign to the sample the other class id.
+    If there are more than one class with equal probabilities: either select one of the classes randomly or assign to
+    the sample the other class id.
 
     Args:
         probs: Vector of probabilities for 1 sample. Shape: classes x 1
         choose_random_label: Choose a random label, if there's no clear majority.
         other_class_id: Class ID being used, if there's no clear majority
-        multiple_instances: Return duplicated instances with labels, if there are several maxima.
     Returns: An array of classes.
     """
     if choose_random_label and other_class_id is not None:
         raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
-    if choose_random_label and multiple_instances:
-        raise ValueError("You can either choose a random class, or create multiple instances with multiple classes.")
+
 
     row_max = np.max(probs)
     num_occurrences = (row_max == probs).sum()
@@ -32,8 +29,6 @@ def probabilities_to_majority_vote(
     elif choose_random_label:
         max_ids = np.where(probs == row_max)[0]
         return int(np.random.choice(max_ids))
-    elif multiple_instances:
-        return np.where(probs == row_max)[0]
     elif other_class_id is not None:
         return other_class_id
     else:
@@ -41,7 +36,7 @@ def probabilities_to_majority_vote(
 
 
 def z_matrix_to_rule_idx(
-        rules: np.ndarray, choose_random_rule: bool = False, multiple_instances: bool = False
+        rules: np.ndarray, choose_random_rule: bool = True
 ) -> int:
     """Transforms a z matrix to rule indices of matching rules.
     If there is more than one rule match: either select one of the rules randomly or return a vector containing
@@ -50,11 +45,8 @@ def z_matrix_to_rule_idx(
     Args:
         rules: Vector of probabilities for 1 sample. Shape: classes x 1
         choose_random_rule: Choose a random label, if there's no clear majority.
-        multiple_instances: Return duplicated instances with idx, if there are several rule matches.
     Returns: An array of classes.
     """
-    if choose_random_rule and multiple_instances:
-        raise ValueError("You can either choose a random rule, or create multiple instances with multiple rules.")
 
     row_max = np.max(rules)
     num_occurrences = (row_max == rules).sum()
@@ -63,8 +55,6 @@ def z_matrix_to_rule_idx(
     elif choose_random_rule:
         max_ids = np.where(rules == row_max)[0]
         return int(np.random.choice(max_ids))
-    elif multiple_instances:
-        return np.where(rules == row_max)[0]
     else:
         raise ValueError("Specify a way how to resolve multiple rule matches.")
 
