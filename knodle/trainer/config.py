@@ -3,7 +3,7 @@ from typing import Callable, Dict
 import os
 import logging
 
-from snorkel.classification import cross_entropy_with_probs
+from knodle.utils.losses.cross_entropy import cross_entropy_with_probs
 
 import torch
 from torch import Tensor
