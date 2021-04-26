@@ -22,7 +22,7 @@ from knodle.trainer.utils.denoise import activate_neighbors
 logger = logging.getLogger(__name__)
 
 
-@AutoTrainer.register('knn_trainer')
+@AutoTrainer.register('knn')
 class KnnDenoisingTrainer(MajorityVoteTrainer):
     def __init__(
             self,
