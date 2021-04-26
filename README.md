@@ -11,8 +11,8 @@ Knodle (_Knowledge infused deep learning framework_) provides a modularization f
 More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
 
 ****
-Latest news:
-- **Apr 2021:** Knodle first release! :rocket:
+Latest news
+- **Apr 2021: Knodle first release! :rocket:**
 - **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
 
 ## Installation
@@ -27,9 +27,9 @@ knodle offers various methods for denoising weak supervision sources and improve
 
 There are four mandatory inputs for knodle:
 
-1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances x features
-2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules x n_classes
-3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances x n_rules
+1. `model_input_x`: Your model features (e.g. TF-IDF values) without any labels. Shape: (n_instances x features)
+2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: (n_rules x n_classes)
+3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: (n_instances x n_rules)
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
 
 If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle/tree/style_guide#denoising-methods)).
