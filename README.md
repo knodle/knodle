@@ -58,7 +58,7 @@ trainer.train()
 trainer.test(X_test, Y_test)
 ```
 
-The detailed example of classifier training is [here](https://github.com/knodle/knodle/blob/develop/examples/trainer/simple_auto_trainer/auto_trainer_tutorial.ipynb).  
+A more detailed example of classifier training is [here](https://github.com/knodle/knodle/blob/develop/examples/trainer/simple_auto_trainer/auto_trainer_tutorial.ipynb).  
 
 ## Main Principles
 
