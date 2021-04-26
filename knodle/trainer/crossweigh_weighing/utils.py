@@ -6,7 +6,6 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.evaluation import tacred_metrics
 logger = logging.getLogger(__name__)
 
 
@@ -82,7 +81,7 @@ def check_splitting(
         samples: torch.Tensor,
         labels: np.ndarray,
 ) -> None:
-    """ Custom function to check that the splitting into train and test sets fro CrossWeigh was done correctly"""
+    """ Custom function to check that the splitting into train and test sets fro DSCrossWeigh was done correctly"""
 
     rnd_tst = np.random.randint(0, tst_samples.tensors[0].shape[0])  # take some random index
     tst_sample = tst_samples.tensors[0][rnd_tst, :]
@@ -106,13 +105,3 @@ def return_unique(where_to_find: np.ndarray, what_to_find: np.ndarray) -> np.nda
     """ Checks intersections between the 1st and the 2nd arrays and return unique values of the 1st array """
     intersections = np.intersect1d(where_to_find, what_to_find, return_indices=True)[1].tolist()
     return np.delete(where_to_find, intersections)
-
-
-def calculate_dev_tacred_metrics(predictions: np.ndarray, labels: np.ndarray, labels2ids: Dict) -> Dict:
-    predictions_idx = predictions.astype(int).tolist()
-    labels_idx = labels.astype(int).tolist()
-    idx2labels = dict([(value, key) for key, value in labels2ids.items()])
-
-    predictions = [idx2labels[p] for p in predictions_idx]
-    test_labels = [idx2labels[p] for p in labels_idx]
-    return tacred_metrics.score(test_labels, predictions, verbose=True)
