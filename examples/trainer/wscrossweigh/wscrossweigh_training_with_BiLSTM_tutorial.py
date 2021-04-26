@@ -12,9 +12,9 @@ from torch.utils.data import TensorDataset
 
 from knodle.evaluation.other_class_metrics import score
 from knodle.model.bidirectional_lstm_model import BidirectionalLSTM
-from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
-from tutorials.utils import read_train_dev_test, get_samples_list
+from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.wscrossweigh import WSCrossWeighTrainer
+from examples.utils import read_train_dev_test, get_samples_list
 
 NUM_CLASSES = 42
 MAXLEN = 50
@@ -24,13 +24,13 @@ CLASS_WEIGHTS = torch.FloatTensor([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 
                                    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.0])
 
 
-def train_crossweigh(
+def train_wscrossweigh(
         path_to_data: str,
         path_labels: str,
         path_emb: str,
         path_sample_weights: str = None,
 ) -> None:
-    """ Training the BiLSTM model with DSCrossWeigh denoising algorithm """
+    """ Training the BiLSTM model with WSCrossWeigh denoising algorithm """
 
     labels2ids = read_labels_from_file(path_labels, "no_relation")
     word2id, word_embedding_matrix = vocab_and_vectors(path_emb)
@@ -63,7 +63,7 @@ def train_crossweigh(
         word_embedding_matrix.shape[0], word_embedding_matrix.shape[1], word_embedding_matrix, NUM_CLASSES
     )
 
-    custom_crossweigh_config = DSCrossWeighDenoisingConfig(
+    custom_wscrossweigh_config = WSCrossWeighDenoisingConfig(
         output_classes=NUM_CLASSES,
         class_weights=CLASS_WEIGHTS,
         filter_non_labelled=True,
@@ -79,14 +79,14 @@ def train_crossweigh(
         samples_start_weights=parameters.get("samples_start_weights")
     )
 
-    trainer = DSCrossWeighTrainer(
+    trainer = WSCrossWeighTrainer(
         model=model,
         mapping_rules_labels_t=t_mapping_rules_labels,
         model_input_x=train_input_x,
         dev_model_input_x=dev_dataset,
         dev_gold_labels_y=dev_labels_dataset,
         rule_matches_z=z_train_rule_matches,
-        trainer_config=custom_crossweigh_config,
+        trainer_config=custom_wscrossweigh_config,
         evaluation_method="tacred",
         dev_labels_ids=labels2ids,
         use_weights=True,
@@ -194,6 +194,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    train_crossweigh(
+    train_wscrossweigh(
         args.path_to_data, args.path_labels, args.path_emb, args.sample_weights
     )
