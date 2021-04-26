@@ -4,6 +4,7 @@
 *.so
 
 # Packages
+PKG-INFO
 *.egg
 *.egg-info
 dist
@@ -18,6 +19,9 @@ develop-eggs
 lib
 lib64
 __pycache__
+
+# package helper
+knodle-*
 
 # Installer logs
 pip-log.txt
@@ -35,4 +39,24 @@ nosetests.xml
 .project
 .pydevproject
 
+*.ipynb_checkpoints
+
 /venv
+
+.python-version
+.DS_Store
+
+*.npy
+runs/
+runs_old/
+wandb/
+*.pt
+launch.json
+*.env
+
+# Data:
+
+# Large datasets
+*.lib
+*.csv
+data_from_minio/

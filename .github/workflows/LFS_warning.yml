@@ -1,0 +1,13 @@
+name: LFS-warning
+
+on: [ pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: LFS-warning
+        uses: ActionsDesk/lfs-warning@v2.0
+        with:
+          filesizelimit: '10485760' # 10 MB is 10485760 Bytes

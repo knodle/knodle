@@ -1,5 +1,0 @@
-flake8
-pytest
-pytest-cov
--e .
-wheel
