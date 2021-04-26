@@ -8,9 +8,13 @@
 
 Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
+More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
+
+****
+(Apr 2021) Knodle first release! :rocket:
+
 ## Installation
 
-(Since the project is still on development phase, it is not public available yet. Stay tuned :))
 ```
 pip install knodle
 ```
@@ -175,7 +179,20 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - [Benjamin Roth](https://www.benjaminroth.net/)
 
+## Citation
+
+```
+@misc{sedova2021knodle,
+      title={Knodle: Modular Weakly Supervised Learning with PyTorch}, 
+      author={Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, and Benjamin Roth},
+      year={2021},
+      eprint={2104.11557},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+``
 
 ## Acknowledgments
 
 This research was funded by the WWTF though the project “Knowledge-infused Deep Learning for Natural Language Processing” (WWTF Vienna Research Group VRG19-008).
+
