@@ -8,9 +8,15 @@
 
 Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
+More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
+
+****
+Latest news
+- **Apr 2021: Knodle first release! :rocket:**
+- **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
+
 ## Installation
 
-(Since the project is still on development phase, it is not public available yet. Stay tuned :))
 ```
 pip install knodle
 ```
@@ -21,9 +27,9 @@ knodle offers various methods for denoising weak supervision sources and improve
 
 There are four mandatory inputs for knodle:
 
-1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances x features
-2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules x n_classes
-3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances x n_rules
+1. `model_input_x`: Your model features (e.g. TF-IDF values) without any labels. Shape: (n_instances x features)
+2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: (n_rules x n_classes)
+3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: (n_instances x n_rules)
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
 
 If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle/tree/style_guide#denoising-methods)).
@@ -175,7 +181,20 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - [Benjamin Roth](https://www.benjaminroth.net/)
 
+## Citation
+
+```
+@misc{sedova2021knodle,
+      title={Knodle: Modular Weakly Supervised Learning with PyTorch}, 
+      author={Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, and Benjamin Roth},
+      year={2021},
+      eprint={2104.11557},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+``
 
 ## Acknowledgments
 
 This research was funded by the WWTF though the project “Knowledge-infused Deep Learning for Natural Language Processing” (WWTF Vienna Research Group VRG19-008).
+
