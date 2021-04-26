@@ -6,7 +6,7 @@
 [![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()  
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
 
-Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
+Knodle (_Knowledge-supervised Deep Learning Framework_) - a new framework for weak supervision with neural networks. It provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
 More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
 
