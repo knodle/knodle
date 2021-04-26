@@ -8,9 +8,15 @@
 
 Knodle (_Knowledge infused deep learning framework_) provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
+More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
+
+****
+Latest news
+- **Apr 2021: Knodle first release! :rocket:**
+- **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
+
 ## Installation
 
-(Since the project is still on development phase, it is not public available yet. Stay tuned :))
 ```
 pip install knodle
 ```
@@ -21,9 +27,9 @@ knodle offers various methods for denoising weak supervision sources and improve
 
 There are four mandatory inputs for knodle:
 
-1. `model_input_x`: Your model features (e.g. TFIDF values) without any labels. Shape: n_instances x features
-2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: n_rules x n_classes
-3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: n_instances x n_rules
+1. `model_input_x`: Your model features (e.g. TF-IDF values) without any labels. Shape: (n_instances x features)
+2. `mapping_rules_labels_t`: This matrix maps all weak rules to a label. Shape: (n_rules x n_classes)
+3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: (n_instances x n_rules)
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
 
 If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle/tree/style_guide#denoising-methods)).
@@ -96,7 +102,7 @@ There are several denoising methods available.
 | MajorityVoteTrainer  |`knodle.trainer.baseline`             | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | AutoTrainer          |`knodle.trainer`                      | This incorporates all denoising methods currently provided in Knodle. |
 | KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
-| DSCrossWeighTrainer  |`knodle.trainer.dscrossweigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
+| WSCrossWeighTrainer  |`knodle.trainer.WSCrossWeigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
 | CleanlabTrainer      |`knodle.trainer.cleanlab`             | A wrapper of the Cleanlab system. |
 
@@ -112,7 +118,7 @@ We also aimed at providing the users with basic tutorials that would explain how
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
 - tutorials how to work with Knodle Framework...
     - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
-    - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
+    - ... on the example of WSCrossWeighTrainer. With this trainer a weak classifier with WSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/WSCrossWeigh)).
 
 ## Compatibility
 
@@ -129,7 +135,7 @@ knodle
 │    ├── trainer
 │          ├── baseline
 │          ├── cleanlab
-│          ├── dscrossweigh_denoising
+│          ├── WSCrossWeigh_denoising
 │          ├── knn_denoising
 │          ├── snorkel
 │          └── utils
@@ -140,7 +146,7 @@ knodle
 │    ├── evaluation
 │    ├── trainer
 │          ├── baseline
-│          ├── dscrossweigh
+│          ├── WSCrossWeigh
 │          ├── snorkel
 │          └── utils
 │    └── transformation
@@ -150,7 +156,7 @@ knodle
            └── tac_based_dataset
      └── training
            ├── AutoTrainer
-           └── dscrossweigh
+           └── WSCrossWeigh
 
 ```
 
@@ -175,7 +181,20 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
 - [Benjamin Roth](https://www.benjaminroth.net/)
 
+## Citation
+
+```
+@misc{sedova2021knodle,
+      title={Knodle: Modular Weakly Supervised Learning with PyTorch}, 
+      author={Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, and Benjamin Roth},
+      year={2021},
+      eprint={2104.11557},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
 
 ## Acknowledgments
 
 This research was funded by the WWTF though the project “Knowledge-infused Deep Learning for Natural Language Processing” (WWTF Vienna Research Group VRG19-008).
+

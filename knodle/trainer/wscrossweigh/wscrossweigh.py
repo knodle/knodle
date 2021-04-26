@@ -10,8 +10,8 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
+from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
-class DSCrossWeighTrainer(MajorityVoteTrainer):
+class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def __init__(
             self,
@@ -38,7 +38,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = DSCrossWeighDenoisingConfig(
+            kwargs["trainer_config"] = WSCrossWeighDenoisingConfig(
                 optimizer=SGD,
                 cw_optimizer=SGD,
                 lr=0.001,
@@ -56,7 +56,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
-        """ This function sample_weights the samples with DSCrossWeigh method and train the model """
+        """ This function sample_weights the samples with WSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
         # initialise optimizer
@@ -99,7 +99,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
 
     def _get_sample_weights(self) -> torch.FloatTensor:
         """ This function checks whether there are accessible already pretrained sample weights. If yes, return
-        them. If not, calculates sample weights calling method of DSCrossWeighWeightsCalculator class"""
+        them. If not, calculates sample weights calling method of WSCrossWeighWeightsCalculator class"""
 
         if os.path.isfile(os.path.join(
                 self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib")
@@ -110,7 +110,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
             )
         else:
             logger.info("No pretrained sample weights are found, they will be calculated now")
-            sample_weights = DSCrossWeighWeightsCalculator(
+            sample_weights = WSCrossWeighWeightsCalculator(
                 model=self.cw_model,
                 mapping_rules_labels_t=self.mapping_rules_labels_t,
                 model_input_x=self.cw_model_input_x,
@@ -121,7 +121,7 @@ class DSCrossWeighTrainer(MajorityVoteTrainer):
         return sample_weights
 
     def get_denoising_config(self):
-        """ Get a config for dscrossweigh sample weights calculation """
+        """ Get a config for WSCrossWeigh sample weights calculation """
         weights_calculation_config = copy(self.trainer_config)
         weights_calculation_config.epochs = self.trainer_config.cw_epochs
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
