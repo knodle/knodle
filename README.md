@@ -11,7 +11,9 @@ Knodle (_Knowledge infused deep learning framework_) provides a modularization f
 More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
 
 ****
-(Apr 2021) Knodle first release! :rocket:
+Latest news:
+- **Apr 2021:** Knodle first release! :rocket:
+- **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
 
 ## Installation
 
