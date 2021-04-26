@@ -11,7 +11,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from joblib import dump
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.crossweigh_weighing.utils import check_splitting, return_unique
+from knodle.trainer.wscrossweigh.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
@@ -21,23 +21,23 @@ logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
 
-class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
+class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.crossweigh_model = copy.deepcopy(self.model)
+        self.wscrossweigh_model = copy.deepcopy(self.model)
         self.sample_weights = torch.empty(0)
 
     def calculate_weights(self) -> torch.FloatTensor:
         """
-        This function calculates the sample_weights for samples using DSCrossWeigh method
+        This function calculates the sample_weights for samples using WSCrossWeigh method
         :return matrix of the sample sample_weights
         """
 
         if self.trainer_config.folds < 2:
-            raise ValueError("Number of folds should be at least 2 to perform DSCrossWeigh denoising")
+            raise ValueError("Number of folds should be at least 2 to perform WSCrossWeigh denoising")
 
-        logger.info("======= Denoising with DSCrossWeigh is started =======")
+        logger.info("======= Denoising with WSCrossWeigh is started =======")
         os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
 
         labels = z_t_matrices_to_majority_vote_probs(
@@ -61,7 +61,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
             for fold in range(self.trainer_config.folds):
                 # for each fold the model is trained from scratch
-                self.crossweigh_model = copy.deepcopy(self.model).to(self.trainer_config.device)
+                self.wscrossweigh_model = copy.deepcopy(self.model).to(self.trainer_config.device)
                 train_loader, test_loader = self.get_cw_data(
                     shuffled_rules_ids, rules_samples_ids_dict, labels, fold, other_sample_ids
                 )
@@ -74,7 +74,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             self.sample_weights, os.path.join(self.trainer_config.caching_folder,
                                               f"sample_weights_{self.trainer_config.caching_suffix}.lib")
              )
-        logger.info("======= Denoising with DSCrossWeigh is completed =======")
+        logger.info("======= Denoising with WSCrossWeigh is completed =======")
         return self.sample_weights
 
     def _get_other_sample_ids(self, labels: np.ndarray) -> List[int]:
@@ -109,7 +109,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def calculate_rules_indices(self, rules_idx: list, fold: int) -> (np.ndarray, np.ndarray):
         """
-        Calculates the indices of the samples which are to be included in DSCrossWeigh training and test sets
+        Calculates the indices of the samples which are to be included in WSCrossWeigh training and test sets
         :param rules_idx: all rules indices (shuffled) that are to be splitted into cw training & cw test set rules
         :param fold: number of a current hold-out fold
         :return: two arrays containing indices of rules that will be used for cw training and cw test set accordingly
@@ -129,7 +129,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             other_sample_ids: List[int]
     ) -> (DataLoader, DataLoader):
         """
-        This function returns train and test dataloaders for DSCrossWeigh training. Each dataloader comprises encoded
+        This function returns train and test dataloaders for WSCrossWeigh training. Each dataloader comprises encoded
         samples, labels and sample indices in the original matrices
         :param rules_ids: shuffled rules indices
         :param labels: labels of all training samples
@@ -169,7 +169,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         :param indices: indices of rules; samples, where these rules matched & their labels are to be included in set
         :param rules_samples_ids_dict: dictionary {rule_id : sample_ids}
         :param check_intersections: optional parameter that indicates that intersections should be checked (used to
-        exclude the sentences from the DSCrossWeigh training set which are already in DSCrossWeigh test set)
+        exclude the sentences from the WSCrossWeigh training set which are already in WSCrossWeigh test set)
         :return: samples, labels and indices in the original matrix
         """
         sample_ids = [list(rules_samples_ids_dict.get(idx)) for idx in indices]
@@ -189,11 +189,11 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def cw_test(self, test_loader: DataLoader) -> None:
         """
-        This function tests of trained DSCrossWeigh model on a hold-out fold, compared the predicted labels with the
+        This function tests of trained WSCrossWeigh model on a hold-out fold, compared the predicted labels with the
         ones got with weak supervision and reduces sample_weights of disagreed samples
         :param test_loader: loader with the data which is used for testing (hold-out fold)
         """
-        self.crossweigh_model.eval()
+        self.wscrossweigh_model.eval()
         correct_predictions, wrong_predictions = 0, 0
 
         with torch.no_grad():
@@ -201,7 +201,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 features, labels = self._load_batch(batch)
                 data_features, data_indices = features[:-1], features[-1]
 
-                outputs = self.crossweigh_model(*data_features)
+                outputs = self.wscrossweigh_model(*data_features)
                 outputs = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()

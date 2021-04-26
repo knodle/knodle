@@ -4,8 +4,8 @@ from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.auto_config import AutoConfig
 
 
-@AutoConfig.register("crossweigh")
-class DSCrossWeighDenoisingConfig(MajorityConfig):
+@AutoConfig.register("wscrossweigh")
+class WSCrossWeighDenoisingConfig(MajorityConfig):
     def __init__(
             self,
             partitions: int = 2,
@@ -15,6 +15,7 @@ class DSCrossWeighDenoisingConfig(MajorityConfig):
             cw_epochs: int = None,
             cw_batch_size: int = None,
             cw_optimizer: Optimizer = None,
+            cw_lr: int = 0.1,
             cw_filter_non_labelled: bool = None,
             cw_other_class_id: int = None,
             cw_grad_clipping: int = None,
@@ -56,3 +57,5 @@ class DSCrossWeighDenoisingConfig(MajorityConfig):
             self.cw_other_class_id = cw_other_class_id
 
         self.cw_seed = cw_seed
+        self.cw_lr = cw_lr
+

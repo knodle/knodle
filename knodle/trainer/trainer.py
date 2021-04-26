@@ -63,6 +63,13 @@ class Trainer(ABC):
     def test(self, test_features: TensorDataset, test_labels: TensorDataset):
         pass
 
+    def initialise_optimizer(self):
+        try:
+            return self.trainer_config.optimizer(params=self.model.parameters(), lr=self.trainer_config.lr)
+        except TypeError:
+            logger.info("Wrong optimizer parameters. Optimizer should belong to torch.optim class or be PyTorch "
+                        "compatible.")
+
 
 class BaseTrainer(Trainer):
 

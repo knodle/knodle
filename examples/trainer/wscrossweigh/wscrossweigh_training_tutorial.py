@@ -3,24 +3,23 @@ import os
 import sys
 from typing import Union, Tuple, List
 
-import pandas as pd
 import numpy as np
-import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import Tensor, LongTensor
+from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
 from examples.utils import read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.crossweigh_weighing.config import DSCrossWeighDenoisingConfig
-from knodle.trainer.crossweigh_weighing.dscrossweigh import DSCrossWeighTrainer
+from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.wscrossweigh import WSCrossWeighTrainer
 
 
-def train_crossweigh(path_to_data: str, num_classes: int) -> None:
+def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     """
-    We are going to train a BERT classification model using weakly annotated data with additional DSCrossWeigh
-    denoising. The sample weights in DSCrossWeigh will be trained with logistic regression in order to, firstly,
+    We are going to train a BERT classification model using weakly annotated data with additional WSCrossWeigh
+    denoising. The sample weights in WSCrossWeigh will be trained with logistic regression in order to, firstly,
     reduce the computational effort, and, secondly, demonstrate the ability of the algorithm to use different models
     for data denoising and classifier training.
     :param path_to_data: path to the folder where all the input data is stored
@@ -37,7 +36,7 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
 
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
-    train_dataset = TensorDataset(train_tfidf)
+    train_dataset_tfidf = TensorDataset(train_tfidf)
 
     # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
@@ -67,9 +66,9 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
     cw_model = LogisticRegressionModel(train_tfidf.shape[1], num_classes)
     model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
 
-    # define a custom DSCrossWeigh config. If no custom config is defined, the DSCrossWeighTrainer will use the default
-    # DSCrossWeighDenoisingConfig which is stored in the fold with the DSCrossWeigh trainer
-    custom_crossweigh_config = DSCrossWeighDenoisingConfig(
+    # define a custom WSCrossWeigh config. If no custom config is defined, the WSCrossWeighTrainer will use the default
+    # WSCrossWeighDenoisingConfig which is stored in the fold with the WSCrossWeigh trainer
+    custom_wscrossweigh_config = WSCrossWeighDenoisingConfig(
         # general trainer parameters
         output_classes=num_classes,
         filter_non_labelled=False,
@@ -77,39 +76,41 @@ def train_crossweigh(path_to_data: str, num_classes: int) -> None:
         seed=12345,
         epochs=parameters.get("epochs"),
         batch_size=16,
-        optimizer=AdamW(model.parameters(), lr=parameters.get("lr")),
+        optimizer=AdamW,
+        lr=parameters.get("lr"),
         grad_clipping=5,
         caching_suffix=caching_suffix,
         saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
-        # dscrossweigh specific parameters
-        partitions=parameters.get("cw_partitions"),  # number of dscrossweigh iterations (= splitting into folds)
+        # WSCrossWeigh specific parameters
+        partitions=parameters.get("cw_partitions"),  # number of WSCrossWeigh iterations (= splitting into folds)
         folds=parameters.get("cw_folds"),  # number of folds train data will be splitted into
         weight_reducing_rate=parameters.get("weight_rr"),  # sample weights reducing coefficient
         samples_start_weights=parameters.get("samples_start_weights"),  # the start weight of sample weights
-        cw_epochs=parameters.get("cw_epochs"),  # number of epochs each dscrossweigh model is to be trained
-        cw_optimizer=torch.optim.Adam(cw_model.parameters(), lr=parameters.get("cw_lr"))  # dscrossweigh model optimiser
+        cw_epochs=parameters.get("cw_epochs"),  # number of epochs each WSCrossWeigh model is to be trained
+        cw_optimizer=Adam,  # WSCrossWeigh model optimiser
+        cw_lr=parameters.get("cw_lr")  # WSCrossWeigh model lr
     )
 
-    trainer = DSCrossWeighTrainer(
+    trainer = WSCrossWeighTrainer(
         # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
         mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
         model_input_x=train_input_x_bert,  # x matrix for training the classifier
         rule_matches_z=z_train_rule_matches,  # z matrix
-        trainer_config=custom_crossweigh_config,
+        trainer_config=custom_wscrossweigh_config,
 
         # additional dev set used for classification model evaluation during training
         dev_model_input_x=dev_dataset_bert,
         dev_gold_labels_y=dev_labels,
 
-        # dscrossweigh specific parameters. If they are not defined, the corresponding main classification parameters
+        # WSCrossWeigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
-        cw_model=cw_model,  # model that will be used for dscrossweigh weights calculation
-        cw_model_input_x=train_dataset,  # x matrix for training the dscrossweigh models
+        cw_model=cw_model,  # model that will be used for WSCrossWeigh weights calculation
+        cw_model_input_x=train_dataset_tfidf,  # x matrix for training the WSCrossWeigh models
     )
 
-    # the DSCrossWeighTrainer is trained
+    # the WSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
     clf_report, _ = trainer.test(test_dataset_bert, test_labels)
@@ -163,4 +164,4 @@ if __name__ == "__main__":
     parser.add_argument("--num_classes", help="Number of classes")
     args = parser.parse_args()
 
-    train_crossweigh(args.path_to_data, args.num_classes)
+    train_wscrossweigh(args.path_to_data, args.num_classes)

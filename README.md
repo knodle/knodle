@@ -96,7 +96,7 @@ There are several denoising methods available.
 | MajorityVoteTrainer  |`knodle.trainer.baseline`             | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | AutoTrainer          |`knodle.trainer`                      | This incorporates all denoising methods currently provided in Knodle. |
 | KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
-| DSCrossWeighTrainer  |`knodle.trainer.dscrossweigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
+| WSCrossWeighTrainer  |`knodle.trainer.WSCrossWeigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
 | CleanlabTrainer      |`knodle.trainer.cleanlab`             | A wrapper of the Cleanlab system. |
 
@@ -112,7 +112,7 @@ We also aimed at providing the users with basic tutorials that would explain how
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
 - tutorials how to work with Knodle Framework...
     - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
-    - ... on the example of DSCrossWeighTrainer. With this trainer a weak classifier with DSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/dscrossweigh)).
+    - ... on the example of WSCrossWeighTrainer. With this trainer a weak classifier with WSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/WSCrossWeigh)).
 
 ## Compatibility
 
@@ -129,7 +129,7 @@ knodle
 │    ├── trainer
 │          ├── baseline
 │          ├── cleanlab
-│          ├── dscrossweigh_denoising
+│          ├── WSCrossWeigh_denoising
 │          ├── knn_denoising
 │          ├── snorkel
 │          └── utils
@@ -140,7 +140,7 @@ knodle
 │    ├── evaluation
 │    ├── trainer
 │          ├── baseline
-│          ├── dscrossweigh
+│          ├── WSCrossWeigh
 │          ├── snorkel
 │          └── utils
 │    └── transformation
@@ -150,7 +150,7 @@ knodle
            └── tac_based_dataset
      └── training
            ├── AutoTrainer
-           └── dscrossweigh
+           └── WSCrossWeigh
 
 ```
 
