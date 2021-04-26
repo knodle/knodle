@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![PyPI](https://img.shields.io/pypi/v/knodle)
+[![PyPI](https://img.shields.io/pypi/v/knodle)
 [![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()  
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
 
