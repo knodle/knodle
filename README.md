@@ -11,7 +11,7 @@ Knodle (_Knowledge infused deep learning framework_) provides a modularization f
 More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
 
 ****
-Latest news
+### Latest news
 - **Apr 2021: Knodle first release! :rocket:**
 - **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
 
@@ -39,34 +39,26 @@ Example for training the baseline classifier:
 ```python
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.data import get_imdb_dataset
-from knodle.data.transformer import get_labels
-from knodle.data.tfidf import get_tfidf_features
 
 NUM_OUTPUT_CLASSES = 2
 
-train_df, dev_df, test_df, z_train_rule_matches, train_rule_matches_z, mapping_rules_labels_t = \
-        get_imdb_dataset()
-
-train_tfidf, test_tfidf, dev_tfidf = get_tfidf_features(train_df, test_df, dev_df)
-test_labels = get_labels(test_df)
-dev_labels = get_labels(dev_df)
-
-model = LogisticRegressionModel(train_tfidf.shape[1], NUM_OUTPUT_CLASSES)
+model = LogisticRegressionModel(model_input_x.shape[1], NUM_OUTPUT_CLASSES)
 
 trainer = MajorityVoteTrainer(
-  model,
+  model=model,
   mapping_rules_labels_t=mapping_rules_labels_t,
-  model_input_x=train_tfidf,
-  rule_matches_z=train_rule_matches_z,
-  dev_model_input_x=dev_tfidf,
-  dev_gold_labels_y=dev_labels
+  model_input_x=model_input_x,
+  rule_matches_z=rule_matches_z,
+  dev_model_input_x=X_dev,
+  dev_gold_labels_y=Y_dev
 )
 
 trainer.train()
 
-trainer.test(test_tfidf, test_labels)
+trainer.test(X_test, Y_test)
 ```
+
+The detailed example of classifier training is [here](https://github.com/knodle/knodle/blob/develop/examples/trainer/simple_auto_trainer/auto_trainer_tutorial.ipynb).  
 
 ## Main Principles
 
@@ -102,7 +94,7 @@ There are several denoising methods available.
 | MajorityVoteTrainer  |`knodle.trainer.baseline`             | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | AutoTrainer          |`knodle.trainer`                      | This incorporates all denoising methods currently provided in Knodle. |
 | KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
-| WSCrossWeighTrainer  |`knodle.trainer.WSCrossWeigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
+| WSCrossWeighTrainer  |`knodle.trainer.wscrossweigh_weighing`| This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
 | CleanlabTrainer      |`knodle.trainer.cleanlab`             | A wrapper of the Cleanlab system. |
 
@@ -135,7 +127,7 @@ knodle
 │    ├── trainer
 │          ├── baseline
 │          ├── cleanlab
-│          ├── WSCrossWeigh_denoising
+│          ├── wscrossweigh_denoising
 │          ├── knn_denoising
 │          ├── snorkel
 │          └── utils
@@ -146,7 +138,7 @@ knodle
 │    ├── evaluation
 │    ├── trainer
 │          ├── baseline
-│          ├── WSCrossWeigh
+│          ├── wscrossweigh
 │          ├── snorkel
 │          └── utils
 │    └── transformation
@@ -156,7 +148,7 @@ knodle
            └── tac_based_dataset
      └── training
            ├── AutoTrainer
-           └── WSCrossWeigh
+           └── wscrossweigh
 
 ```
 
@@ -197,4 +189,3 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 ## Acknowledgments
 
 This research was funded by the WWTF though the project “Knowledge-infused Deep Learning for Natural Language Processing” (WWTF Vienna Research Group VRG19-008).
-
