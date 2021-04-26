@@ -34,6 +34,10 @@ def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorData
 
 
 def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
+    """
+
+    :rtype: object
+    """
     if isinstance(x, sp.csr_matrix):
         x = x.toarray()
     x = torch.from_numpy(x)

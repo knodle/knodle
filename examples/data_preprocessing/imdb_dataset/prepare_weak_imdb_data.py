@@ -18,18 +18,15 @@ The IMDB dataset available in the Knodle collection was downloaded from [Kaggle]
 import os
 from joblib import dump
 from tqdm import tqdm
-from typing import List
 
 import pandas as pd 
 import numpy as np 
 from scipy.sparse import csr_matrix
 
 from bs4 import BeautifulSoup
-from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, CountVectorizer
-from snorkel.labeling import LabelingFunction, PandasLFApplier, filter_unlabeled_dataframe, LFAnalysis
-from snorkel.labeling.model import MajorityLabelVoter, LabelModel
+from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
 
-from knodle.data.labelling_fcts import transform_rule_class_matrix_to_z_t
+from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
 
 # client to access the dataset collection
@@ -204,7 +201,7 @@ for idx, ex in examples.iterrows():
 # 
 # (shape `#rules x #labels`).
 
-rule_matches, mapping_rules_labels = transform_rule_class_matrix_to_z_t(applied_lfs)
+rule_matches, mapping_rules_labels = transform_snorkel_matrix_to_z_t(applied_lfs)
 
 
 # ### Majority Vote
