@@ -192,7 +192,7 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
-``
+```
 
 ## Acknowledgments
 

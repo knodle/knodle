@@ -90,5 +90,3 @@ def get_tfidf_features(
         dev_transformed_data = vectorizer.transform(dev_data)
 
     return train_transformed_data, test_transformed_data, dev_transformed_data
-
-
