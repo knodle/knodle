@@ -97,7 +97,6 @@ There are several denoising methods available.
 | KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
 | WSCrossWeighTrainer  |`knodle.trainer.wscrossweigh`         | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
-| CleanlabTrainer      |`knodle.trainer.cleanlab`             | A wrapper of the Cleanlab system. |
 
 Each of the methods has its own default config file, which will be used in training if no custom config is provided. 
 
