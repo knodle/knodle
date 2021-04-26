@@ -18,7 +18,7 @@ class TrainerConfig:
     def __init__(
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
-            batch_size: int = 256,
+            batch_size: int = 32,
             optimizer: Optimizer = None,
             lr: int = 0.01,
             output_classes: int = 2,
