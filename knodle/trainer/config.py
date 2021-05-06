@@ -24,7 +24,7 @@ class TrainerConfig:
             lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
-            epochs: int = 35,
+            epochs: int = 3,
             seed: int = 42,
             grad_clipping: int = None,
             device: str = None,

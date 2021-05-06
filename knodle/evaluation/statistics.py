@@ -1,12 +1,12 @@
-from typing import Dict
+from typing import Dict, Union, List
 
 import pandas as pd
 import numpy as np
 
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
 
-
-def get_y_statistics(y_gold: np.ndarray) -> pd.DataFrame:
+def get_y_statistics(y_gold: Union[List, np.ndarray]) -> pd.DataFrame:
+    """Returns a few statistics for a label vector.
+    """
     y = pd.Series(y_gold)
     stats_dict = [
         ["num_classes", y.nunique()],
@@ -19,16 +19,13 @@ def get_y_statistics(y_gold: np.ndarray) -> pd.DataFrame:
     return stats_dict
 
 
-def get_z_statistics(rule_matches_z: np.array, mapping_rules_labels_t: np.array) -> Dict:
+def get_z_t_statistics(rule_matches_z: np.array, mapping_rules_labels_t: np.array) -> pd.DataFrame:
+    """Returns a few statistics for a label vector.
+    """
     hits = np.round(rule_matches_z.sum(axis=0) / rule_matches_z.shape[0], 2)
     no_match_samples = np.where(hits == 0)[0].sum() / rule_matches_z.sum()
 
     avg_hits_per_sample = rule_matches_z.sum() / rule_matches_z.shape[0]
-
-    majority_votes = z_t_matrices_to_majority_vote_labels(
-        rule_matches_z, mapping_rules_labels_t, choose_random_label=False, other_class_id=-1
-    )
-    majority_votes = pd.Series(majority_votes)
 
     stats_dict = {
         "num_samples": rule_matches_z.shape[0],
@@ -38,12 +35,15 @@ def get_z_statistics(rule_matches_z: np.array, mapping_rules_labels_t: np.array)
         "avg_hits_per_sample": avg_hits_per_sample
     }
 
+    stats_dict = pd.DataFrame(stats_dict, columns=["statistic", "value"])
     return stats_dict
 
 
-def get_standard_paper_stats(rule_matches_z: np.array, mapping_rules_labels_t: np.array, y_gold: np.ndarray):
-    y = pd.Series(y_gold)
-
+def get_standard_paper_stats(
+        rule_matches_z: np.array, mapping_rules_labels_t: np.array, y_gold: np.ndarray
+) -> pd.DataFrame:
+    """Computes basic statistics relevant for a paper.
+    """
     if mapping_rules_labels_t.shape[1] == 2:
         skewdness = round(y_gold.sum() / y_gold.shape[0], 2)
     else:
@@ -61,7 +61,8 @@ def get_standard_paper_stats(rule_matches_z: np.array, mapping_rules_labels_t: n
 
 
 def combine_multiple_paper_stats(dataset_to_df_dict: Dict) -> pd.DataFrame:
-
+    """Takes a dictionary, having dataset names as keys and DataFrames as values and returns a combined DataFrame.
+    """
     columns = []
     values = []
 
