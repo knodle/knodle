@@ -1,6 +1,8 @@
 import os
 import logging
 from typing import Union, Dict, Tuple
+
+import skorch
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 
@@ -244,7 +246,7 @@ class BaseTrainer(Trainer):
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
-        if hasattr(self.model, "predict"):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+        if isinstance(self.model, skorch.NeuralNetClassifier):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
             predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)

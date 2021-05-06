@@ -32,6 +32,6 @@ def dataset_to_numpy_input(model_input_x: TensorDataset) -> np.ndarray:
     if len(model_input_x.tensors) == 1:
         return model_input_x.tensors[0].numpy()
     else:
-        raise ValueError(f"Selected denoising method accepts only two-dimensional encoded input features (features x "
-                         f"samples matrices), while {len(model_input_x.tensors) + 1}-dimensional input features were "
-                         f"given. Please use another input encoding or another denoising method.")
+        raise ValueError(f"Selected denoising method accepts input features encoded with one tensor only, while "
+                         f"{len(model_input_x.tensors) + 1} input tensors were given. Please use another input "
+                         f"encoding or another denoising method.")
