@@ -20,7 +20,7 @@ class TrainerConfig:
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
-            optimizer: Optimizer = SGD,
+            optimizer: Optimizer = None,
             lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
