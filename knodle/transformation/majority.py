@@ -5,13 +5,13 @@ import warnings
 from knodle.transformation.filter import filter_empty_probabilities
 
 
-def probabilies_to_majority_vote(
+def probabilities_to_majority_vote(
         probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None
 ) -> int:
     """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
     If there are more than one class with equal probabilities: either select one of the classes randomly or assign to
     the sample the other class id.
- 
+
     Args:
         probs: Vector of probabilities for 1 sample. Shape: classes x 1
         choose_random_label: Choose a random label, if there's no clear majority.
@@ -20,6 +20,7 @@ def probabilies_to_majority_vote(
     """
     if choose_random_label and other_class_id is not None:
         raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
+
 
     row_max = np.max(probs)
     num_occurrences = (row_max == probs).sum()
@@ -32,6 +33,30 @@ def probabilies_to_majority_vote(
         return other_class_id
     else:
         raise ValueError("Specify a way how to resolve unclear majority votes.")
+
+
+def z_matrix_to_rule_idx(
+        rules: np.ndarray, choose_random_rule: bool = True
+) -> int:
+    """Transforms a z matrix to rule indices of matching rules.
+    If there is more than one rule match: either select one of the rules randomly or return a vector containing
+    all of them.
+
+    Args:
+        rules: Vector of probabilities for 1 sample. Shape: classes x 1
+        choose_random_rule: Choose a random label, if there's no clear majority.
+    Returns: An array of classes.
+    """
+
+    row_max = np.max(rules)
+    num_occurrences = (row_max == rules).sum()
+    if num_occurrences == 1:
+        return int(np.argmax(rules))
+    elif choose_random_rule:
+        max_ids = np.where(rules == row_max)[0]
+        return int(np.random.choice(max_ids))
+    else:
+        raise ValueError("Specify a way how to resolve multiple rule matches.")
 
 
 def z_t_matrices_to_majority_vote_probs(
@@ -93,7 +118,7 @@ def z_t_matrices_to_majority_vote_labels(
     rule_counts_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
 
     kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
-    majority_labels = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=rule_counts_probs, **kwargs)
+    majority_labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=rule_counts_probs, **kwargs)
     return majority_labels
 
 
@@ -110,6 +135,6 @@ def input_to_majority_vote_input(
 
     if not use_probabilistic_labels:
         kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
-        label_probs = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=label_probs, **kwargs)
+        label_probs = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=label_probs, **kwargs)
 
     return input_data_x, label_probs
