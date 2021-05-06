@@ -59,7 +59,11 @@ class TrainerConfig:
             raise ValueError("Epochs needs to be positive")
         self.epochs = epochs
 
-        self.optimizer = optimizer
+        if optimizer is None:
+            logger.info(f"Defaulting to SGD optimizer as none specified in the config.")
+            self.optimizer = SGD
+        else:
+            self.optimizer = optimizer
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
