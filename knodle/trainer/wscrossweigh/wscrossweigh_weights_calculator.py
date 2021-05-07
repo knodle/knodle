@@ -7,11 +7,10 @@ from torch.utils.data import DataLoader
 from joblib import dump
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.wscrossweigh.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
+from knodle.trainer.wscrossweigh.data_splitting_by_rules import k_folds_splitting_by_rules
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
-from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
@@ -66,7 +65,8 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
         for iter, (train_dataset, test_dataset) in enumerate(zip(train_datasets, test_datasets)):
             log_section(
-                f"WSCrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:", logger
+                f"WSCrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:",
+                logger
             )
 
             # for each fold the model is trained from scratch

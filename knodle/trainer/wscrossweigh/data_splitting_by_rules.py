@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.wscrossweigh.utils import return_unique, check_splitting
+from knodle.trainer.wscrossweigh.utils import return_unique
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
@@ -285,5 +285,4 @@ def get_samples_labels_idx_by_rule_id(
     samples_labels = np.array(labels[sample_ids])
     samples_idx = np.array(sample_ids)
 
-    check_splitting(samples_dataset, samples_labels, samples_idx, data_features.tensors[0], labels)
     return samples_dataset, samples_labels, samples_idx

@@ -74,6 +74,7 @@ def set_device(enable_cuda: bool):
         return torch.device("cpu")
 
 
+# deprecated
 def check_splitting(
         tst_samples: TensorDataset,
         tst_labels: np.ndarray,

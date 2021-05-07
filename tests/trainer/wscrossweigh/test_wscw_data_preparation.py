@@ -113,3 +113,22 @@ def test_get_cw_data_train(get_cw_data_train):
         assert torch.equal(samples.tensors[0], data[5])
         np.testing.assert_array_equal(labels, data[6])
         np.testing.assert_array_equal(ids, data[7])
+
+
+def test_random_check(get_cw_data_train):
+    for data in get_cw_data_train:
+        samples, labels, ids = get_samples_labels_idx_by_rule_id(
+            data[0], data[1], data[2], data[3], data[4]
+        )
+        rnd_tst = np.random.randint(0, samples.tensors[0].shape[0])  # take some random index
+        tst_sample = samples.tensors[0][rnd_tst, :]
+        tst_idx = ids[rnd_tst]
+        tst_label = labels[rnd_tst, :] if len(labels.shape) > 1 else labels[rnd_tst]
+
+        tst_sample_true = data[5][rnd_tst, :]
+        tst_label_true = data[6][rnd_tst, :] if len(data[6].shape) > 1 else data[6][rnd_tst]
+        tst_idx_true = data[7][rnd_tst]
+
+        assert torch.equal(tst_sample, tst_sample_true)
+        np.testing.assert_array_equal(tst_label, tst_label_true)
+        np.testing.assert_array_equal(tst_idx, tst_idx_true)
