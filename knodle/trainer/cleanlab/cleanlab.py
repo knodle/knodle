@@ -67,13 +67,13 @@ class CleanLabTrainer(MajorityVoteTrainer):
         noisy_y_train = np.argmax(noisy_y_train, axis=1)
 
         # calculate psx in advance with splitting by rules
-        if self.trainer_config.psx_calculation_method == "split_by_rules":
+        if self.trainer_config.psx_calculation_method == "rules":
             psx = estimate_cv_predicted_probabilities_split_by_rules(
                 self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
                 seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
             )
 
-        elif self.trainer_config.psx_calculation_method == "split_by_signatures":
+        elif self.trainer_config.psx_calculation_method == "signatures":
             psx = estimate_cv_predicted_probabilities_split_by_signatures(
                 self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
                 seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds

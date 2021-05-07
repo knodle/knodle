@@ -35,7 +35,7 @@ def get_test_data():
                                [1, 1, 1, 1, 0, 0, 0],
                                [0, 0, 0, 1, 0, 0, 0]])
 
-    rules_samples_ids_dict = {0: {1, 5, 6},
+    rule2sample_id = {0: {1, 5, 6},
                               1: {0, 6},
                               2: {0, 1, 5, 6},
                               3: {1, 6, 7},
@@ -43,7 +43,7 @@ def get_test_data():
                               5: {4},  # no rel sample
                               6: {3}}  # no rel sample
 
-    return inputs_x, rule_matches_z, rule_assignments_t, rules_samples_ids_dict
+    return inputs_x, rule_matches_z, rule_assignments_t, rule2sample_id
 
 
 @pytest.fixture(scope='session')

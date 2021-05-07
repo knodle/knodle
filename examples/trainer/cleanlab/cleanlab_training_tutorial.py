@@ -29,7 +29,7 @@ def train_cleanlab(path_to_data: str) -> None:
         prune_method=['prune_by_class', 'prune_by_noise_rate', 'both'],
         epochs=[200],
         batch_size=[128],
-        psx_calculation_method=['split_by_signatures', 'split_by_rules', 'random'],
+        psx_calculation_method=['signatures', 'rules', 'random'],       # how the splitting into folds will be performed
     )
     parameter_values = [v for v in parameters.values()]
 
