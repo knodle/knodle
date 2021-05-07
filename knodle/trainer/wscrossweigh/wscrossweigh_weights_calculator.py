@@ -7,28 +7,29 @@ from torch.utils.data import DataLoader
 from joblib import dump
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import k_folds_splitting_by_rules
+from knodle.trainer.wscrossweigh.utils import check_splitting, return_unique
 from knodle.trainer.utils import log_section
 from knodle.transformation.filter import filter_empty_probabilities
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
+from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
 
 
-class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
+class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # save the copy of the original model; later dscrossweigh models for each training with a new hold-out fold
+        # save the copy of the original model; later wscrossweigh models for each training with a new hold-out fold
         # will be copied from it
-        self.crossweigh_model = copy.deepcopy(self.model)
+        self.wscrossweigh_model = copy.deepcopy(self.model)
         self.sample_weights = torch.empty(0)
 
     def calculate_weights(self) -> torch.FloatTensor:
         """
-        This function calculates the sample_weights for samples using DSCrossWeigh method
+        This function calculates the sample_weights for samples using WSCrossWeigh method
         :return matrix of the sample sample_weights
         """
 
@@ -36,9 +37,9 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         self.trainer_config.optimizer = self.initialise_optimizer()
 
         if self.trainer_config.folds < 2:
-            raise ValueError("Number of folds should be at least 2 to perform DSCrossWeigh denoising")
+            raise ValueError("Number of folds should be at least 2 to perform WSCrossWeigh denoising")
 
-        logger.info("======= Denoising with DSCrossWeigh is started =======")
+        logger.info("======= Denoising with WSCrossWeigh is started =======")
         os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
 
         labels = z_t_matrices_to_majority_vote_probs(
@@ -65,31 +66,31 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
         for iter, (train_dataset, test_dataset) in enumerate(zip(train_datasets, test_datasets)):
             log_section(
-                f"CrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:", logger
+                f"WSCrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:", logger
             )
 
             # for each fold the model is trained from scratch
-            self.model = copy.deepcopy(self.crossweigh_model).to(self.trainer_config.device)
+            self.model = copy.deepcopy(self.wscrossweigh_model).to(self.trainer_config.device)
             test_loader = self._make_dataloader(test_dataset)
             train_loader = self._make_dataloader(train_dataset)
             self._train_loop(train_loader)
             self.cw_test(test_loader)
 
-            log_section(f"CrossWeigh Partition {iter + 1} is done", logger)
+            log_section(f"WSCrossWeigh Partition {iter + 1} is done", logger)
 
         dump(self.sample_weights, os.path.join(
             self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib"))
 
-        logger.info("======= Denoising with DSCrossWeigh is completed =======")
+        logger.info("======= Denoising with WSCrossWeigh is completed =======")
         return self.sample_weights
 
     def cw_test(self, test_loader: DataLoader) -> None:
         """
-        This function tests of trained DSCrossWeigh model on a hold-out fold, compared the predicted labels with the
+        This function tests of trained WSCrossWeigh model on a hold-out fold, compared the predicted labels with the
         ones got with weak supervision and reduces sample_weights of disagreed samples
         :param test_loader: loader with the data which is used for testing (hold-out fold)
         """
-        self.crossweigh_model.eval()
+        self.wscrossweigh_model.eval()
         correct_predictions, wrong_predictions = 0, 0
 
         with torch.no_grad():
@@ -97,7 +98,7 @@ class DSCrossWeighWeightsCalculator(MajorityVoteTrainer):
                 features, labels = self._load_batch(batch)
                 data_features, data_indices = features[:-1], features[-1]
 
-                outputs = self.crossweigh_model(*data_features)
+                outputs = self.wscrossweigh_model(*data_features)
                 outputs = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
                 _, predicted = torch.max(outputs.data, -1)
                 predictions = predicted.tolist()

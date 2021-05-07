@@ -53,6 +53,10 @@ wandb/
 *.pt
 launch.json
 *.env
+
+# Data:
+
 # Large datasets
 *.lib
 *.csv
+data_from_minio/

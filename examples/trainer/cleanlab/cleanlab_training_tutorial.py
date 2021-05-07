@@ -10,7 +10,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
 
-from examples.trainer.dscrossweigh.dscrossweigh_training_tutorial import get_tfidf_features
+from examples.trainer.preprocessing import get_tfidf_features
 from examples.utils import read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
@@ -40,8 +40,9 @@ def train_cleanlab(path_to_data: str) -> None:
     train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
     test_features_dataset = TensorDataset(Tensor(test_input_x.toarray()))
 
-    test_labels = list(df_test.iloc[:, -1])
-    test_labels_dataset = TensorDataset(LongTensor(list(df_test.iloc[:, 1])))
+    test_labels = df_test["label"].tolist()
+    test_labels_dataset = TensorDataset(LongTensor(test_labels))
+
     num_classes = max(test_labels) + 1
 
     results = []

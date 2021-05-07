@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.base import RegressorMixin
 from tqdm import tqdm
 
-from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import (
+from knodle.trainer.wscrossweigh.data_splitting_by_rules import (
     k_folds_splitting_by_rules, k_folds_splitting_by_signatures
 )
 

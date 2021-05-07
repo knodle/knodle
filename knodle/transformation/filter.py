@@ -29,3 +29,23 @@ def filter_empty_probabilities(
         return new_x, class_probas_y[non_zeros], rule_matches_z[non_zeros]
 
     return new_x, class_probas_y[non_zeros]
+
+
+def filter_unconclusive_probabilities(
+        input_data_x: TensorDataset, class_probas_y: np.ndarray, rule_matches_z: np.ndarray = None,
+        probability_threshold: float = 0.7
+) -> Union[Tuple[TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray]]:
+    """Filters instances where no single class probability exceeds "probability_threshold".
+    """
+    prob_sums = class_probas_y.max(axis=-1)
+    conclusive_idx = np.where(prob_sums >= probability_threshold)[0]
+
+    new_tensors = []
+    for i in range(len(input_data_x.tensors)):
+        new_tensors.append(input_data_x.tensors[i][conclusive_idx])
+    new_x = TensorDataset(*new_tensors)
+
+    if rule_matches_z is not None:
+        return new_x, class_probas_y[conclusive_idx], rule_matches_z[conclusive_idx]
+
+    return new_x, class_probas_y[conclusive_idx]

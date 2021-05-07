@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class CleanLabTrainer(MajorityVoteTrainer):
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = CleanLabConfig(optimizer=SGD, lr=0.001)
+            kwargs["trainer_config"] = CleanLabConfig()
         super().__init__(**kwargs)
 
     def train(

@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.crossweigh_weighing.dscrossweigh_weights_calculator import DSCrossWeighWeightsCalculator
+from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 
 def test_dscw_base_test():
@@ -22,7 +22,7 @@ def test_dscw_base_test():
     test_dataset = TensorDataset(torch.Tensor(np.array([[4, 4, 4, 4, 4], [5, 5, 5, 5, 5]])))
     test_labels = TensorDataset(torch.Tensor(np.array([0, 1])))
 
-    trainer = DSCrossWeighWeightsCalculator(
+    trainer = WSCrossWeighWeightsCalculator(
         model=model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=inputs_x,

@@ -11,3 +11,4 @@ class MajorityConfig(BaseTrainerConfig):
     ):
         super().__init__(**kwargs)
         self.use_probabilistic_labels = use_probabilistic_labels
+        self.probability_threshold = None

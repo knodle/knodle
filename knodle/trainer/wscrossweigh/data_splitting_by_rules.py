@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.crossweigh_weighing.utils import return_unique, check_splitting
+from knodle.trainer.wscrossweigh.utils import return_unique, check_splitting
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)

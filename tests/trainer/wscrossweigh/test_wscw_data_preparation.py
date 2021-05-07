@@ -1,12 +1,9 @@
 import torch
 from torch.utils.data import TensorDataset
 import pytest
-
 import numpy as np
 
-from knodle.trainer.crossweigh_weighing.data_splitting_by_rules import (
-    get_rules_sample_ids, get_samples_labels_idx_by_rule_id
-)
+from knodle.trainer.wscrossweigh.data_splitting_by_rules import get_rules_sample_ids, get_samples_labels_idx_by_rule_id
 
 
 @pytest.fixture(scope='session')

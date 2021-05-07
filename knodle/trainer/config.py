@@ -20,11 +20,11 @@ class TrainerConfig:
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
-            optimizer: Optimizer = SGD,
+            optimizer: Optimizer = None,
             lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
-            epochs: int = 35,
+            epochs: int = 3,
             seed: int = None,
             grad_clipping: int = None,
             device: str = None,
@@ -60,7 +60,11 @@ class TrainerConfig:
             raise ValueError("Epochs needs to be positive")
         self.epochs = epochs
 
-        self.optimizer = optimizer
+        if optimizer is None:
+            logger.info(f"Defaulting to SGD optimizer as none specified in the config.")
+            self.optimizer = SGD
+        else:
+            self.optimizer = optimizer
 
         if class_weights is None:
             self.class_weights = torch.tensor([1.0] * self.output_classes)
