@@ -18,4 +18,4 @@ def test_input_labels_to_tensordataset():
     input_label_dataset = input_labels_to_tensordataset(input_data, labels)
 
     assert len(input_label_dataset.tensors) == 3
-    assert_array_equal(input_label_dataset.tensors[-1].cpu().numpy(), labels)
+    assert_array_equal(input_label_dataset.tensors[-1].cpu().detach().numpy(), labels)
