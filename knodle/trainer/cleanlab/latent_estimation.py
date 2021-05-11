@@ -20,7 +20,8 @@ def estimate_cv_predicted_probabilities_split_by_rules(
         other_class_id: int = None
 ):
     cv_train_datasets, cv_holdout_datasets = k_folds_splitting_by_rules(
-        model_input_x, labels, rule_matches_z, partitions=1, folds=cv_n_folds, seed=seed, other_class_id=other_class_id
+        model_input_x, labels, rule_matches_z, partitions=1, num_folds=cv_n_folds, seed=seed,
+        other_class_id=other_class_id
     )
 
     return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, labels, num_classes)
@@ -38,7 +39,8 @@ def estimate_cv_predicted_probabilities_split_by_signatures(
 ):
 
     cv_train_datasets, cv_holdout_datasets = k_folds_splitting_by_signatures(
-        model_input_x, labels, rule_matches_z, partitions=1, folds=cv_n_folds, seed=seed, other_class_id=other_class_id
+        model_input_x, labels, rule_matches_z, partitions=1, num_folds=cv_n_folds, seed=seed,
+        other_class_id=other_class_id
     )
 
     return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, labels, num_classes)

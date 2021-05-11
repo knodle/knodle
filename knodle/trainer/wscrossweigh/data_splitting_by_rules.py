@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 def k_folds_splitting_by_rules(
-        data_features: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
+        data_features: TensorDataset, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
         seed: int = None, other_class_id: int = None
 ) -> Tuple[List, List]:
     """
-    This function allows to perform the splitting of the data instances into k folds according to the rules matched
+    This function allows to perform the splitting of data instances into k folds according to the rules matched
     in them. The splitting could be performed in several iterations (defined by "partition" parameter).
     The logic is the following:
         for each partition:
@@ -32,11 +32,11 @@ def k_folds_splitting_by_rules(
     Correspondingly, such samples (where multiple rules matched) are included into several hold-out folds depending on
     which of the relevant rules is selected to the hold-out fold in the current splitting.
 
-    :param data_features: encoded data samples (num_samples x num_features)
+    :param data_features: encoded data samples
     :param labels: array of labels (num_samples x 1)
     :param rule_matches_z: matrix of rule matches (num_samples x num_rules)
-    :param partitions: number of partitions that are to be performed; in each partition the dataset will be splitted into
-    k folds
+    :param partitions: number of partitions that are to be performed; in each partition the dataset will be splitted
+    into k folds
     :param num_folds: number of folds the data instances are to be slitted into in each partition
     :param seed: optionally, the seed could be fixed in order to provide reproducibility
     :param other_class_id: if you don't want to include the negative samples (the ones that belong to the other class)
@@ -59,7 +59,7 @@ def k_folds_splitting_by_signatures(
         seed: int = None, other_class_id: int = None
 ) -> Tuple[List, List]:
     """
-    This function allows to perform the splitting of the data instances into k folds according to the signatures.
+    This function allows to perform the splitting of data instances into k folds according to the signatures.
     The sample signature is composed from the rule matched in the sample. For example, if rules with ids 1, 5, 7 matched
     in the sample, the sample signature is 1_5_7. Thus, the signature serves as sample identifier.
     The logic is the following:
@@ -75,8 +75,8 @@ def k_folds_splitting_by_signatures(
     :param data_features: encoded data samples (num_samples x num_features)
     :param labels: array of labels (num_samples x 1)
     :param rule_matches_z: matrix of rule matches (num_samples x num_rules)
-    :param partitions: number of partitions that are to be performed; in each partition the dataset will be splitted into
-    k folds
+    :param partitions: number of partitions that are to be performed; in each partition the dataset will be splitted
+    into k folds
     :param num_folds: number of folds the data instances are to be slitted into in each partition
     :param seed: optionally, the seed could be fixed in order to provide reproducibility
     :param other_class_id: if you don't want to include the negative samples (the ones that belong to the other class)
@@ -86,14 +86,14 @@ def k_folds_splitting_by_signatures(
     """
 
     random.seed(seed) if seed is not None else random.choice(range(9999))
-    signature_id2samples_ids = get_signature_sample_ids(rule_matches_z)
+    signature2samples = get_signature_sample_ids(rule_matches_z)
 
     return compose_train_n_test_datasets(
-        data_features, signature_id2samples_ids, labels, num_folds, partitions, other_class_id
+        data_features, signature2samples, labels, num_folds, partitions, other_class_id
     )
 
 
-def get_rules_sample_ids(rule_matches_z: Union[np.ndarray, sp.csr_matrix]) -> Dict:
+def get_rules_sample_ids(rule_matches_z: Union[np.ndarray, sp.csr_matrix]) -> Dict[str, List[int]]:
     """
     This function creates a dictionary {rule id : sample id where this rule matched}. The dictionary is needed as a
     support tool for faster calculation of train and test sets.
@@ -123,7 +123,7 @@ def get_signature_sample_ids(rule_matches_z: np.ndarray) -> Dict:
         - {signature id: [sample_id1, sample_id2, ...]}
     """
 
-    signature2id, signature_id2samples = {}, {}
+    signature2samples = {}
 
     if isinstance(rule_matches_z, sp.csr_matrix):
         samples_id_rules_dict = {key: [] for key in range(rule_matches_z.shape[0])}
@@ -137,30 +137,20 @@ def get_signature_sample_ids(rule_matches_z: np.ndarray) -> Dict:
 
     for sample_id, rules in samples_id_rules_dict.items():
         signature = "_".join(map(str, sorted(list(rules))))
+        signature2samples.setdefault(signature, []).append(sample_id)
 
-        if signature in signature2id:
-            signature_id = signature2id.get(signature)
-        else:
-            signature_id = len(signature2id)
-            signature2id[signature] = signature_id
-
-        if signature_id in signature_id2samples:
-            signature_id2samples[signature_id].append(sample_id)
-        else:
-            signature_id2samples[signature_id] = [sample_id]
-
-    return signature_id2samples
+    return signature2samples
 
 
 def compose_train_n_test_datasets(
-        data_features: np.ndarray, rule_id2samples_ids: Dict, labels: np.ndarray, num_folds: int,
+        data_features: TensorDataset, rule2samples: Dict, labels: np.ndarray, num_folds: int,
         partitions: int, other_class_id: int = None
 ) -> Tuple[List, List]:
     """
     This function creates train and test datasets for k-folds cross-validation.
 
-    :param data_features: encoded data samples (num_samples x num_features):
-    :param rule_id2samples_ids: {rule_id: [sample_id1, sample_id2, ...]}. Rule in this context means anything basing on
+    :param data_features: encoded data samples
+    :param rule2samples: {rule: [sample_id1, sample_id2, ...]}. Rule in this context means anything basing on
     which splitting is performed (matched rule, sample signature, ...).
     :param labels: array of labels
     :param num_folds: number of folds the data instances are to be slitted into in each partition
@@ -174,7 +164,7 @@ def compose_train_n_test_datasets(
     # calculate ids of all samples that belong to the 'other_class'
     other_sample_ids = np.where(labels[:, other_class_id] == 1)[0].tolist() if other_class_id else None
     # make a list of rule ids to shuffle them later
-    rule_ids = [rule_id for rule_id in range(0, len(rule_id2samples_ids))]
+    rule_ids = list(rule2samples.keys())
 
     train_datasets, test_datasets = [], []
     for partition in range(partitions):
@@ -182,7 +172,7 @@ def compose_train_n_test_datasets(
         random.shuffle(rule_ids)  # shuffle anew for each splitting
         for fold_id in range(num_folds):
             train_dataset, test_dataset = get_train_test_datasets_by_rule_indices(
-                data_features, rule_ids, rule_id2samples_ids, labels, fold_id, num_folds, other_sample_ids
+                data_features, rule_ids, rule2samples, labels, fold_id, num_folds, other_sample_ids
             )
             train_datasets.append(train_dataset)
             test_datasets.append(test_dataset)
@@ -191,16 +181,16 @@ def compose_train_n_test_datasets(
 
 
 def get_train_test_datasets_by_rule_indices(
-        data_features: np.ndarray, rules_ids: List[int], rule_id2samples_ids: Dict, labels: np.ndarray, fold_id: int,
+        data_features: TensorDataset, rules_ids: List[int], rule2samples: Dict, labels: np.ndarray, fold_id: int,
         num_folds: int, other_sample_ids: List[int]
 ) -> Tuple[TensorDataset, TensorDataset]:
     """
     This function returns train and test datasets for k-fold cross validation training. Each dataloader comprises
     encoded samples, labels and sample indices in the original matrices.
 
-    :param data_features: numpy array with encoded data samples (num_samples, num_features)
+    :param data_features: encoded data samples
     :param rules_ids: list of shuffled rules indices
-    :param rule_id2samples_ids: dictionary that contains information about corresponding between rules ids and sample ids.
+    :param rule2samples: dictionary that contains information about corresponding between rules ids and sample ids.
     Rule in this context means anything basing on which splitting is performed (matched rule, sample signature, ...)
     :param labels: labels of all training samples (num_samples, num_classes)
     :param fold_id: number of a current hold-out fold
@@ -211,16 +201,16 @@ def get_train_test_datasets_by_rule_indices(
 
     :return: dataloaders for cw training and testing
     """
-    train_rules_idx, test_rules_idx = calculate_rules_indices(rules_ids, fold_id, num_folds)
+    train_rules, test_rules = calculate_rules_indices(rules_ids, fold_id, num_folds)
 
     # select train and test samples and labels according to the selected rules idx
     test_samples, test_labels, test_idx = get_samples_labels_idx_by_rule_id(
-        data_features, labels, test_rules_idx, rule_id2samples_ids, check_intersections=None,
+        data_features, labels, test_rules, rule2samples, check_intersections=None,
         other_sample_ids=other_sample_ids
     )
 
     train_samples, train_labels, _ = get_samples_labels_idx_by_rule_id(
-        data_features, labels, train_rules_idx, rule_id2samples_ids, check_intersections=test_idx,
+        data_features, labels, train_rules, rule2samples, check_intersections=test_idx,
         other_sample_ids=other_sample_ids
     )
 
@@ -228,16 +218,16 @@ def get_train_test_datasets_by_rule_indices(
     test_dataset = input_info_labels_to_tensordataset(test_samples, test_idx, test_labels)
 
     logger.info(
-        f"Fold {fold_id}     Rules in training set: {len(train_rules_idx)}, rules in test set: {len(test_rules_idx)}, "
+        f"Fold {fold_id}     Rules in training set: {len(train_rules)}, rules in test set: {len(test_rules)}, "
         f"samples in training set: {len(train_samples)}, samples in test set: {len(test_samples)}"
     )
 
     return train_dataset, test_dataset
 
 
-def calculate_rules_indices(rules_idx: list, fold_id: int, num_folds: int) -> Tuple[np.ndarray, np.ndarray]:
+def calculate_rules_indices(rules_idx: list, fold_id: int, num_folds: int) -> Tuple[list, list]:
     """
-    Calculates the indices of the samples which are to be included in training and test sets for k-fold cross validation.
+    Calculates the indices of the samples which are to be included in training and test sets for k-fold cross validation
 
     :param rules_idx: all rules indices (shuffled) that are to be splitted into cw training & cw test set rules
     :param fold_id: number of a current hold-out fold
@@ -255,17 +245,17 @@ def calculate_rules_indices(rules_idx: list, fold_id: int, num_folds: int) -> Tu
 
 
 def get_samples_labels_idx_by_rule_id(
-        data_features: np.ndarray, labels: np.ndarray, indices: list, rule2sample_id: Dict,
+        data_features: TensorDataset, labels: np.ndarray, indices: list, rule2samples: Dict,
         check_intersections: np.ndarray = None, other_sample_ids: list = None
 ) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
     """
     Extracts the samples and labels from the original matrices by indices. If intersection is filled with
     another sample matrix, it also checks whether the sample is not in this other matrix yet.
 
-    :param data_features: numpy array with encoded data samples (num_samples, num_features)
+    :param data_features: encoded data samples
     :param labels: all training samples labels (num_samples, num_classes)
     :param indices: indices of rules; samples, where these rules matched & their labels are to be included in set
-    :param rule2sample_id: dictionary that contains information about corresponding from rules to sample ids.
+    :param rule2samples: dictionary that contains information about corresponding from rules to sample ids.
     :param check_intersections: optional parameter that indicates that intersections should be checked (used to
     exclude the sentences from the training set which are already in the test set)
     :param other_sample_ids: a list of sample ids that belong to the other class. They won't be included in the test
@@ -273,7 +263,7 @@ def get_samples_labels_idx_by_rule_id(
 
     :return: samples, labels and indices in the original matrix
     """
-    sample_ids = [list(rule2sample_id.get(idx)) for idx in indices]
+    sample_ids = [list(rule2samples.get(idx)) for idx in indices]
     sample_ids = list(set([value for sublist in sample_ids for value in sublist]))
 
     if other_sample_ids is not None:
@@ -282,7 +272,8 @@ def get_samples_labels_idx_by_rule_id(
     if check_intersections is not None:
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
 
-    samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
+    # samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
+    samples_dataset = TensorDataset(*[inp[sample_ids] for inp in data_features.tensors])
     samples_labels = np.array(labels[sample_ids])
     samples_idx = np.array(sample_ids)
 

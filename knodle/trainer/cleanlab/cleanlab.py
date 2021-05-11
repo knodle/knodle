@@ -11,8 +11,7 @@ from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 from knodle.trainer.cleanlab.latent_estimation import estimate_cv_predicted_probabilities_split_by_rules, \
     estimate_cv_predicted_probabilities_split_by_signatures
-from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
+from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import dataset_to_numpy_input
 
 logger = logging.getLogger(__name__)
@@ -49,22 +48,15 @@ class CleanLabTrainer(MajorityVoteTrainer):
             device=self.trainer_config.device
         )
 
-        # calculate labels based on t and z
-        noisy_y_train = z_t_matrices_to_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
+        # calculate labels based on t and z & filter out samples where no pattern matched
+        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id, use_probabilistic_labels=False, filter_z=True
         )
-
-        # filter out samples where no pattern matched
-        if self.trainer_config.filter_non_labelled:
-            self.model_input_x, noisy_y_train, self.rule_matches_z = filter_empty_probabilities(
-                self.model_input_x, noisy_y_train, self.rule_matches_z
-            )
 
         # turn input to the CL-compatible format
         model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
-
-        # turn label probs to labels
-        noisy_y_train = np.argmax(noisy_y_train, axis=1)
 
         # calculate psx in advance with splitting by rules
         if self.trainer_config.psx_calculation_method == "rules":

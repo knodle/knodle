@@ -34,7 +34,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
             **kwargs
     ):
         self.cw_model = cw_model if cw_model else kwargs.get("model")
-        self.cw_model_input_x = cw_model_input_x if cw_model_input_x else kwargs.get("data_features")
+        self.cw_model_input_x = cw_model_input_x if cw_model_input_x else kwargs.get("model_input_x")
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:
@@ -73,7 +73,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         logger.info("Classifier training is started")
 
         train_loader = self._make_dataloader(
-            input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().numpy(), train_labels)
+            input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().detach().numpy(), train_labels)
         )
 
         self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)
