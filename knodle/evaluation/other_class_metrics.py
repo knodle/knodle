@@ -17,8 +17,9 @@ def classification_report_other_class(
     string_prediction, string_gold = translate_predictions(
         predictions=y_pred, labels=y_true, ids2labels=ids2labels
     )
-    clf_report = score(key=string_gold, prediction=string_prediction, verbose=verbose,
-                       other_class_label=ids2labels[other_class_id])
+    clf_report = score(
+        key=string_gold, prediction=string_prediction, verbose=verbose, other_class_label=ids2labels[other_class_id]
+    )
     return clf_report
 
 

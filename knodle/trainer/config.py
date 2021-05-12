@@ -7,6 +7,7 @@ from snorkel.classification import cross_entropy_with_probs
 
 import torch
 from torch import Tensor
+from torch.optim import SGD
 from torch.optim.optimizer import Optimizer
 
 from knodle.trainer.utils.utils import check_and_return_device, set_seed
@@ -24,7 +25,7 @@ class TrainerConfig:
             output_classes: int = 2,
             class_weights: Tensor = None,
             epochs: int = 3,
-            seed: int = 42,
+            seed: int = None,
             grad_clipping: int = None,
             device: str = None,
             caching_folder: str = None,
@@ -32,7 +33,8 @@ class TrainerConfig:
             saved_models_dir: str = None
     ):
         self.seed = seed
-        set_seed(seed)
+        if self.seed is not None:
+            set_seed(seed)
 
         # create directory where saved models will be stored
         self.saved_models_dir = saved_models_dir
@@ -59,7 +61,8 @@ class TrainerConfig:
         self.epochs = epochs
 
         if optimizer is None:
-            raise ValueError("An optimizer needs to be provided")
+            logger.info(f"Defaulting to SGD optimizer as none specified in the config.")
+            self.optimizer = SGD
         else:
             self.optimizer = optimizer
 

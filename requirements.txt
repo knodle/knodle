@@ -17,3 +17,7 @@ annoy
 
 # graphics
 matplotlib
+
+# cleanlab
+skorch
+cleanlab

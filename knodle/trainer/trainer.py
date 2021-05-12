@@ -1,6 +1,8 @@
 import os
 import logging
 from typing import Union, Dict, Tuple
+
+import skorch
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 
@@ -14,7 +16,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -242,10 +244,14 @@ class BaseTrainer(Trainer):
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
-        feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        gold_labels = labels.tensors[0].cpu().numpy()
 
-        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+        if isinstance(self.model, skorch.NeuralNetClassifier):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
+        else:
+            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
         if self.trainer_config.evaluate_with_other_class:
             clf_report = classification_report_other_class(

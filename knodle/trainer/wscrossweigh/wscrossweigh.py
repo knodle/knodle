@@ -73,7 +73,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         logger.info("Classifier training is started")
 
         train_loader = self._make_dataloader(
-            input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().numpy(), train_labels)
+            input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().detach().numpy(), train_labels)
         )
 
         self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)

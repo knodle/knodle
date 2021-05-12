@@ -1,8 +1,10 @@
 import numpy as np
 import scipy.sparse as sp
-from torch.utils.data import TensorDataset
 import warnings
-from knodle.transformation.filter import filter_empty_probabilities
+
+from torch.utils.data import TensorDataset
+
+from knodle.transformation.filter import filter_empty_probabilities, filter_unconclusive_probabilities
 
 
 def probabilies_to_majority_vote(
@@ -35,7 +37,7 @@ def probabilies_to_majority_vote(
 
 
 def z_t_matrices_to_majority_vote_probs(
-        rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, other_class: int = None
+        rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, other_class_id: int = None
 ) -> np.ndarray:
     """
     This function calculates a majority vote probability for all rule_matches_z. The difference from simple
@@ -46,7 +48,7 @@ def z_t_matrices_to_majority_vote_probs(
     Args:
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
-        other_class: Class which is chosen, if no function is hitting.
+        other_class_id: Class which is chosen, if no function is hitting.
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
 
@@ -61,16 +63,16 @@ def z_t_matrices_to_majority_vote_probs(
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
-    if other_class:
-        if other_class < 0:
+    if other_class_id:
+        if other_class_id < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
-        if other_class < mapping_rules_labels_t.shape[1] - 1:
-            warnings.warn(f"Negative class {other_class} is already present in data")
-        if rule_counts.shape[1] == other_class:
+        if other_class_id < mapping_rules_labels_t.shape[1] - 1:
+            warnings.warn(f"Negative class {other_class_id} is already present in data")
+        if rule_counts.shape[1] == other_class_id:
             rule_counts = np.hstack((rule_counts, np.zeros([rule_counts.shape[0], 1])))
-            rule_counts[~rule_counts.any(axis=1), other_class] = 1
-        elif rule_counts.shape[1] >= other_class:
-            rule_counts[~rule_counts.any(axis=1), other_class] = 1
+            rule_counts[~rule_counts.any(axis=1), other_class_id] = 1
+        elif rule_counts.shape[1] >= other_class_id:
+            rule_counts[~rule_counts.any(axis=1), other_class_id] = 1
         else:
             raise ValueError("Other class id is incorrect")
     rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
@@ -82,12 +84,12 @@ def z_t_matrices_to_majority_vote_labels(
         rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray,
         choose_random_label: bool = True, other_class_id: int = None
 ) -> np.array:
-    """Computes the majority labels. If no clear "winner" is found, no_rule_label is used instead.
+    """Computes the majority labels. If no clear "winner" is found, other_class_id is used instead.
     Args:
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         choose_random_label: Whether a random label is chosen, if there's no clear majority vote.
-        other_class_id: Dummy label
+        other_class_id: the id of other class, i.e. the class of negative samples
     Returns: Decision per sample. Shape: (instances, )
     """
     rule_counts_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
@@ -98,18 +100,49 @@ def z_t_matrices_to_majority_vote_labels(
 
 
 def input_to_majority_vote_input(
-        input_data_x: TensorDataset, rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray,
-        filter_non_labelled: bool = True, other_class_id: int = None, use_probabilistic_labels: bool = True
-):
+        rule_matches_z: np.ndarray,
+        mapping_rules_labels_t: np.ndarray,
+        model_input_x: TensorDataset,
+        use_probabilistic_labels: bool = True,
+        filter_non_labelled: bool = True,
+        probability_threshold: int = None,
+        other_class_id: int = None,
+) -> np.ndarray:
+    """
+    This function calculates noisy labels y_hat from Knodle Z and T matrices.
+    :param model_input_x:
+    :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules
+    :param mapping_rules_labels_t: mapping of rules to labels, binary encoded. Shape: rules x classes
+    :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
+    :param other_class_id: the id of other class, i.e. the class of no matched samples, if they are to be stored.
+    :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
+    or single values.
+    :return:
+    """
     if other_class_id is not None and filter_non_labelled:
-        raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
+        raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
 
-    label_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
+    noisy_y_train = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
+
+    if filter_non_labelled and probability_threshold is not None:
+        raise ValueError("You can either filter all non labeled samples or those that have probabilities below "
+                         "some threshold.")
+
+    #  filter out samples where no pattern matched
     if filter_non_labelled:
-        input_data_x, label_probs = filter_empty_probabilities(input_data_x, label_probs)
+        model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities(
+            model_input_x, noisy_y_train, rule_matches_z
+        )
+
+    #  filter out samples where that have probabilities below the threshold
+    elif probability_threshold is not None:
+        model_input_x, noisy_y_train = filter_unconclusive_probabilities(
+            model_input_x, noisy_y_train, probability_threshold=probability_threshold
+            )
 
     if not use_probabilistic_labels:
+        # convert labels represented as a prob distribution to a single label using majority voting
         kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
-        label_probs = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=label_probs, **kwargs)
+        noisy_y_train = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
-    return input_data_x, label_probs
+    return model_input_x, noisy_y_train, rule_matches_z
