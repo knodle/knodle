@@ -70,7 +70,8 @@ def train_cleanlab(path_to_data: str) -> None:
                 epochs=epochs,
                 batch_size=batch_size,
                 psx_calculation_method=psx_calculation_method,
-                prune_method=prune_method
+                prune_method=prune_method,
+                use_probabilistic_labels=False
             )
             trainer = CleanLabTrainer(
                 model=model,

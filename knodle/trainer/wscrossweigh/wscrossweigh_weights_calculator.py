@@ -41,13 +41,13 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         logger.info("======= Denoising with WSCrossWeigh is started =======")
         os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
 
-        labels = z_t_matrices_to_majority_vote_probs(
+        noisy_y_train = z_t_matrices_to_majority_vote_probs(
             self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
         )
 
         if self.trainer_config.filter_non_labelled:
-            self.model_input_x, labels, self.rule_matches_z = filter_empty_probabilities(
-                self.model_input_x, labels, self.rule_matches_z
+            self.model_input_x, noisy_y_train, self.rule_matches_z = filter_empty_probabilities(
+                self.model_input_x, noisy_y_train, self.rule_matches_z
             )
 
         # initialise sample weights
@@ -56,7 +56,7 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         train_datasets, test_datasets = \
             k_folds_splitting_by_rules(
                 self.model_input_x,
-                labels,
+                noisy_y_train,
                 self.rule_matches_z,
                 self.trainer_config.partitions,
                 self.trainer_config.folds,

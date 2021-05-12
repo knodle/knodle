@@ -24,7 +24,7 @@ def test_cleanlab_base_test():
     test_dataset = TensorDataset(torch.Tensor(np.array([[4, 4, 4, 4, 4], [5, 5, 5, 5, 5]])))
     test_labels = TensorDataset(torch.Tensor(np.array([0, 1])))
 
-    config = CleanLabConfig(cv_n_folds=2, criterion=CrossEntropyLoss)
+    config = CleanLabConfig(cv_n_folds=2, criterion=CrossEntropyLoss, use_probabilistic_labels=False)
 
     trainer = CleanLabTrainer(
         model=model,

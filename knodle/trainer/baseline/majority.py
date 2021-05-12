@@ -53,18 +53,17 @@ class MajorityVoteTrainer(BaseTrainer):
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
 
-        model_input_x, label_probs = input_to_majority_vote_input(
-            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z,
+            self.mapping_rules_labels_t,
+            self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             filter_non_labelled=self.trainer_config.filter_non_labelled,
+            probability_threshold=self.trainer_config.probability_threshold,
             other_class_id=self.trainer_config.other_class_id
         )
 
-        if self.trainer_config.probability_threshold is not None:
-            model_input_x, label_probs = filter_unconclusive_probabilities(
-                model_input_x, label_probs, probability_threshold=self.trainer_config.probability_threshold
-            )
-
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)

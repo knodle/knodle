@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from cleanlab.classification import LearningWithNoisyLabels
 from skorch import NeuralNetClassifier
-from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.trainer import MajorityVoteTrainer
@@ -48,12 +47,12 @@ class CleanLabTrainer(MajorityVoteTrainer):
             device=self.trainer_config.device
         )
 
-        # calculate labels based on t and z & filter out samples where no pattern matched
+        # calculate labels based on t and z; perform additional filtering if applicable
         self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
-            self.model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             filter_non_labelled=self.trainer_config.filter_non_labelled,
-            other_class_id=self.trainer_config.other_class_id, use_probabilistic_labels=False, filter_z=True
-        )
+            other_class_id=self.trainer_config.other_class_id,)
 
         # turn input to the CL-compatible format
         model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
