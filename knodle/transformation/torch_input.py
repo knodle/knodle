@@ -30,7 +30,7 @@ def input_info_labels_to_tensordataset(
 
 def dataset_to_numpy_input(model_input_x: TensorDataset) -> np.ndarray:
     if len(model_input_x.tensors) == 1:
-        return model_input_x.tensors[0].numpy()
+        return model_input_x.tensors[0].detach().cpu().numpy()
     else:
         raise ValueError(f"Selected denoising method accepts input features encoded with one tensor only, while "
                          f"{len(model_input_x.tensors) + 1} input tensors were given. Please use another input "
