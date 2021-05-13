@@ -16,6 +16,18 @@ class KNNConfig(MajorityConfig):
             n_jobs_for_index: int = 4,
             **kwargs
     ):
+        """
+        A default configuration of KNNConfig Trainer. For more details, please refer to the paper.
+
+        :param k: number of neighbors that are to be found
+        :param radius: a radius of a point or points the neighbors are to be found within
+        :param weighted_knn_activation:
+        :param use_approximation: if set to True, the approximated ANN will be used instead of kNN
+        :param activate_no_match_instances: if set to True, the zero-match rows for knn construction & activation will
+        be ignored
+        :param n_jobs_for_index:
+
+        """
         super().__init__(**kwargs)
         self.k = k
         self.radius = radius

@@ -38,14 +38,14 @@ class TrainerConfig:
         :param criterion: a usual PyTorch criterion; computes a gradient according to a given loss function
         :param batch_size: a usual PyTorch batch_size; the number of training examples utilized in one training iteration
         :param optimizer: a usual PyTorch optimizer; which is used to solve optimization problems by minimizing the
-        function.
+        function
         :param lr: a usual PyTorch learning rate; tuning parameter in an optimization algorithm that determines the step
-        size at each iteration while moving toward a minimum of a loss function.
+        size at each iteration while moving toward a minimum of a loss function
         :param output_classes: the number of classes used in classification
         :param class_weights: introduce the weight of each class. By default, all classes have the same weights 1.0.
         :param epochs: the number of epochs the classification model will be trained
-        :param seed: the desired seed for generating random numbers.
-        :param grad_clipping: if set to True, gradient norm of an iterable of parameters will be clipped.
+        :param seed: the desired seed for generating random numbers
+        :param grad_clipping: if set to True, gradient norm of an iterable of parameters will be clipped
         :param device: what device the model will be trained on (CPU/CUDA)
         :param caching_folder: a path to the folder where cache will be saved (default: root/cache)
         :param caching_suffix: a specific index that could be added to the caching file name (e.g. in WSCrossWeigh for
