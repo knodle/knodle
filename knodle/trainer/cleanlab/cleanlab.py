@@ -1,15 +1,18 @@
 import logging
 
 import numpy as np
+import inspect
 from cleanlab.classification import LearningWithNoisyLabels
+from cleanlab.util import value_counts
 from skorch import NeuralNetClassifier
 from torch.utils.data import TensorDataset
 
 from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
-from knodle.trainer.cleanlab.latent_estimation import estimate_cv_predicted_probabilities_split_by_rules, \
-    estimate_cv_predicted_probabilities_split_by_signatures
+from knodle.trainer.cleanlab.pruning import get_noise_indices
+from knodle.trainer.cleanlab.psx_estimation import calculate_psx
+from knodle.trainer.cleanlab.noisy_matrix_estimation import calculate_noise_matrix
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import dataset_to_numpy_input
 
@@ -18,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 @AutoTrainer.register('cleanlab')
 class CleanLabTrainer(MajorityVoteTrainer):
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = CleanLabConfig()
@@ -47,44 +51,104 @@ class CleanLabTrainer(MajorityVoteTrainer):
             device=self.trainer_config.device
         )
 
-        # calculate labels based on t and z; perform additional filtering if applicable
-        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
-            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
-            filter_non_labelled=self.trainer_config.filter_non_labelled,
-            other_class_id=self.trainer_config.other_class_id,)
-
-        # turn input to the CL-compatible format
-        model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
-
-        # calculate psx in advance with splitting by rules
-        if self.trainer_config.psx_calculation_method == "rules":
-            psx = estimate_cv_predicted_probabilities_split_by_rules(
-                self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
-                seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
-            )
-
-        elif self.trainer_config.psx_calculation_method == "signatures":
-            psx = estimate_cv_predicted_probabilities_split_by_signatures(
-                self.model_input_x, noisy_y_train, self.rule_matches_z, self.model, self.trainer_config.output_classes,
-                seed=self.trainer_config.seed, cv_n_folds=self.trainer_config.cv_n_folds
-            )
-
-        elif self.trainer_config.psx_calculation_method == "random":
-            # if no psx calculation method is specified, psx will be calculated in CL with random folder splitting
-            psx = None
-
-        else:
-            raise ValueError("Unknown psx calculation method.")
-
         # CL denoising and training
         rp = LearningWithNoisyLabels(
-            clf=self.model, seed=self.trainer_config.seed,
+            clf=self.model,
+            seed=self.trainer_config.seed,
             cv_n_folds=self.trainer_config.cv_n_folds,
             prune_method=self.trainer_config.prune_method,
             converge_latent_estimates=self.trainer_config.converge_latent_estimates,
             pulearning=self.trainer_config.pulearning,
             n_jobs=self.trainer_config.n_jobs
         )
-        _ = rp.fit(model_input_x_numpy, noisy_y_train, psx=psx)
+
+        # calculate labels based on t and z; perform additional filtering if applicable
+        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z,
+            self.mapping_rules_labels_t,
+            self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id
+        )
+
+        # turn input to the CL-compatible format
+        model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
+
+        # calculate a psx matrix in advance if relevant
+        rp.psx = calculate_psx(
+            self.model_input_x,
+            noisy_y_train,
+            self.rule_matches_z,
+            self.model,
+            self.trainer_config.psx_calculation_method,
+            self.trainer_config.output_classes,
+            self.trainer_config.cv_n_folds,
+            self.trainer_config.seed
+        )
+
+        # calculate a noise matrix in advance if relevant
+        rp.py, rp.noise_matrix, rp.inv_noise_matrix, rp.confident_joint = calculate_noise_matrix(
+            noisy_y_train, rp.psx, self.rule_matches_z, self.trainer_config.output_classes,
+            self.trainer_config.noise_matrix
+        )
+
+        _ = self.fit(rp, model_input_x_numpy, noisy_y_train)
         logging.info("Training is done.")
+
+    def fit(self, rp: LearningWithNoisyLabels, model_input_x: np.ndarray, noisy_labels: np.ndarray):
+
+        # Number of classes
+        if not self.trainer_config.output_classes:
+            rp.K = len(np.unique(noisy_labels))
+        else:
+            rp.K = self.trainer_config.output_classes
+
+        # 'ps' is p(s=k)
+        rp.ps = value_counts(noisy_labels) / float(len(noisy_labels))
+
+        # if pulearning == the integer specifying the class without noise.
+        if rp.K == 2 and rp.pulearning is not None:  # pragma: no cover
+            # pulearning = 1 (no error in 1 class) implies p(s=1|y=0) = 0
+            rp.noise_matrix[rp.pulearning][1 - rp.pulearning] = 0
+            rp.noise_matrix[1 - rp.pulearning][1 - rp.pulearning] = 1
+            # pulearning = 1 (no error in 1 class) implies p(y=0|s=1) = 0
+            rp.inverse_noise_matrix[1 - rp.pulearning][rp.pulearning] = 0
+            rp.inverse_noise_matrix[rp.pulearning][rp.pulearning] = 1
+            # pulearning = 1 (no error in 1 class) implies p(s=1,y=0) = 0
+            rp.confident_joint[rp.pulearning][1 - rp.pulearning] = 0
+            rp.confident_joint[1 - rp.pulearning][1 - rp.pulearning] = 1
+
+        rp.noise_mask = get_noise_indices(
+            noisy_labels,
+            rp.psx,
+            confident_joint=rp.confident_joint,
+            rule2class=self.mapping_rules_labels_t,
+            prune_method=rp.prune_method,
+            num_classes=self.trainer_config.output_classes,
+            # n_jobs=rp.n_jobs,
+            # frac_noise=0.5
+        )
+
+        x_mask = ~rp.noise_mask
+        x_pruned = model_input_x[x_mask]
+        s_pruned = noisy_labels[x_mask]
+
+        # Check if sample_weight in clf.fit(). Compatible with Python 2/3.
+        if hasattr(inspect, 'getfullargspec') and \
+                'sample_weight' in inspect.getfullargspec(rp.clf.fit).args \
+                or hasattr(inspect, 'getargspec') and \
+                'sample_weight' in inspect.getargspec(rp.clf.fit).args:
+            # Re-weight examples in the loss function for the final fitting
+            # s.t. the "apparent" original number of examples in each class
+            # is preserved, even though the pruned sets may differ.
+            rp.sample_weight = np.ones(np.shape(s_pruned))
+            for k in range(rp.K):
+                sample_weight_k = 1.0 / rp.noise_matrix[k][k]
+                rp.sample_weight[s_pruned == k] = sample_weight_k
+
+            rp.clf.fit(x_pruned, s_pruned, sample_weight=rp.sample_weight)
+        else:
+            rp.clf.fit(x_pruned, s_pruned)      # This is less accurate, but best we can do if no sample_weight.
+
+        return rp.clf
