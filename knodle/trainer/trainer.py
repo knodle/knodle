@@ -58,7 +58,11 @@ class Trainer(ABC):
             self.trainer_config = trainer_config
 
     @abstractmethod
-    def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         pass
 
     @abstractmethod
