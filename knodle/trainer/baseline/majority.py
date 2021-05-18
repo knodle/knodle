@@ -12,7 +12,7 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
-from knodle.transformation.filter import filter_unconclusive_probabilities
+from knodle.transformation.filter import filter_probability_threshold
 
 logger = logging.getLogger(__name__)
 

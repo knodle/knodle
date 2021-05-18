@@ -4,7 +4,7 @@ import warnings
 
 from torch.utils.data import TensorDataset
 
-from knodle.transformation.filter import filter_empty_probabilities, filter_unconclusive_probabilities
+from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
 
 
 def probabilies_to_majority_vote(
@@ -136,7 +136,7 @@ def input_to_majority_vote_input(
 
     #  filter out samples where that have probabilities below the threshold
     elif probability_threshold is not None:
-        model_input_x, noisy_y_train = filter_unconclusive_probabilities(
+        model_input_x, noisy_y_train = filter_probability_threshold(
             model_input_x, noisy_y_train, probability_threshold=probability_threshold
             )
 
