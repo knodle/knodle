@@ -14,6 +14,7 @@ import torch
 from torch.utils.data import TensorDataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
 
+from examples.utils import convert_text_to_transformer_input
 from knodle.trainer import AutoTrainer, AutoConfig
 
 
@@ -22,15 +23,6 @@ from knodle.trainer import AutoTrainer, AutoConfig
 
 
 # Define some functions
-
-def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorDataset:
-    encoding = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
-    input_ids = encoding.get('input_ids')
-    attention_mask = encoding.get('attention_mask')
-
-    input_values_x = TensorDataset(input_ids, attention_mask)
-
-    return input_values_x
 
 
 def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:

@@ -1,16 +1,16 @@
 import argparse
 import os
 import sys
-from typing import Union, Tuple, List
 
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+import pandas as pd
+from minio import Minio
 from torch import Tensor, LongTensor
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
-from examples.utils import read_train_dev_test
+from examples.utils import convert_text_to_transformer_input, get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
 from knodle.trainer.wscrossweigh.wscrossweigh import WSCrossWeighTrainer
@@ -28,29 +28,50 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
 
     num_classes = int(num_classes)
 
-    # first, the data is read from the file
-    train_df, dev_df, test_df, z_train_rule_matches, z_test_rule_matches, t_mapping_rules_labels = \
-        read_train_dev_test(path_to_data, if_dev_data=True)
+    # Define constants
+    imdb_data_dir = os.path.join(os.getcwd(), "data", "imdb")
+    processed_data_dir = os.path.join(imdb_data_dir, "processed")
+    os.makedirs(processed_data_dir, exist_ok=True)
 
-    # we calculate sample weights using logistic regression model (with TF-IDF features) and use the BERT model for final classifier training.
-    train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(train_df["sample"].tolist(), dev_df["sample"].tolist())
+    # Download data
+    client = Minio("knodle.dm.univie.ac.at", secure=False)
+    files = [
+        "df_train.csv", "df_dev.csv", "df_test.csv",
+        "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
+        "mapping_rules_labels_t.lib"
+    ]
+    for file in tqdm(files):
+        client.fget_object(
+            bucket_name="knodle",
+            object_name=os.path.join("datasets/imdb/processed", file),
+            file_path=os.path.join(processed_data_dir, file),
+        )
 
+    # Load data into memory
+    df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
+    df_dev = pd.read_csv(os.path.join(processed_data_dir, "df_dev.csv"))
+    df_test = pd.read_csv(os.path.join(processed_data_dir, "df_test.csv"))
+
+    mapping_rules_labels_t = joblib.load(os.path.join(processed_data_dir, "mapping_rules_labels_t.lib"))
+
+    train_rule_matches_z = joblib.load(os.path.join(processed_data_dir, "train_rule_matches_z.lib"))
+
+    # sample weights are calculated with logistic regression model (with TF-IDF features); the BERT model is used for
+    # the final classifier training.
+    train_tfidf_sparse, dev_tfidf_sparse, _ = get_tfidf_features(df_train["sample"].tolist(), df_dev["sample"].tolist())
     train_tfidf = Tensor(train_tfidf_sparse.toarray())
     train_dataset_tfidf = TensorDataset(train_tfidf)
 
-    # For the BERT training we convert train, dev and test data to BERT encoded features (namely, input indices and attention mask)
-    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    train_input_x_bert = get_bert_encoded_features(train_df["sample"].tolist(), tokenizer)
-    test_labels = TensorDataset(LongTensor(list(test_df.iloc[:, 1])))
-    test_dataset_bert = get_bert_encoded_features(test_df["sample"].tolist(), tokenizer)
+    # For the BERT training we convert train, dev, test data to BERT encoded features (input indices & attention mask)
+    model_name = 'distilbert-base-uncased'
+    tokenizer = DistilBertTokenizer.from_pretrained(model_name)
 
-    # for some datasets dev set is not provided. If it is not the case, is would be encoded with BERT features
-    # (since it is used only for final training) and passed to a class constructor or to train function
-    if dev_df is not None:
-        dev_dataset_bert = get_bert_encoded_features(dev_df["sample"].tolist(), tokenizer)
-        dev_labels = TensorDataset(LongTensor(list(dev_df.iloc[:, 1])))
-    else:
-        dev_labels, dev_dataset_bert = None, None
+    X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
+    X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
+    X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
+
+    y_dev = TensorDataset(LongTensor(list(df_dev.iloc[:, 1])))
+    y_test = TensorDataset(LongTensor(list(df_test.iloc[:, 1])))
 
     # define the all needed parameters in a dictionary for convenience (can also be directly passed to Trainer/Config)
     parameters = {
@@ -58,8 +79,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
         "samples_start_weights": 4.0
     }
     # to have sample weights saved with some specific index in the file name, you can use "caching_suffix" variable
-    caching_suffix = f"dscw_{parameters.get('cw_partitions')}part_" \
-                     f"{parameters.get('cw_folds')}folds_" \
+    caching_suffix = f"dscw_{parameters.get('cw_partitions')}part_{parameters.get('cw_folds')}folds_" \
                      f"{parameters.get('weight_rr')}wrr"
 
     # define LogReg and BERT models for training sample weights and final classifier correspondingly
@@ -95,14 +115,14 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     trainer = WSCrossWeighTrainer(
         # general Trainer inputs (a more detailed explanation of Knodle inputs is in README)
         model=model,  # classification model
-        mapping_rules_labels_t=t_mapping_rules_labels,  # t matrix
-        model_input_x=train_input_x_bert,  # x matrix for training the classifier
-        rule_matches_z=z_train_rule_matches,  # z matrix
+        mapping_rules_labels_t=mapping_rules_labels_t,  # t matrix
+        model_input_x=X_train,  # x matrix for training the classifier
+        rule_matches_z=train_rule_matches_z,  # z matrix
         trainer_config=custom_wscrossweigh_config,
 
         # additional dev set used for classification model evaluation during training
-        dev_model_input_x=dev_dataset_bert,
-        dev_gold_labels_y=dev_labels,
+        dev_model_input_x=X_dev,
+        dev_gold_labels_y=y_dev,
 
         # WSCrossWeigh specific parameters. If they are not defined, the corresponding main classification parameters
         # will be used instead (model instead of cw_model etc)
@@ -113,49 +133,8 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     # the WSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
-    clf_report, _ = trainer.test(test_dataset_bert, test_labels)
+    clf_report, _ = trainer.test(X_test, y_test)
     print(clf_report)
-
-
-def get_bert_encoded_features(input_data: List, tokenizer: DistilBertTokenizer) -> TensorDataset:
-    """
-    Convert input data to BERT encoded features (more details about DistilBert Model could be found at
-    https://huggingface.co/transformers/model_doc/distilbert.html)
-    :param input_data: training/dev/test samples that are to be encoded with BERT features. Can be given as Series or
-    as DataFrames with specified column number where the sample are stored.
-    :param tokenizer: DistilBertTokenizer tokenizer for english from HuggingFace
-    :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples are stored
-    :return: TensorDataset with encoded data
-    """
-    encoding = tokenizer(input_data, return_tensors='pt', padding=True, truncation=True)
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    return TensorDataset(input_ids, attention_mask)
-
-
-def get_tfidf_features(
-        train_data: List, test_data: List = None, dev_data: List = None
-) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, None]]:
-    """
-    Convert input data to a matrix of TF-IDF features.
-    :param train_data: training samples that are to be encoded with TF-IDF features. Can be given as Series or
-    as DataFrames with specified column number where the sample are stored.
-    :param column_num: optional parameter that is needed to specify in which column of input_data Dataframe the samples
-    are stored
-    :param test_data: if DataFrame/Series with test data is provided
-    :param dev_data: if DataFrame/Series with development data is provided, it will be encoded as well
-    :return: TensorDataset with encoded data
-    """
-    dev_transformed_data, test_transformed_data = None, None
-    vectorizer = TfidfVectorizer()
-
-    train_transformed_data = vectorizer.fit_transform(train_data)
-    if test_data is not None:
-        test_transformed_data = vectorizer.transform(test_data)
-    if dev_data is not None:
-        dev_transformed_data = vectorizer.transform(dev_data)
-
-    return train_transformed_data, test_transformed_data, dev_transformed_data
 
 
 if __name__ == "__main__":
