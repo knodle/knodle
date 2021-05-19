@@ -42,8 +42,7 @@ class MajorityVoteTrainer(BaseTrainer):
     def train(
             self,
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
-            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None,
-            probability_threshold: float = None
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
