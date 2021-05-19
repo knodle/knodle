@@ -8,6 +8,7 @@ from minio import Minio
 from torch import Tensor, LongTensor
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
+from tqdm import tqdm
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
 from examples.utils import convert_text_to_transformer_input, get_tfidf_features
