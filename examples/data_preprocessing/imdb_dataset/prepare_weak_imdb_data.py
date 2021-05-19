@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
 
 from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
+from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 
 # client to access the dataset collection
 from minio import Minio
@@ -41,7 +41,7 @@ pd.set_option('display.max_colwidth', -1)
 POSITIVE = 1
 NEGATIVE = 0
 ABSTAIN = -1
-COLUMN_WITH_TEXT = "reviews_preprocessed"
+COLUMN_WITH_TEXT = "review"
 
 
 ## Download the dataset
@@ -206,16 +206,19 @@ rule_matches, mapping_rules_labels = transform_snorkel_matrix_to_z_t(applied_lfs
 
 # ### Majority Vote
 # 
-# Now we make a majority vote based on all rule matches. First we get the `rule_counts` by multiplying `rule_matches` with the `mapping_rules_labels`, then we divide it sumwise by the sum to get a probability value. In the end we counteract the divide with zero issue by setting all nan values to zero. All this happens in the `z_t_matrices_to_majority_vote_labels` function.
+# Now we make a majority vote based on all rule matches. First we get the `rule_counts` by multiplying `rule_matches`
+# with the `mapping_rules_labels`, then we divide it sumwise by the sum to get a probability value.
+# In the end we counteract the divide with zero issue by setting all nan values to zero.
+# All this happens in the `z_t_matrices_to_majority_vote_probs` function.
 
 # the ties are resolved randomly internally, so the predictions might slightly vary
-pred_labels = z_t_matrices_to_majority_vote_labels(rule_matches, mapping_rules_labels)
+pred_labels = z_t_matrices_to_majority_vote_probs(rule_matches, mapping_rules_labels)
 
 # There are more positive labels predicted by the majority vote.
 labels, counts = np.unique(pred_labels, return_counts=True)
 
 # accuracy of the weak labels
-acc = (pred_labels == imdb_dataset_raw.sentiment.map({'positive':POSITIVE, 'negative':NEGATIVE})).mean()
+acc = (pred_labels == imdb_dataset_raw.sentiment.map({'positive': POSITIVE, 'negative': NEGATIVE})).mean()
 print(f"Accuracy of majority voting: {acc}")
 
       
@@ -225,7 +228,7 @@ dump(rule_matches_sparse, os.path.join(data_path, "rule_matches.lib"))
 dump(mapping_rules_labels,  os.path.join(data_path, "mapping_rules_labels.lib"))
 
 # We also save the preprocessed texts with labels to use them later to evalutate a classifier.
-imdb_dataset_raw['label_id'] = imdb_dataset_raw.sentiment.map({'positive':POSITIVE, 'negative':NEGATIVE})
+imdb_dataset_raw['label_id'] = imdb_dataset_raw.sentiment.map({'positive': POSITIVE, 'negative': NEGATIVE})
 imdb_dataset_raw.to_csv(os.path.join(data_path, 'imdb_data_preprocessed.csv'), index=None)
 
 all_keywords.to_csv(os.path.join(data_path, 'keywords.csv'), index=None)
