@@ -70,7 +70,11 @@ class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
-    def train(self):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         # Snorkel denoising
         denoised_rule_matches_z = self._knn_denoise_rule_matches()
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
