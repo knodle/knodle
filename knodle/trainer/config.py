@@ -57,10 +57,17 @@ class TrainerConfig:
         if self.seed is not None:
             set_seed(seed)
 
+        self.caching_suffix = caching_suffix
+        self.caching_folder = caching_folder
+        logger.info(f"The cache will be saved to {self.caching_folder} folder")
+
         # create directory where saved models will be stored
-        self.saved_models_dir = saved_models_dir
-        if self.saved_models_dir is not None:
+        if saved_models_dir:
+            self.saved_models_dir = saved_models_dir
             os.makedirs(self.saved_models_dir, exist_ok=True)
+        else:
+            self.saved_models_dir = caching_folder
+        logger.info(f"The trained models will be saved to the {self.saved_models_dir} directory.")
 
         self.criterion = criterion
         self.lr = lr
@@ -69,10 +76,6 @@ class TrainerConfig:
         self.grad_clipping = grad_clipping
         self.device = torch.device(device) if device is not None else check_and_return_device()
         logger.info(f"Model will be trained on {self.device}")
-
-        self.caching_suffix = caching_suffix
-        self.caching_folder = caching_folder
-        logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")
