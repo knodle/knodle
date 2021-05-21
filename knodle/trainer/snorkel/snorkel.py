@@ -11,7 +11,10 @@ from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.knn_denoising.knn import KnnDenoisingTrainer
 
 from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
-from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
+from knodle.trainer.snorkel.utils import (
+    z_t_matrix_to_snorkel_matrix,
+    prepare_empty_rule_matches,
+    add_labels_for_empty_examples)
 
 
 @AutoTrainer.register('snorkel')
@@ -22,19 +25,29 @@ class SnorkelTrainer(MajorityVoteTrainer):
         super().__init__(**kwargs)
 
     def _snorkel_denoising(self, model_input_x, rule_matches_z):
+        """
+        Premise:
+            Snorkel can not make use of rule-unlabeled examples (no rule matches).
+            The generative LabelModel assigns such examples a uniform distribution over all available labels,
+            which contradicts the desired behaviour. Such examples should be either filtered or assigned an
+            "other class id".
+        Filtering / other class strategy:
+            filter_non_labelled = True:
+                Drop the unlabeled examples completely prior to LabelModel.
+            filter_non_labelled = False:
+                However, we might want to keep negative examples in the training data, but we should not pass them
+                through the LabelModel. Therefore, the rule-unlabeled part of the data skips the LabelModel step
+                and is added directly to the output data with manually assigned "other class id".
+        """
 
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
 
-        non_zero_indices = np.where(rule_matches_z.sum(axis=1) != 0)[0]
-        rule_matches_z = rule_matches_z[non_zero_indices]
-        tensors = list(model_input_x.tensors)
-        for i in range(len(tensors)):
-            tensors[i] = tensors[i][non_zero_indices]
-
-        model_input_x = TensorDataset(*tensors)
-
         # create Snorkel matrix and train LabelModel
+        non_empty_mask, rule_matches_z, model_input_x = prepare_empty_rule_matches(
+            rule_matches_z=rule_matches_z, model_input_x=model_input_x,
+            filter_non_labelled=self.trainer_config.filter_non_labelled
+        )
         L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z, self.mapping_rules_labels_t)
 
         label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
@@ -44,7 +57,15 @@ class SnorkelTrainer(MajorityVoteTrainer):
             log_freq=self.trainer_config.label_model_log_freq,
             seed=self.trainer_config.seed
         )
-        label_probs = label_model.predict_proba(L_train)
+        label_probs_gen = label_model.predict_proba(L_train)
+
+        if self.trainer_config.filter_non_labelled:
+            label_probs = label_probs_gen
+        else:
+            label_probs = add_labels_for_empty_examples(
+                label_probs_gen=label_probs_gen, non_zero_mask=non_empty_mask,
+                output_classes=self.trainer_config.output_classes,
+                other_class_id=self.trainer_config.other_class_id)
         return model_input_x, label_probs
 
     def train(
