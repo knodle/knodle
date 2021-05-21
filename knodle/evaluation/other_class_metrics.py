@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import numpy as np
 
-from knodle.transformation.labels import translate_predictions
+from knodle.transformation.labels import label_ids_to_labels
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def classification_report_other_class(
         y_true: np.array, y_pred: np.array, ids2labels: Dict, other_class_id: int, verbose: bool = True
 ) -> Dict:
     """ Prepare the batch for the label-based evaluation. """
-    string_prediction, string_gold = translate_predictions(
+    string_prediction, string_gold = label_ids_to_labels(
         predictions=y_pred, labels=y_true, ids2labels=ids2labels
     )
     clf_report = score(

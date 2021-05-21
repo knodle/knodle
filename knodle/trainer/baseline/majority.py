@@ -12,7 +12,7 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
-from knodle.transformation.filter import filter_unconclusive_probabilities
+from knodle.transformation.filter import filter_probability_threshold
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,7 @@ class MajorityVoteTrainer(BaseTrainer):
     def train(
             self,
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
-            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None,
-            probability_threshold: float = None
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         """
         This function gets final labels with a majority vote approach and trains the provided model.
