@@ -1,6 +1,6 @@
 from typing import Union, List, Tuple
 import numpy as np
-from cleanlab.latent_estimation import estimate_latent
+from cleanlab.latent_estimation import estimate_latent, compute_confident_joint
 
 
 def calculate_noise_matrix(
@@ -9,7 +9,7 @@ def calculate_noise_matrix(
         rule_matches_z: np.ndarray,
         num_classes: int,
         noise_matrix: str
-) -> Union[Tuple[np.ndarray, np.ndarray], None]:
+) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[None, None, None, None]]:
 
     # calculate noise matrix as a (#rules x #classes) matrix - i.e., original noisy inputs are given with correspondence
     # to rules matched in each sample, while the estimated labels are aggregated pro class.
@@ -20,7 +20,7 @@ def calculate_noise_matrix(
 
     # if no special noise matrix calculation method is specified, it will be calculated in CL as usual
     elif noise_matrix == "class2class":
-        return None
+        return None, None, None, None
 
     else:
         raise ValueError("Unknown noise matrix calculation method.")
@@ -37,6 +37,8 @@ def estimate_noise_matrix(
 ) -> Tuple[np.ndarray, np.ndarray]:
 
     confident_joint = compute_confident_joint_rule2class(noisy_labels, psx, rule_matches_z, num_classes, thresholds)
+
+    # confident_joint = compute_confident_joint(noisy_labels, psx, rule_matches_z, num_classes, thresholds)
 
     py, noise_matrix, inv_noise_matrix = estimate_latent(
         confident_joint=confident_joint,

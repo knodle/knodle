@@ -75,7 +75,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
         # turn input to the CL-compatible format
         model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
 
-        # calculate a psx matrix in advance if relevant
+        # calculate a psx matrix in advance if applicable
         rp.psx = calculate_psx(
             self.model_input_x,
             noisy_y_train,
@@ -87,9 +87,12 @@ class CleanLabTrainer(MajorityVoteTrainer):
             self.trainer_config.seed
         )
 
-        # calculate a noise matrix in advance if relevant
+        # calculate a noise matrix in advance if applicable
         rp.py, rp.noise_matrix, rp.inv_noise_matrix, rp.confident_joint = calculate_noise_matrix(
-            noisy_y_train, rp.psx, self.rule_matches_z, self.trainer_config.output_classes,
+            noisy_y_train,
+            rp.psx,
+            self.rule_matches_z,
+            self.trainer_config.output_classes,
             self.trainer_config.noise_matrix
         )
 

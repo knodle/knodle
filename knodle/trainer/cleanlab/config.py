@@ -13,12 +13,10 @@ class CleanLabConfig(MajorityConfig):
             pulearning=None,
             n_jobs: int = None,
             psx_calculation_method: str = 'random',
-            noise_matrix: str = 'class2class',      # todo: rename!
             **kwargs
     ):
         """
-        All CleanLab specific parameters (except for psx_calculation_method parameter) are inherited from the original
-        CleanLab code (and so are their descriptions).
+        All CleanLab specific parameters are inherited from the original CleanLab code (and so are their descriptions)
 
         :param cv_n_folds: int
           This class needs holdout predicted probabilities for every data example
@@ -48,15 +46,6 @@ class CleanLabConfig(MajorityConfig):
             Number of processing threads used by
             multiprocessing. Default None sets to the number of processing threads on your CPU. Set this to 1 to REMOVE
             parallel processing (if its causing issues).
-
-        :param psx_calculation_method: the way how the samples will be splitted into folds for k fold cross validation.
-        In the original Cleanlab configuration, it is done randomly. Additionally, we suggest to split data by rules
-        matched in them, or by signatures - the sample codification of rules matched in it (i.e., if rules 1, 4 and 5
-        matched in a sample, its signature would be "1_4_5").
-
-        :param c_matrix: the C matrix configuration. In the original Cleanlab configuration, it has a shape
-        (classes x classes). We add the functionality to calculate the matrix (rules x classes). That is, the confident
-        join will be calculated pro rule, but with out-of-sample predicted labels aggregated by classes.
         """
 
         super().__init__(**kwargs)
@@ -66,4 +55,3 @@ class CleanLabConfig(MajorityConfig):
         self.pulearning = pulearning
         self.n_jobs = n_jobs
         self.psx_calculation_method = psx_calculation_method
-        self.noise_matrix = noise_matrix
