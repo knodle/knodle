@@ -23,7 +23,7 @@ class WSCrossWeighDenoisingConfig(MajorityConfig):
             **kwargs
     ):
         """
-        A default configuration of WSCrossWeigh Trainer. For more details, please refer to the paper.
+        A default configuration of WSCrossWeigh Trainer.
 
         :param partitions: number of times the sample weights calculation procedure will be performed
         (with different folds splitting)

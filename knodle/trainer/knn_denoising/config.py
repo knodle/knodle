@@ -17,7 +17,7 @@ class KNNConfig(MajorityConfig):
             **kwargs
     ):
         """
-        A default configuration of KNNConfig Trainer. For more details, please refer to the paper.
+        A default configuration of KNNConfig Trainer.
 
         :param k: number of neighbors that are to be found
         :param radius: a radius of a point or points the neighbors are to be found within
