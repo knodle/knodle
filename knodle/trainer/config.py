@@ -59,6 +59,7 @@ class TrainerConfig:
 
         self.caching_suffix = caching_suffix
         self.caching_folder = caching_folder
+        os.makedirs(self.caching_folder, exist_ok=True)
         logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         # create directory where saved models will be stored
