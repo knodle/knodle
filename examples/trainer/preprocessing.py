@@ -68,8 +68,8 @@ def create_tfidf_input(
     """Transform data for trianing purposes.
 
     :param train_x: List of training texts
-    :param rule_matches_z: Matrix as described in paper
-    :param mapping_rules_labels_t: T matrix
+    :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules.
+    :param mapping_rules_labels_t: mapping of rules to labels, binary encoded. Shape: rules x classes.
     :param train_y: Gold labels
     :param test_x: List of testing texts
     :param test_y: Gold labels
