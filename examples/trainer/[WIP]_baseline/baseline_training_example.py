@@ -9,10 +9,12 @@ from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
-from knodle.trainer.baseline.baseline import NoDenoisingTrainer
-from knodle.trainer.baseline.majority_config import TrainerConfig
-from tutorials.ImdbDataset.utils import init_logger
-from tutorials.utils import create_tfidf_values, read_train_dev_test
+
+from examples.ImdbDataset.utils import init_logger
+from examples.utils import read_train_dev_test
+from examples.trainer.preprocessing import get_tfidf_features
+from knodle.trainer import TrainerConfig
+from knodle.trainer.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +40,9 @@ def train_simple_ds_model():
     X_dev = dev_df.reviews_preprocessed
     X_test = test_df.reviews_preprocessed
 
-    tfidf_values = create_tfidf_values(
-        imdb_dataset.reviews_preprocessed.values, MAX_FEATURES, path_to_cache="tutorials/ImdbDataset/tfidf.lib"
+    tfidf_values = get_tfidf_features(
+        imdb_dataset.reviews_preprocessed.values, path_to_cache="tutorials/ImdbDataset/tfidf.lib",
+        max_features=MAX_FEATURES
     )
 
     train_dataset = TensorDataset(Tensor(tfidf_values[X_train.index].toarray()))
@@ -51,7 +54,7 @@ def train_simple_ds_model():
         model=model, epochs=35, optimizer_=SGD(model.parameters(), lr=0.1)
     )
 
-    trainer = NoDenoisingTrainer(
+    trainer = BaseTrainer(
         model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=train_dataset,
