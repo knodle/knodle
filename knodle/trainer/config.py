@@ -83,8 +83,11 @@ class BaseTrainerConfig(TrainerConfig):
             ids2labels: Dict = None,
             **kwargs
     ):
-        """ Additionally provided parameters needed for handling the cases where there are data samples with no rule
-         matched (filtering OR introducing the other class + training&evaluation with other class) """
+        """
+        Additionally provided parameters needed for handling the cases where there are data samples with no rule
+        matched (filtering OR introducing the other class + training&evaluation with other class)
+        """
+
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.other_class_id = other_class_id

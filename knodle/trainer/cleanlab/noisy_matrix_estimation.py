@@ -1,6 +1,6 @@
 from typing import Union, List, Tuple
 import numpy as np
-from cleanlab.latent_estimation import estimate_latent, compute_confident_joint
+from cleanlab.latent_estimation import estimate_latent, compute_confident_joint, calibrate_confident_joint
 
 
 def calculate_noise_matrix(
@@ -8,14 +8,15 @@ def calculate_noise_matrix(
         psx: np.ndarray,
         rule_matches_z: np.ndarray,
         num_classes: int,
-        noise_matrix: str
-) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[None, None, None, None]]:
+        noise_matrix: str = "rule2class",
+        calibrate: bool = True
+) -> Union[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[None, None, None, None]]:
 
     # calculate noise matrix as a (#rules x #classes) matrix - i.e., original noisy inputs are given with correspondence
     # to rules matched in each sample, while the estimated labels are aggregated pro class.
     if noise_matrix == "rule2class":
         return estimate_noise_matrix(
-            noisy_labels, psx, rule_matches_z, num_classes
+            noisy_labels, psx, rule_matches_z, num_classes, calibrate=calibrate
         )
 
     # if no special noise matrix calculation method is specified, it will be calculated in CL as usual
@@ -33,10 +34,12 @@ def estimate_noise_matrix(
         num_classes: int = None,
         thresholds: List = None,
         converge_latent_estimates: bool = False,
+        calibrate: bool = True,
         py_method: str = 'cnt'
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-    confident_joint = compute_confident_joint_rule2class(noisy_labels, psx, rule_matches_z, num_classes, thresholds)
+    confident_joint = compute_confident_joint_rule2class(
+        noisy_labels, psx, rule_matches_z, num_classes, thresholds, calibrate=calibrate)
 
     # confident_joint = compute_confident_joint(noisy_labels, psx, rule_matches_z, num_classes, thresholds)
 
@@ -55,9 +58,9 @@ def compute_confident_joint_rule2class(
         psx: np.ndarray,
         rule_matches_z: np.ndarray,
         num_classes: int,
-        thresholds: List
+        thresholds: List = None,
+        calibrate: bool = True
 ) -> np.ndarray:
-
     # todo: add multi_label functionality (see original code, _compute_confident_joint_multi_label function)
 
     noisy_labels = np.asarray(noisy_labels)
@@ -67,9 +70,9 @@ def compute_confident_joint_rule2class(
         thresholds = np.asarray([np.mean(psx[:, k][noisy_labels == k]) for k in range(num_classes)])
 
     psx_bool = (psx >= thresholds - 1e-6)
-    confident_argmax = psx_bool.argmax(axis=1)     # NB! cases where all probs are below threshold, will receive class 0
+    confident_argmax = psx_bool.argmax(axis=1)  # NB! cases where all probs are below threshold, will receive class 0
 
-    num_confident_bins = psx_bool.sum(axis=1)       # how many class probs are above threshold?
+    num_confident_bins = psx_bool.sum(axis=1)  # how many class probs are above threshold?
     at_least_one_confident = num_confident_bins > 0
     more_than_one_confident = num_confident_bins > 1
 
@@ -85,5 +88,8 @@ def compute_confident_joint_rule2class(
     rule_matches_per_class = [rule_matches_z[class_sample_indices].sum(axis=0)
                               for class_sample_indices in sample_indices_per_class]
     confident_joint = np.array(rule_matches_per_class).T
+
+    if calibrate:
+        confident_joint = calibrate_confident_joint(confident_joint, noisy_labels)
 
     return confident_joint
