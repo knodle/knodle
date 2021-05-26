@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import TensorDataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
 
-from examples.utils import convert_text_to_transformer_input
+from examples.trainer.preprocessing import convert_text_to_transformer_input
 from knodle.trainer import AutoTrainer, AutoConfig
 
 

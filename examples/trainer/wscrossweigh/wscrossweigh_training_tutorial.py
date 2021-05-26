@@ -10,8 +10,7 @@ from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
-
-from examples.utils import convert_text_to_transformer_input, get_tfidf_features
+from examples.trainer.preprocessing import convert_text_to_transformer_input, get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
 from knodle.trainer.wscrossweigh.wscrossweigh import WSCrossWeighTrainer
@@ -71,8 +70,8 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
     X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
 
-    y_dev = TensorDataset(LongTensor(list(df_dev.iloc[:, 1])))
-    y_test = TensorDataset(LongTensor(list(df_test.iloc[:, 1])))
+    y_dev = TensorDataset(LongTensor(df_dev["label"].tolist()))
+    y_test = TensorDataset(LongTensor(df_test["label"].tolist()))
 
     # define the all needed parameters in a dictionary for convenience (can also be directly passed to Trainer/Config)
     parameters = {
