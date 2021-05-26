@@ -10,7 +10,6 @@ class KNNConfig(MajorityConfig):
             self,
             k: int = None,
             radius: float = None,
-            weighted_knn_activation: bool = False,
             use_approximation: bool = False,
             activate_no_match_instances: bool = True,
             n_jobs_for_index: int = 4,
@@ -21,7 +20,6 @@ class KNNConfig(MajorityConfig):
 
         :param k: number of neighbors that are to be found
         :param radius: a radius of a point or points the neighbors are to be found within
-        :param weighted_knn_activation:
         :param use_approximation: if set to True, the approximated ANN will be used instead of kNN
         :param activate_no_match_instances: if set to True, the zero-match rows for knn construction & activation will
         be ignored
@@ -31,7 +29,6 @@ class KNNConfig(MajorityConfig):
         super().__init__(**kwargs)
         self.k = k
         self.radius = radius
-        self.weighted_knn_activation = weighted_knn_activation
         self.use_approximation = use_approximation
         self.activate_no_match_instances = activate_no_match_instances
         self.n_jobs = n_jobs_for_index
