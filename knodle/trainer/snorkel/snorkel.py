@@ -16,13 +16,18 @@ from knodle.trainer.snorkel.utils import z_t_matrix_to_snorkel_matrix
 
 @AutoTrainer.register('snorkel')
 class SnorkelTrainer(MajorityVoteTrainer):
+    """Provides a wrapper around the Snorkel system. See https://github.com/snorkel-team/snorkel for more details.
+    Formally, a generative model P(Y, Y') is learned, with Y' = Z * T, followed by a discriminative model specified
+    by the user.
+    """
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
-    def _snorkel_denoising(self, model_input_x, rule_matches_z):
-
+    def _snorkel_denoising(self, model_input_x: TensorDataset, rule_matches_z: np.ndarray):
+        """Trains the generative model."""
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
 
@@ -65,6 +70,8 @@ class SnorkelTrainer(MajorityVoteTrainer):
 
 @AutoTrainer.register('snorkel_knn')
 class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
+    """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
+    """
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)
