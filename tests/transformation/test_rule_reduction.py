@@ -1,22 +1,22 @@
 import numpy as np
 
-from knodle.transformation.rule_reduction import _get_merged_matrix, reduce_lf_matches, _get_lf_by_label_iterator
+from knodle.transformation.rule_reduction import _get_merged_matrix, reduce_rule_matches, _get_rule_by_label_iterator
 
 
 def test_reduction():
-    # test lf iterator
+    # test rule iterator
     mapping_rule_class_t = np.array([
         [1, 0],
         [0, 1],
         [1, 0],
         [1, 0]])
-    lf_iterator = list(_get_lf_by_label_iterator(mapping_rule_class_t))
+    rule_iterator = list(_get_rule_by_label_iterator(mapping_rule_class_t))
     expected_iterator = [
         np.array([True, False,  True,  True]),
         np.array([False, True, False, False])]
-    assert len(lf_iterator) == len(expected_iterator)
-    assert np.array_equal(lf_iterator[0], expected_iterator[0])
-    assert np.array_equal(lf_iterator[1], expected_iterator[1])
+    assert len(rule_iterator) == len(expected_iterator)
+    assert np.array_equal(rule_iterator[0], expected_iterator[0])
+    assert np.array_equal(rule_iterator[1], expected_iterator[1])
 
     # test _get_merged_matrix
     rule_matches_z = np.array([
@@ -43,7 +43,7 @@ def test_reduction():
         [0, 0, 1, 0],
         [1, 0, 0, 0]])
 
-    out = reduce_lf_matches(
+    out = reduce_rule_matches(
         rule_matches_z=rule_matches_z, mapping_rule_class_t=mapping_rule_class_t,
         rule_matches_rest={"test_matches": test_rule_matches_z},
         drop_rules=False, max_rules=2, min_coverage=1.0)
@@ -72,7 +72,7 @@ def test_reduction():
     assert np.array_equal(out.get("mapping_rule_class_t"), expected["mapping_rule_class_t"])
 
     # test end-to-end by drop
-    out = reduce_lf_matches(
+    out = reduce_rule_matches(
         rule_matches_z=rule_matches_z, mapping_rule_class_t=mapping_rule_class_t,
         rule_matches_rest={"test_matches": test_rule_matches_z},
         drop_rules=True, max_rules=2, min_coverage=0.0)
