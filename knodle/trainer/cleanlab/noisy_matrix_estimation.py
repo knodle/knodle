@@ -1,6 +1,7 @@
 from typing import Union, List, Tuple
 import numpy as np
 from cleanlab.latent_estimation import estimate_latent, compute_confident_joint, calibrate_confident_joint
+from cleanlab.util import value_counts
 
 
 def calculate_noise_matrix(
@@ -90,6 +91,15 @@ def compute_confident_joint_rule2class(
     confident_joint = np.array(rule_matches_per_class).T
 
     if calibrate:
-        confident_joint = calibrate_confident_joint(confident_joint, noisy_labels)
+        confident_joint = calibrate_confident_joint_rule2class(confident_joint, rule_matches_z)
 
     return confident_joint
+
+
+def calibrate_confident_joint_rule2class(confident_joint: np.ndarray, rule_matches_z: np.ndarray) -> np.ndarray:
+
+    noisy_labels_counts = rule_matches_z.sum(axis=0)
+
+    calibrated_cj = (confident_joint.T / confident_joint.sum(axis=1) * noisy_labels_counts).T
+    calibrated_cj = calibrated_cj / np.sum(calibrated_cj) * sum(noisy_labels_counts)
+    return calibrated_cj

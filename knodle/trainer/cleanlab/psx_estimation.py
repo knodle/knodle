@@ -4,6 +4,7 @@ from typing import Union
 import numpy as np
 from cleanlab.latent_estimation import estimate_cv_predicted_probabilities
 from sklearn.base import RegressorMixin
+from skorch import NeuralNetClassifier
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 
@@ -17,7 +18,7 @@ def calculate_psx(
         model_input_x: TensorDataset,
         noisy_labels: np.ndarray,
         rule_matches_z: np.ndarray,
-        model: RegressorMixin,
+        model: NeuralNetClassifier,
         psx_calculation_method: str,
         num_classes: int,
         cv_n_folds: int,
@@ -51,7 +52,7 @@ def estimate_cv_predicted_probabilities_split_by_rules(
         model_input_x: TensorDataset,
         noisy_labels: np.ndarray,
         rule_matches_z: np.ndarray,
-        model: RegressorMixin,
+        model: NeuralNetClassifier,
         num_classes: int,
         cv_n_folds: int = 5,
         seed: int = None,
@@ -74,7 +75,7 @@ def estimate_cv_predicted_probabilities_split_by_signatures(
         model_input_x: TensorDataset,
         noisy_labels: np.ndarray,
         rule_matches_z: np.ndarray,
-        model: RegressorMixin,
+        model: NeuralNetClassifier,
         num_classes: int,
         cv_n_folds: int = 5,
         seed: int = None,
@@ -115,12 +116,12 @@ def estimate_cv_predicted_probabilities_split_randomly(
 
 
 def compute_psx_matrix(
-        model: RegressorMixin,
+        model: NeuralNetClassifier,
         cv_train_datasets: TensorDataset,
         cv_holdout_datasets: TensorDataset,
         labels: np.ndarray,
         num_classes: int
-)-> np.ndarray:
+) -> np.ndarray:
 
     psx = np.zeros((len(labels), num_classes))
 

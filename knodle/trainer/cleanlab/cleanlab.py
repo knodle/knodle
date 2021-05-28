@@ -93,6 +93,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
     def fit(self, rp: LearningWithNoisyLabels, model_input_x: np.ndarray, noisy_labels: np.ndarray, psx: np.ndarray):
 
+        # todo: add rp.pulearning not None
         # Number of classes
         if not self.trainer_config.output_classes:
             rp.K = len(np.unique(noisy_labels))
@@ -101,18 +102,6 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
         # 'ps' is p(s=k)
         rp.ps = value_counts(noisy_labels) / float(len(noisy_labels))
-
-        # if pulearning == the integer specifying the class without noise.
-        if rp.K == 2 and rp.pulearning is not None:  # pragma: no cover
-            # pulearning = 1 (no error in 1 class) implies p(s=1|y=0) = 0
-            rp.noise_matrix[rp.pulearning][1 - rp.pulearning] = 0
-            rp.noise_matrix[1 - rp.pulearning][1 - rp.pulearning] = 1
-            # pulearning = 1 (no error in 1 class) implies p(y=0|s=1) = 0
-            rp.inverse_noise_matrix[1 - rp.pulearning][rp.pulearning] = 0
-            rp.inverse_noise_matrix[rp.pulearning][rp.pulearning] = 1
-            # pulearning = 1 (no error in 1 class) implies p(s=1,y=0) = 0
-            rp.confident_joint[rp.pulearning][1 - rp.pulearning] = 0
-            rp.confident_joint[1 - rp.pulearning][1 - rp.pulearning] = 1
 
         rp.noise_mask = get_noise_indices(
             noisy_labels,
@@ -130,33 +119,9 @@ class CleanLabTrainer(MajorityVoteTrainer):
         noisy_labels_pruned = noisy_labels[x_mask]
 
         rp.sample_weigh = calculate_sample_weights(rp.K, rp.noise_matrix, noisy_labels_pruned)
+
+        # in order to train a skorch model with sample weights, we need to pass all the data as dicts - #todo tests lack
+        model_input_x_pruned = {'data': model_input_x_pruned, 'sample_weight': rp.sample_weigh}
         rp.clf.fit(model_input_x_pruned, noisy_labels_pruned)
 
-        # Check if sample_weight in clf.fit(). Compatible with Python 2/3.
-        # if hasattr(inspect, 'getfullargspec') and 'sample_weight' in inspect.getfullargspec(rp.clf.fit).args:
-        #     # Re-weight examples in the loss function for the final fitting
-        #     # s.t. the "apparent" original number of examples in each class
-        #     # is preserved, even though the pruned sets may differ.
-        #     rp.sample_weight = np.ones(np.shape(s_pruned))
-        #     for k in range(rp.K):
-        #         sample_weight_k = 1.0 / rp.noise_matrix[k][k]
-        #         rp.sample_weight[s_pruned == k] = sample_weight_k
-        #     rp.clf.fit(x_pruned, s_pruned, sample_weight=rp.sample_weight)
-        # else:
-        #     rp.clf.fit(x_pruned, s_pruned)      # This is less accurate, but best we can do if no sample_weight.
-
         return rp.clf
-
-    def wrap_model(self):
-        """ The function wraps the PyTorch model to a Sklearn model. """
-        return NeuralNetClassifier(
-            self.model,
-            criterion=self.trainer_config.criterion,
-            optimizer=self.trainer_config.optimizer,
-            lr=self.trainer_config.lr,
-            max_epochs=self.trainer_config.epochs,
-            batch_size=self.trainer_config.batch_size,
-            train_split=None,
-            callbacks="disable",
-            device=self.trainer_config.device
-        )
