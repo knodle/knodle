@@ -19,8 +19,9 @@ from knodle.evaluation.other_class_metrics import classification_report_other_cl
 from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
-from knodle.trainer.config import BaseTrainerConfig
+from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.trainer.utils.checks import check_other_class_id
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class Trainer(ABC):
             rule_matches_z: np.ndarray,
             dev_model_input_x: TensorDataset = None,
             dev_gold_labels_y: TensorDataset = None,
-            trainer_config: BaseTrainerConfig = None,
+            trainer_config: TrainerConfig = None,
     ):
         """
         Constructor for each Trainer.
@@ -53,7 +54,7 @@ class Trainer(ABC):
         self.dev_gold_labels_y = dev_gold_labels_y
 
         if trainer_config is None:
-            self.trainer_config = BaseTrainerConfig(model)
+            self.trainer_config = TrainerConfig(model)
         else:
             self.trainer_config = trainer_config
 
@@ -78,6 +79,13 @@ class Trainer(ABC):
 
 
 class BaseTrainer(Trainer):
+
+    def __init__(self, **kwargs):
+        if kwargs.get("trainer_config", None) is None:
+            kwargs["trainer_config"] = BaseTrainerConfig()
+        super().__init__(**kwargs)
+
+        check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
 
     def _load_train_params(
             self,

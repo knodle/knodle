@@ -13,7 +13,7 @@ class AutoConfig:
     """ Internal registry for available trainers """
 
     def __init__(self, name, **kwargs):
-        self.config = self.create_trainer(name, **kwargs)
+        self.config = self.create_config(name, **kwargs)
 
     @classmethod
     def create_config(cls, name: str, **kwargs) -> TrainerConfig:
