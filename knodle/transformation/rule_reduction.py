@@ -33,7 +33,9 @@ def reduce_rule_matches(
     if max_rules is None and min_coverage is None:
         logger.info("No filtering criteria ('max_rule' or 'min_coverage' for rule specified, "
                     "returning the original rule matches.")
-        return {"rule_matches_z": rule_matches_z, "mapping_rule_class_t": mapping_rule_class_t}
+        out = {"rule_matches_z": rule_matches_z, "mapping_rule_class_t": mapping_rule_class_t}
+        out.update(rule_matches_rest)
+        return out
 
     coverage_per_rule = rule_matches_z.sum(0) / rule_matches_z.shape[0]
 

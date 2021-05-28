@@ -81,6 +81,9 @@ class BaseTrainerConfig(TrainerConfig):
             other_class_id: int = None,
             evaluate_with_other_class: bool = False,
             ids2labels: Dict = None,
+            max_rules: int = None,
+            min_coverage: float = None,
+            drop_rules: bool = False,
             **kwargs
     ):
         """ Additionally provided parameters needed for handling the cases where there are data samples with no rule
@@ -102,3 +105,7 @@ class BaseTrainerConfig(TrainerConfig):
                 "absent now, the standard sklearn metrics will be calculated instead."
             )
             self.evaluate_with_other_class = False
+
+        self.max_rules = max_rules
+        self.min_coverage = min_coverage
+        self.drop_rules = drop_rules

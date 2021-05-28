@@ -30,6 +30,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
     ) -> None:
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
 
         if dev_model_input_x is not None and dev_gold_labels_y is not None:
             logger.info("Validation data is not used during Cleanlab training")
