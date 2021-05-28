@@ -8,7 +8,8 @@ def transform_snorkel_matrix_to_z_t(class_matrix: np.ndarray) -> [np.ndarray, np
         - class_matrix_ij = k, iff the rule labels class k
 
     :param class_matrix: shape=(num_samples, num_weak_labellers)
-    :return: Z, T matrix as described in the paper.
+    :return: Z matrix - binary encoded array of which rules matched. Shape: instances x rules.
+             T matrix - mapping of rules to labels, binary encoded. Shape: rules x classes.
     """
     num_classes = class_matrix.max() + 1
 
