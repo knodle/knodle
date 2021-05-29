@@ -94,7 +94,7 @@ class BaseTrainer(Trainer):
 
     def _apply_rule_reduction(self):
         reduced_dict = reduce_rule_matches(
-            rule_matches_z=self.rule_matches_z, mapping_rule_class_t=self.mapping_rules_labels_t,
+            rule_matches_z=self.rule_matches_z, mapping_rules_labels_t=self.mapping_rules_labels_t,
             drop_rules=self.trainer_config.drop_rules, max_rules=self.trainer_config.max_rules,
             min_coverage=self.trainer_config.min_coverage)
         self.rule_matches_z = reduced_dict["train_rule_matches_z"]

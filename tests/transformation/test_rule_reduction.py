@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.sparse import csr
 
 from knodle.transformation.rule_reduction import _get_merged_matrix, reduce_rule_matches, _get_rule_by_label_iterator
 
@@ -44,7 +45,7 @@ def test_reduction():
         [1, 0, 0, 0]])
 
     out = reduce_rule_matches(
-        rule_matches_z=rule_matches_z, mapping_rule_class_t=mapping_rule_class_t,
+        rule_matches_z=rule_matches_z, mapping_rules_labels_t=mapping_rule_class_t,
         rule_matches_rest={"test_matches": test_rule_matches_z},
         drop_rules=False, max_rules=2, min_coverage=1.0)
 
@@ -73,7 +74,7 @@ def test_reduction():
 
     # test end-to-end by drop
     out = reduce_rule_matches(
-        rule_matches_z=rule_matches_z, mapping_rule_class_t=mapping_rule_class_t,
+        rule_matches_z=rule_matches_z, mapping_rules_labels_t=mapping_rule_class_t,
         rule_matches_rest={"test_matches": test_rule_matches_z},
         drop_rules=True, max_rules=2, min_coverage=0.0)
 
