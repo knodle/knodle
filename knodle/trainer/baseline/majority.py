@@ -24,20 +24,10 @@ class MajorityVoteTrainer(BaseTrainer):
         A simple majority vote is used for this purpose.
     """
 
-    def __init__(
-            self,
-            model: nn.Module,
-            mapping_rules_labels_t: np.ndarray,
-            model_input_x: TensorDataset,
-            rule_matches_z: np.ndarray,
-            trainer_config: MajorityConfig = None,
-            **kwargs
-    ):
-        if trainer_config is None:
-            trainer_config = MajorityConfig(optimizer=SGD, lr=0.001)
-        super().__init__(
-            model, mapping_rules_labels_t, model_input_x, rule_matches_z, trainer_config=trainer_config, **kwargs
-        )
+    def __init__(self, **kwargs):
+        if kwargs.get("trainer_config") is None:
+            kwargs["trainer_config"] = MajorityConfig(optimizer=SGD, lr=0.001)
+        super().__init__(**kwargs)
 
     def train(
             self,
