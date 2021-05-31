@@ -33,43 +33,19 @@ def test_z_t_matrix_to_snorkel_matrix():
 
 def test_label_model_data():
     num_samples = 5
-    num_features = 16
     num_rules = 6
-
-    x_np = np.ones((num_samples, num_features)).astype(np.float32)
-    x_tensor = torch.from_numpy(x_np)
-    model_input_x = TensorDataset(x_tensor)
 
     rule_matches_z = np.ones((num_samples, num_rules))
     rule_matches_z[[1, 4]] = 0
 
-    # test with filtering
-    non_zero_mask, out_rule_matches_z, out_model_input_x = prepare_empty_rule_matches(
-        rule_matches_z=rule_matches_z,
-        model_input_x=model_input_x,
-        filter_non_labelled=True
-    )
+    non_zero_mask, out_rule_matches_z = prepare_empty_rule_matches(rule_matches_z)
 
     expected_mask = np.array([True, False, True, True, False])
     expected_rule_matches = np.ones((3, num_rules))
 
     np.testing.assert_equal(non_zero_mask, expected_mask)
     np.testing.assert_equal(out_rule_matches_z, expected_rule_matches)
-    assert len(out_model_input_x) == 3
 
-    # test without filtering
-    non_zero_mask, out_rule_matches_z, out_model_input_x = prepare_empty_rule_matches(
-        rule_matches_z=rule_matches_z,
-        model_input_x=model_input_x,
-        filter_non_labelled=False
-    )
-
-    expected_mask = np.array([True, False, True, True, False])
-    expected_rule_matches = np.ones((3, num_rules))
-
-    np.testing.assert_equal(non_zero_mask, expected_mask)
-    np.testing.assert_equal(out_rule_matches_z, expected_rule_matches)
-    assert len(out_model_input_x) == 5
 
 def test_other_class_labels():
     label_probs_gen = np.array([

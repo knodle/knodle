@@ -2,9 +2,6 @@ from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
-from torch.utils.data import TensorDataset
-
-from knodle.transformation.filter import filter_tensor_dataset_by_indices
 
 
 def z_t_matrix_to_snorkel_matrix(rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray) -> np.ndarray:
@@ -20,19 +17,14 @@ def z_t_matrix_to_snorkel_matrix(rule_matches_z: np.ndarray, mapping_rules_label
 
     return snorkel_matrix
 
-def prepare_empty_rule_matches(rule_matches_z, filter_non_labelled, model_input_x
-) -> Tuple[np.ndarray, np.ndarray, TensorDataset]:
+
+def prepare_empty_rule_matches(rule_matches_z: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Remove empty rows in rule matches for LabelModel. If filtering is configured, the corresponding entries
-    in the model input are filtered out as well.
+    Remove empty rows in rule matches for LabelModel.
     Args:
-        rule_matches_z:
-        filter_non_labelled: if rows with no rule matches should be filtered.
-        model_input_x:
+        rule_matches_z: input rule matches
     Returns:
-        boolean mask indicating non-empty rows,
-        filtered rule matches,
-        and eventually filtered model input
+        boolean mask indicating non-empty rows and filtered rule matches
     """
     # find empty rows of the rule matches
     non_zero_mask = rule_matches_z.sum(axis=1) != 0
@@ -40,14 +32,11 @@ def prepare_empty_rule_matches(rule_matches_z, filter_non_labelled, model_input_
 
     # exclude empty rows from LabelModel input
     rule_matches_z = rule_matches_z[non_zero_indices]
+    return non_zero_mask, rule_matches_z
 
-    if filter_non_labelled:
-        # filter out respective input irrevocably from all data
-        model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_zero_indices)
 
-    return non_zero_mask, rule_matches_z, model_input_x
-
-def add_labels_for_empty_examples(label_probs_gen, non_zero_mask, output_classes, other_class_id
+def add_labels_for_empty_examples(
+        label_probs_gen: np.ndarray, non_zero_mask: np.ndarray, output_classes: int, other_class_id: int
 ) -> np.ndarray:
     """
     Args:
@@ -55,7 +44,7 @@ def add_labels_for_empty_examples(label_probs_gen, non_zero_mask, output_classes
         non_zero_mask:  boolean mask indicating which examples get the generated labels
         output_classes: number of output classes, with respect to the other_class
         other_class_id: id of the class for empty rows
-    Returns: distribution of labels for both empty and non-empty rows (#examples x #classes)
+    Returns: distribution of labels for both empty and non-empty rows (#instances x #classes)
     """
     # make dummy label distibutions for all of the examples
     # number of output classes is eventually t.shape[1]+1, if other class id should be added
