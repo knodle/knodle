@@ -1,10 +1,9 @@
 import os
-from typing import Union, Tuple, List
+from typing import Union, List, Tuple
 
 import pandas as pd
 import numpy as np
-from joblib import load, dump
-from sklearn.feature_extraction.text import TfidfVectorizer
+from joblib import load
 
 
 def read_train_dev_test(
@@ -36,15 +35,3 @@ def get_samples_list(data: Union[pd.Series, pd.DataFrame], column_num: int = Non
         raise ValueError(
             "Please pass input data either as a Series or as a DataFrame with number of the column with samples"
         )
-
-
-def create_tfidf_values(text_data: [str], max_features, path_to_cache: str = None):
-    if path_to_cache and os.path.exists(path_to_cache):
-        cached_data = load(path_to_cache)
-        if cached_data.shape == text_data.shape:
-            return cached_data
-
-    vectorizer = TfidfVectorizer(max_features=max_features)
-    transformed_data = vectorizer.fit_transform(text_data)
-    dump(transformed_data, path_to_cache)
-    return transformed_data

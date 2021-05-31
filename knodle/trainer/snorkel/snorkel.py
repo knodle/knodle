@@ -21,6 +21,11 @@ from knodle.transformation.filter import filter_tensor_dataset_by_indices
 
 @AutoTrainer.register('snorkel')
 class SnorkelTrainer(MajorityVoteTrainer):
+    """Provides a wrapper around the Snorkel system. See https://github.com/snorkel-team/snorkel for more details.
+    Formally, a generative model P(Y, Y') is learned, with Y' = Z * T, followed by a discriminative model specified
+    by the user.
+    """
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelConfig(optimizer=SGD, lr=0.001)
@@ -30,6 +35,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
             self, model_input_x: TensorDataset, rule_matches_z: np.ndarray
     ) -> Tuple[TensorDataset, np.ndarray]:
         """
+		Trains the generative model.
         Premise:
             Snorkel can not make use of rule-unlabeled examples (no rule matches).
             The generative LabelModel assigns such examples a uniform distribution over all available labels,
@@ -99,6 +105,8 @@ class SnorkelTrainer(MajorityVoteTrainer):
 
 @AutoTrainer.register('snorkel_knn')
 class SnorkelKNNDenoisingTrainer(SnorkelTrainer, KnnDenoisingTrainer):
+    """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
+    """
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)

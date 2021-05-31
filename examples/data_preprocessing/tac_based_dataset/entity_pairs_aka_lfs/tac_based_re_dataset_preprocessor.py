@@ -11,7 +11,7 @@ import scipy.sparse as sp
 from joblib import dump
 
 from knodle.trainer.utils import log_section
-from tutorials.data_preprocessing.tac_based_dataset.utils.utils import count_file_lines, encode_labels
+from examples.data_preprocessing.tac_based_dataset.utils.utils import count_file_lines, encode_labels
 
 logger = logging.getLogger(__name__)
 PRINT_EVERY = 1000000
