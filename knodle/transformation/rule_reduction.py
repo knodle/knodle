@@ -1,15 +1,18 @@
 import logging
-from typing import Tuple, Dict, Iterable
+from typing import Union, Dict, Iterable
 
 import numpy as np
+from scipy import sparse as ss
+
+matrix = Union[np.ndarray, ss.csr_matrix]
 
 logger = logging.getLogger(__name__)
 
 
 def reduce_rule_matches(
-    rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, drop_rules: bool = False,
-    max_rules: int = None, min_coverage: float = None, rule_matches_rest: Dict[str, np.ndarray] = None
-) -> Dict[str, np.ndarray]:
+    rule_matches_z: matrix, mapping_rules_labels_t: matrix, drop_rules: bool = False,
+    max_rules: int = None, min_coverage: float = None, rule_matches_rest: Dict[str, matrix] = None
+) -> Dict[str, matrix]:
 
     """
     This is the main function to be used for reduction of rules.
@@ -39,19 +42,7 @@ def reduce_rule_matches(
             out.update(rule_matches_rest)
         return out
 
-    coverage_per_rule = rule_matches_z.sum(0) / rule_matches_z.shape[0]
-
-    # create mask to indicate which rules will be kept unchanged
-    rule_kept_mask = np.zeros(mapping_rules_labels_t.shape[0], dtype=np.bool)
-
-    # take top N rules
-    if max_rules is not None:
-        max_rule_ids = (coverage_per_rule * -1).argsort(kind="stable")[:max_rules]
-        rule_kept_mask[max_rule_ids] = True
-
-    # filter under-coveraged rules
-    if min_coverage is not None:
-        rule_kept_mask[coverage_per_rule < min_coverage] = False
+    rule_kept_ids = _select_rules_for_reduction(rule_matches_z, max_rules, min_coverage)
 
     # add training matches to the dictionary
     rule_matches_dict = {"train_rule_matches_z": rule_matches_z}
@@ -59,104 +50,150 @@ def reduce_rule_matches(
         rule_matches_dict.update(rule_matches_rest)
 
     if drop_rules:
-        return _reduce_by_drop(rule_matches_dict, mapping_rules_labels_t, rule_kept_mask)
+        return _reduce_by_drop(rule_matches_dict, mapping_rules_labels_t, rule_kept_ids)
     else:
-        return _reduce_by_merge(rule_matches_dict, mapping_rules_labels_t, rule_kept_mask)
+        return _reduce_by_merge(rule_matches_dict, mapping_rules_labels_t, rule_kept_ids)
+
+
+def _select_rules_for_reduction(
+        rule_matches_z: matrix, max_rules: int = None, min_coverage: float = None
+) -> np.ndarray:
+    """
+    Selects rule ids that match the reduction criteria based on rule coverage in the provided match matrix.
+    At least one of the criteria [max_rules, min_coverage] should be provided.
+    Args:
+        rule_matches_z: main match matrix, based on which the rules to keep are selected
+        max_rules: maximal number of rules to keep as-is.
+        min_coverage: minimal coverage required for a rule to be kept
+    Returns: Array with rule ids.
+    """
+    coverage_per_rule = rule_matches_z.sum(0) / rule_matches_z.shape[0]
+
+    if isinstance(rule_matches_z, ss.csr_matrix):
+        # convert from numpy.matrix (result of sparse sum) to numpy.array
+        coverage_per_rule = np.array(coverage_per_rule).flatten()
+
+    # create a set to collect ids of rules which will be kept unchanged
+    rule_kept_ids = np.array(range(rule_matches_z.shape[1]))
+
+    # take top N rules
+    if max_rules is not None:
+        max_rule_ids = (coverage_per_rule * -1).argsort(kind="stable")[:max_rules]
+        rule_kept_ids = np.intersect1d(rule_kept_ids, max_rule_ids)
+
+    # filter under-coveraged rules
+    if min_coverage is not None:
+        min_coverage_ids = np.nonzero(coverage_per_rule < min_coverage)[0]
+        rule_kept_ids = np.setdiff1d(rule_kept_ids, min_coverage_ids)
+
+    # convert to array to slice matrices
+    return rule_kept_ids
 
 
 def _reduce_by_drop(
-        rule_matches_dict: Dict, mapping_rules_labels_t: np.ndarray, rule_kept_mask: np.ndarray
-) -> Dict[str, np.ndarray]:
+        rule_matches_dict: Dict[str, matrix], mapping_rules_labels_t: matrix, rule_kept_ids: np.ndarray
+) -> Dict[str, matrix]:
     """
     Drops the rules according to the provided mask. Performs same reduction on all match matrices in the dictionary.
     Corresponding columns of mapping matrix T are dropped as well.
-    If N rules were selected to *not* be reduced (N entries of the `rule_kept_mask` equal to True):
+    If N rules were selected to *not* be reduced (there are N entries in the `rule_kept_ids`):
     Args:
         rule_matches_dict: contains the rule match matrices (#objects x N)
         mapping_rules_labels_t: rule-to-class mapping (N x #labels)
-        rule_kept_mask: indicates if the rule is preserved (True) or dropped (False), has #rules entries
+        rule_kept_ids: ids of rules that should *not* be reduced (N)
 
     Returns: Reduced match matrices for all keys in the `rule_matches_dict`, reduced mapping T in a single dictionary.
     """
     output_dict = {}
     for split, match_matrix in rule_matches_dict.items():
-        output_dict[split] = match_matrix[:, rule_kept_mask]
-    output_dict["mapping_rules_labels_t"] = mapping_rules_labels_t[rule_kept_mask, :]
+        output_dict[split] = match_matrix[:, rule_kept_ids]
+    output_dict["mapping_rules_labels_t"] = mapping_rules_labels_t[rule_kept_ids, :]
     return output_dict
 
 
 def _reduce_by_merge(
-        rule_matches_dict: Dict, mapping_rules_labels_t: np.ndarray, rule_kept_mask: np.ndarray
-) -> Dict[str, np.ndarray]:
+        rule_matches_dict: Dict[str, matrix], mapping_rules_labels_t: matrix, rule_kept_ids: np.ndarray
+) -> Dict[str, matrix]:
     """
     Leaves rules selected according to the provided mask unchanged
     while merging the others based on their corresponding labels.
     Performs same reduction on all match matrices in the dictionary.
     Corresponding columns of mapping matrix T are processed similarly and will contain an unchanged and merged columns.
-    If N rules were selected to *not* be reduced (N entries of the `rule_kept_mask` equal to True),
+    If N rules were selected to *not* be reduced (there are N entries in the `rule_kept_ids`),
     and the other rules correspond to M labels, the resulting set of rules will contain N + M rules,
     Args:
         rule_matches_dict: contains the rule match matrices (#objects x (N + M))
         mapping_rules_labels_t: rule-to-label mapping ((N + M) x #labels)
-        rule_kept_mask: indicates if the rule is preserved (True) or dropped (False), has #rules entries
+        rule_kept_ids: ids of rules that should *not* be reduced (N)
 
     Returns: Reduced match matrices for all keys in the `rule_matches_dict`, reduced mapping T in a single dictionary.
     """
 
     # get core part of remaining rule matches
-    output_dict = _reduce_by_drop(rule_matches_dict, mapping_rules_labels_t, rule_kept_mask)
+    output_dict = _reduce_by_drop(rule_matches_dict, mapping_rules_labels_t, rule_kept_ids)
 
     # reduce all provided match matrices in the same manner; keep dict keys
     for split, full_match_matrix in rule_matches_dict.items():
         reduced_matches = _get_merged_matrix(
             full_matches=full_match_matrix,
-            to_reduce_mask=~rule_kept_mask,
+            to_keep_mask=rule_kept_ids,
             label_rule_masks=_get_rule_by_label_iterator(mapping_rules_labels_t)
         )
 
         # add merged rules to the core matches
-        output_dict[split] = np.hstack([output_dict[split], reduced_matches])
+        if isinstance(reduced_matches, ss.csr_matrix):
+            output_dict[split] = ss.hstack([output_dict[split], reduced_matches])
+        else:
+            output_dict[split] = np.hstack([output_dict[split], reduced_matches])
 
     # add merged mapping
     merged_mapping = _get_merged_mapping(
-        to_reduce_mask=~rule_kept_mask,
+        to_keep_ids=rule_kept_ids,
         label_rule_masks=_get_rule_by_label_iterator(mapping_rules_labels_t),
-        number_of_labels=mapping_rules_labels_t.shape[1]
+        number_of_labels=mapping_rules_labels_t.shape[1],
+        make_sparse=isinstance(mapping_rules_labels_t, ss.csr_matrix)
     )
-    output_dict["mapping_rules_labels_t"] = np.vstack([output_dict["mapping_rules_labels_t"], merged_mapping])
+
+    if isinstance(merged_mapping, ss.csr_matrix):
+        output_dict["mapping_rules_labels_t"] = ss.vstack([output_dict["mapping_rules_labels_t"], merged_mapping])
+    else:
+        output_dict["mapping_rules_labels_t"] = np.vstack([output_dict["mapping_rules_labels_t"], merged_mapping])
 
     return output_dict
 
 
 def _get_rule_by_label_iterator(
-    mapping_rules_labels_t: np.ndarray
+    mapping_rules_labels_t: matrix
 ) -> Iterable[np.ndarray]:
     """
     Get an iterator yielding an rule ids mask for every label, indicating which rules belong to this label.
     """
     for label_id in range(mapping_rules_labels_t.shape[1]):
         column = mapping_rules_labels_t[:, label_id]
-        rule_mask = column != 0
-        if mapping_rules_labels_t[rule_mask].sum(0).nonzero()[0].tolist() != [label_id]:
+        rule_mask = column.nonzero()[0]
+
+        #if mapping_rules_labels_t[rule_mask].sum(0).nonzero()[0].tolist() != [label_id]:
+        if len(rule_mask) != 1:
             logger.warning(f"Rules for {label_id} point to multiple labels "
-                           f"{mapping_rules_labels_t[rule_mask].sum(0).nonzero()[0].tolist()}")
+                           f"{rule_mask.tolist()}")
         yield rule_mask
 
 
 def _get_merged_mapping(
-    to_reduce_mask: np.ndarray, label_rule_masks: Iterable[np.ndarray], number_of_labels: int
+    to_keep_ids: np.ndarray, label_rule_masks: Iterable[np.ndarray], number_of_labels: int, make_sparse: bool
 ) -> np.ndarray:
     """
     Creates a rule-to-label mapping matrix according to the rules selected for reduction.
     Returns: Mapping array of shape M (depends of #labels affected by reduction) x #labels
     """
-    mappings_rule_class = []
+    mappings_rules_labels = []
 
     for label_id, label_mask in enumerate(label_rule_masks):
-        to_reduce_label_mask = label_mask & to_reduce_mask
+        #to_reduce_label_mask = label_mask & to_reduce_mask
+        to_reduce_label_mask = np.setdiff1d(label_mask, to_keep_ids)
 
         # if there are no rules for this label that should be reduced, skip the label
-        if not to_reduce_label_mask.any():
+        if len(to_reduce_label_mask) == 0:
             continue
 
         mapping_label_row = np.zeros((number_of_labels,))
@@ -164,14 +201,20 @@ def _get_merged_mapping(
         # set the new rule to label with label_id
         mapping_label_row[label_id] = 1
 
-        mappings_rule_class.append(mapping_label_row)
+        if make_sparse:
+            mapping_label_row = ss.csr_matrix(mapping_label_row)
 
-    return np.stack(mappings_rule_class, axis=0)
+        mappings_rules_labels.append(mapping_label_row)
+
+    if make_sparse:
+        return ss.vstack(mappings_rules_labels)
+    else:
+        return np.vstack(mappings_rules_labels)
 
 
 def _get_merged_matrix(
-    full_matches: np.ndarray, to_reduce_mask: np.ndarray, label_rule_masks: Iterable[np.ndarray]
-) -> np.ndarray:
+    full_matches: matrix, to_keep_mask: np.ndarray, label_rule_masks: Iterable[np.ndarray]
+) -> matrix:
     """
     Merge the selected columns from the original match matrix of x rules to a one-per-label rule.
     If a label corresponds to any of the rules selected for reduction, a new merged rule is constructed for this label
@@ -179,7 +222,7 @@ def _get_merged_matrix(
 
     Args:
         full_matches: original match matrix with all rules: shape #obj x #rules
-        to_reduce_mask: mask for the rules from 'full_matches' that should be reduced
+        to_keep_mask: mask for the rules from 'full_matches' that should be reduced
         label_rule_masks: mapping of label indices to rule masks (shape: #rules)
     Returns: reduced matrix #obj x #labels
     """
@@ -187,19 +230,24 @@ def _get_merged_matrix(
 
     for label_id, label_mask in enumerate(label_rule_masks):
         # identify relevant rules from all label rules
-        to_reduce_label_mask = label_mask & to_reduce_mask
+        to_reduce_label_mask = np.setdiff1d(label_mask, to_keep_mask)
 
         # if there are no rules for this label that should be reduced, skip the label
-        if not to_reduce_label_mask.any():
+        if len(to_reduce_label_mask) == 0:
             continue
 
-        # create empty new rule column
-        reduced_matches_col = np.zeros((full_matches.shape[0],))
+        # create a merged match column
+        reduced_matches_col = full_matches[:, to_reduce_label_mask].sum(1)
 
-        # the mask has to have *boolean type*, otherwise the matrix is sliced incorrectly
-        label_rule_matches = full_matches[:, to_reduce_label_mask].sum(1)
-        reduced_matches_col[label_rule_matches != 0] = 1  # identify matches where any original rule matched
+        # take care of multiple matches per row --> reduce them to one
+        if isinstance(full_matches, ss.csr_matrix):
+            reduced_matches_col = ss.csc_matrix(reduced_matches_col).minimum(1)
+        else:
+            reduced_matches_col = np.minimum(reduced_matches_col, 1).reshape(-1, 1)
 
         reduced_matches.append(reduced_matches_col)
 
-    return np.stack(reduced_matches, axis=1)
+    if isinstance(full_matches, ss.csr_matrix):
+        return ss.hstack(reduced_matches).tocsr()
+    else:
+        return np.hstack(reduced_matches)

@@ -98,7 +98,7 @@ class BaseTrainer(Trainer):
             drop_rules=self.trainer_config.drop_rules, max_rules=self.trainer_config.max_rules,
             min_coverage=self.trainer_config.min_coverage)
         self.rule_matches_z = reduced_dict["train_rule_matches_z"]
-        self.mapping_rules_labels_t = reduced_dict["mapping_rule_class_t"]
+        self.mapping_rules_labels_t = reduced_dict["mapping_rules_labels_t"]
 
     def _make_dataloader(
             self, dataset: TensorDataset, shuffle: bool = True
@@ -200,13 +200,13 @@ class BaseTrainer(Trainer):
 
         log_section("Training done", logger)
 
-        #if draw_plot:
-        #    if self.dev_model_input_x:
-        #        draw_loss_accuracy_plot(
-        #            {"train loss": train_losses, "train acc": train_acc, "dev loss": dev_losses, "dev acc": dev_acc}
-        #        )
-        #    else:
-        #        draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
+        if draw_plot:
+            if self.dev_model_input_x:
+                draw_loss_accuracy_plot(
+                    {"train loss": train_losses, "train acc": train_acc, "dev loss": dev_losses, "dev acc": dev_acc}
+                )
+            else:
+                draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
 
         self.model.eval()
 
@@ -259,7 +259,8 @@ class BaseTrainer(Trainer):
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
-        if False: #isinstance(self.model, skorch.NeuralNetClassifier):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+        if isinstance(self.model, skorch.NeuralNetClassifier):
+            # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
             predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
