@@ -1,18 +1,23 @@
 from typing import Tuple
 
 import numpy as np
-import scipy.sparse as sp
+from scipy import sparse as ss
 
 
 def z_t_matrix_to_snorkel_matrix(rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray) -> np.ndarray:
     snorkel_matrix = -1 * np.ones(rule_matches_z.shape)
 
-    if isinstance(rule_matches_z, sp.csr_matrix):
+    if isinstance(rule_matches_z, ss.csr_matrix):
         rule_matches_z = rule_matches_z.toarray()
 
     z_to_t = np.argmax(mapping_rules_labels_t, axis=-1)
+    print(z_to_t, type(z_to_t))
+    if isinstance(mapping_rules_labels_t, ss.csr_matrix):
+        # transform np.matrix to np.array
+        z_to_t = np.array(z_to_t).flatten()
+
     for i in range(rule_matches_z.shape[0]):
-        non_zero_idx = np.where(rule_matches_z[i] != 0)[0]
+        non_zero_idx = np.nonzero(rule_matches_z[i])[0]
         snorkel_matrix[i, non_zero_idx] = z_to_t[non_zero_idx]
 
     return snorkel_matrix
@@ -28,6 +33,9 @@ def prepare_empty_rule_matches(rule_matches_z: np.ndarray) -> Tuple[np.ndarray, 
     """
     # find empty rows of the rule matches
     non_zero_mask = rule_matches_z.sum(axis=1) != 0
+    if isinstance(rule_matches_z, ss.csr_matrix):
+        # transform np.matrix to np.array
+        non_zero_mask = np.array(non_zero_mask).flatten()
     non_zero_indices = np.where(non_zero_mask)[0]
 
     # exclude empty rows from LabelModel input

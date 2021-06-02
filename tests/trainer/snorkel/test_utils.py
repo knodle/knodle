@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import sparse as ss
 
 import torch
 from torch.utils.data import TensorDataset
@@ -10,9 +11,10 @@ from knodle.trainer.snorkel.utils import (
 
 
 def test_z_t_matrix_to_snorkel_matrix():
+    # test dense case
     z = np.array([
         [0, 1, 0, 0],
-        [0, 0, 1, 0]
+        [0, 0, 1, 1]
     ])
 
     t = np.array([
@@ -24,7 +26,28 @@ def test_z_t_matrix_to_snorkel_matrix():
 
     snorkel_gold = np.array([
         [-1, 1, -1, -1],
-        [-1, -1, 0, -1]
+        [-1, -1, 0,  1]
+    ])
+
+    snorkel_test = z_t_matrix_to_snorkel_matrix(z, t)
+    np.testing.assert_equal(snorkel_gold, snorkel_test)
+
+    # test sparse case
+    z = ss.csr_matrix([
+        [0, 1, 0, 0],
+        [0, 0, 1, 1]
+    ])
+
+    t = ss.csr_matrix([
+        [1, 0],
+        [0, 1],
+        [1, 0],
+        [0, 1]
+    ])
+
+    snorkel_gold = np.array([
+        [-1, 1, -1, -1],
+        [-1, -1, 0,  1]
     ])
 
     snorkel_test = z_t_matrix_to_snorkel_matrix(z, t)
