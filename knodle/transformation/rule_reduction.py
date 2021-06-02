@@ -141,8 +141,8 @@ def _reduce_by_merge(
         )
 
         # add merged rules to the core matches
-        if isinstance(reduced_matches, ss.csr_matrix):
-            output_dict[split] = ss.hstack([output_dict[split], reduced_matches])
+        if isinstance(output_dict[split], ss.csr_matrix):
+            output_dict[split] = ss.hstack([output_dict[split].tocsc(), reduced_matches]).tocsr()
         else:
             output_dict[split] = np.hstack([output_dict[split], reduced_matches])
 
@@ -173,9 +173,10 @@ def _get_rule_by_label_iterator(
         rule_mask = column.nonzero()[0]
 
         #if mapping_rules_labels_t[rule_mask].sum(0).nonzero()[0].tolist() != [label_id]:
-        if len(rule_mask) != 1:
-            logger.warning(f"Rules for {label_id} point to multiple labels "
-                           f"{rule_mask.tolist()}")
+        # check if rules for this label also correspond to other labels
+        #if len(rule_mask) != 1:
+        #    logger.warning(f"Rules for {label_id} point to multiple labels "
+        #                   f"{rule_mask.tolist()}")
         yield rule_mask
 
 
@@ -248,6 +249,6 @@ def _get_merged_matrix(
         reduced_matches.append(reduced_matches_col)
 
     if isinstance(full_matches, ss.csr_matrix):
-        return ss.hstack(reduced_matches).tocsr()
+        return ss.hstack(reduced_matches)
     else:
         return np.hstack(reduced_matches)

@@ -173,6 +173,8 @@ def test_reduction_for_sparse():
     assert (out.get("train_rule_matches_z") != expected["train_rule_matches_z"]).nnz == 0
     assert (out.get("test_matches") != expected["test_matches"]).nnz == 0
     assert (out.get("mapping_rules_labels_t") != expected["mapping_rules_labels_t"]).nnz == 0
+    assert isinstance(out.get("train_rule_matches_z"), csr_matrix)
+    assert isinstance(out.get("mapping_rules_labels_t"), csr_matrix)
 
     # test end-to-end by drop with sparse matches and dense mapping T
     mapping_rule_class_t = np.array([
@@ -208,3 +210,6 @@ def test_reduction_for_sparse():
     assert (out.get("train_rule_matches_z") != expected["train_rule_matches_z"]).nnz == 0
     assert (out.get("test_matches") != expected["test_matches"]).nnz == 0
     assert np.array_equal(out.get("mapping_rules_labels_t"), expected["mapping_rules_labels_t"])
+    assert isinstance(out.get("train_rule_matches_z"), csr_matrix)
+    assert isinstance(out.get("mapping_rules_labels_t"), np.ndarray)
+
