@@ -64,6 +64,10 @@ class SnorkelTrainer(MajorityVoteTrainer):
         # create Snorkel matrix
         non_empty_mask, rule_matches_z = prepare_empty_rule_matches(rule_matches_z)
         L_train = z_t_matrix_to_snorkel_matrix(rule_matches_z, self.mapping_rules_labels_t)
+        
+        fitting_kwargs = {}
+        if self.trainer_config.seed:
+            fitting_kwargs["seed"] = self.trainer_config.seed
 
         # train LabelModel
         label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
@@ -71,7 +75,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
             L_train,
             n_epochs=self.trainer_config.label_model_num_epochs,
             log_freq=self.trainer_config.label_model_log_freq,
-            seed=self.trainer_config.seed
+            **fitting_kwargs
         )
         label_probs_gen = label_model.predict_proba(L_train)
 
