@@ -5,7 +5,7 @@
 [![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
 ![PyPI](https://img.shields.io/pypi/v/knodle)
-[![coverage](https://codecov.io/gh/knodle/knodle/branch/master/graph/badge.svg)](https://codecov.io/gh/knodle/knodle)
+[![codecov](https://codecov.io/gh/knodle/knodle/branch/develop/graph/badge.svg?token=Y11QJSZKW6)](https://codecov.io/gh/knodle/knodle)
     
     
 Knodle (_Knowledge-supervised Deep Learning Framework_) - a new framework for weak supervision with neural networks. It provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
