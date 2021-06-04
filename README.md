@@ -71,7 +71,7 @@ variants and is applicable to a large number of tasks.
 - *Accessibility*. There is a high-level access to the library, that makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
 
 
-<img src="img/schema.jpg" height="300"/>
+<img src="img/schema.png" height="300"/>
 
 Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
