@@ -1,21 +1,0 @@
-2021-04-10 19:58:45,656 root         INFO     Initalized logger
-2021-04-10 19:59:10,506 knodle.trainer.config INFO     Model will be trained on cuda
-2021-04-10 19:59:10,507 knodle.trainer.config INFO     The cache will be saved to /storage/sedovaa20/knodle/cache folder
-/storage/sedovaa20/knodle/knodle/transformation/majority.py:75: RuntimeWarning: invalid value encountered in true_divide
-  rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
-2021-04-10 19:59:18,472 knodle.trainer.crossweigh_weighing.data_preparation INFO     CrossWeigh Partition 1/1:
-2021-04-10 19:59:24,873 knodle.trainer.crossweigh_weighing.data_preparation INFO     Fold 0     Rules in training set: 5428, rules in test set: 1358, samples in training set: 1547, samples in test set: 38450
-2021-04-10 19:59:31,319 knodle.trainer.crossweigh_weighing.data_preparation INFO     Fold 1     Rules in training set: 5429, rules in test set: 1357, samples in training set: 898, samples in test set: 39099
-2021-04-10 19:59:37,693 knodle.trainer.crossweigh_weighing.data_preparation INFO     Fold 2     Rules in training set: 5429, rules in test set: 1357, samples in training set: 823, samples in test set: 39174
-2021-04-10 19:59:44,180 knodle.trainer.crossweigh_weighing.data_preparation INFO     Fold 3     Rules in training set: 5429, rules in test set: 1357, samples in training set: 530, samples in test set: 39467
-2021-04-10 19:59:50,673 knodle.trainer.crossweigh_weighing.data_preparation INFO     Fold 4     Rules in training set: 5429, rules in test set: 1357, samples in training set: 550, samples in test set: 39447
-0it [00:00, ?it/s]1it [00:20, 20.34s/it]2it [00:31, 14.84s/it]3it [00:42, 13.01s/it]4it [00:52, 11.93s/it]5it [01:02, 11.38s/it]5it [01:02, 12.57s/it]
-2021-04-10 20:03:56,076 root         INFO     Training is done.
-/storage/sedovaa20/knodle_venv/lib/python3.8/site-packages/sklearn/metrics/_classification.py:1245: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
-  _warn_prf(average, modifier, msg_start, len(result))
-/storage/sedovaa20/knodle_venv/lib/python3.8/site-packages/sklearn/metrics/_classification.py:1245: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
-  _warn_prf(average, modifier, msg_start, len(result))
-/storage/sedovaa20/knodle_venv/lib/python3.8/site-packages/sklearn/metrics/_classification.py:1245: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
-  _warn_prf(average, modifier, msg_start, len(result))
-Test accuracy: 0.5
-{'0': {'precision': 0.5024, 'recall': 1.0, 'f1-score': 0.6687965921192758, 'support': 2512}, '1': {'precision': 0.0, 'recall': 0.0, 'f1-score': 0.0, 'support': 2488}, 'accuracy': 0.5024, 'macro avg': {'precision': 0.2512, 'recall': 0.5, 'f1-score': 0.3343982960596379, 'support': 5000}, 'weighted avg': {'precision': 0.25240576, 'recall': 0.5024, 'f1-score': 0.3360034078807242, 'support': 5000}}
