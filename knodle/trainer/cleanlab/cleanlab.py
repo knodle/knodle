@@ -10,6 +10,7 @@ from torch.utils.data import TensorDataset
 from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
+from knodle.trainer.cleanlab.model_wrapper import wrap_model
 from knodle.trainer.cleanlab.pruning import get_noise_indices
 from knodle.trainer.cleanlab.psx_estimation import calculate_psx
 from knodle.trainer.cleanlab.noisy_matrix_estimation import calculate_noise_matrix
@@ -40,7 +41,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
             logger.info("Validation data is not used during Cleanlab training")
 
         # since CL accepts only sklearn.classifier compliant class -> we wraps the PyTorch model
-        self.model = self.wrap_model()
+        self.model = wrap_model(self.model, self.trainer_config)
 
         # CL denoising and training
         rp = LearningWithNoisyLabels(
