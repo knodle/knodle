@@ -4,7 +4,6 @@ from typing import List, Dict, Union, Tuple
 
 import scipy.sparse as sp
 import numpy as np
-import torch
 from torch.utils.data import TensorDataset
 
 from knodle.trainer.wscrossweigh.utils import return_unique
@@ -55,7 +54,7 @@ def k_folds_splitting_by_rules(
 
 
 def k_folds_splitting_by_signatures(
-        data_features: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
+        data_features: TensorDataset, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
         seed: int = None, other_class_id: int = None
 ) -> Tuple[List, List]:
     """
