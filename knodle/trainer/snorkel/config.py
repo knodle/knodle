@@ -1,5 +1,5 @@
 from knodle.trainer.baseline.config import MajorityConfig
-from knodle.trainer.knn_denoising.config import KNNConfig
+from knodle.trainer.knn_aggregation.config import KNNConfig
 
 from knodle.trainer.auto_config import AutoConfig
 

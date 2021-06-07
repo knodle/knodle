@@ -5,7 +5,7 @@ from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("wscrossweigh")
-class WSCrossWeighDenoisingConfig(MajorityConfig):
+class WSCrossWeighConfig(MajorityConfig):
     def __init__(
             self,
             partitions: int = 2,
