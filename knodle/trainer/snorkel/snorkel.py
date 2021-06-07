@@ -10,9 +10,9 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.knn_aggregation.knn import KnnAggregationTrainer
+from knodle.trainer.knn_aggregation.knn import kNNAggregationTrainer
 
-from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
+from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelkNNConfig
 from knodle.trainer.snorkel.utils import (
     z_t_matrix_to_snorkel_matrix,
     prepare_empty_rule_matches,
@@ -104,12 +104,12 @@ class SnorkelTrainer(MajorityVoteTrainer):
 
 
 @AutoTrainer.register('snorkel_knn')
-class SnorkelKNNAggregationTrainer(SnorkelTrainer, KnnAggregationTrainer):
+class SnorkelkNNAggregationTrainer(SnorkelTrainer, kNNAggregationTrainer):
     """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
     """
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
-            kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)
+            kwargs["trainer_config"] = SnorkelkNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
     def train(
