@@ -96,7 +96,7 @@ There are several denoising methods available.
 | -------------------- | -------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | MajorityVoteTrainer  |`knodle.trainer.baseline`             | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | AutoTrainer          |`knodle.trainer`                      | This incorporates all denoising methods currently provided in Knodle. |
-| KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
+| KnnAggregationTrainer|`knodle.trainer.knn_aggregation`      | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
 | WSCrossWeighTrainer  |`knodle.trainer.wscrossweigh`         | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
 
@@ -128,7 +128,7 @@ knodle
 │    ├── model
 │    ├── trainer
 │          ├── baseline
-│          ├── knn_denoising
+│          ├── knn_aggregation
 │          ├── snorkel
 │          ├── wscrossweigh
 │          └── utils
