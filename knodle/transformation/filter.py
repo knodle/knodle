@@ -1,7 +1,24 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 import numpy as np
 from torch.utils.data import TensorDataset
+
+
+def filter_tensor_dataset_by_indices(dataset: TensorDataset, filter_ids: Union[np.ndarray, List[int]]) -> TensorDataset:
+    """Filters each tensor of a TensorDataset, given some "filter_ids".
+
+    Args:
+        dataset: TensorDataset with a list of tensors, each having first dimension N
+        filter_ids: A list of K indices, K <= N
+
+    Returns: TensorDataset with filtered indices
+    """
+    new_tensors = []
+    for i in range(len(dataset.tensors)):
+        new_tensors.append(dataset.tensors[i][filter_ids])
+    dataset_new = TensorDataset(*new_tensors)
+
+    return dataset_new
 
 
 def filter_empty_probabilities(
@@ -20,10 +37,7 @@ def filter_empty_probabilities(
     prob_sums = class_probas_y.sum(axis=-1)
     non_zeros = np.where(prob_sums != 0)[0]
 
-    new_tensors = []
-    for i in range(len(input_data_x.tensors)):
-        new_tensors.append(input_data_x.tensors[i][non_zeros])
-    new_x = TensorDataset(*new_tensors)
+    new_x = filter_tensor_dataset_by_indices(dataset=input_data_x, filter_ids=non_zeros)
 
     if rule_matches_z is not None:
         return new_x, class_probas_y[non_zeros], rule_matches_z[non_zeros]
@@ -31,7 +45,7 @@ def filter_empty_probabilities(
     return new_x, class_probas_y[non_zeros]
 
 
-def filter_unconclusive_probabilities(
+def filter_probability_threshold(
         input_data_x: TensorDataset, class_probas_y: np.ndarray, rule_matches_z: np.ndarray = None,
         probability_threshold: float = 0.7
 ) -> Union[Tuple[TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray]]:
@@ -40,10 +54,7 @@ def filter_unconclusive_probabilities(
     prob_sums = class_probas_y.max(axis=-1)
     conclusive_idx = np.where(prob_sums >= probability_threshold)[0]
 
-    new_tensors = []
-    for i in range(len(input_data_x.tensors)):
-        new_tensors.append(input_data_x.tensors[i][conclusive_idx])
-    new_x = TensorDataset(*new_tensors)
+    new_x = filter_tensor_dataset_by_indices(dataset=input_data_x, filter_ids=conclusive_idx)
 
     if rule_matches_z is not None:
         return new_x, class_probas_y[conclusive_idx], rule_matches_z[conclusive_idx]
