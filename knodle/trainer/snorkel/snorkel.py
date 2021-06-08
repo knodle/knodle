@@ -16,8 +16,10 @@ from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelkNNConfig
 from knodle.trainer.snorkel.utils import (
     z_t_matrix_to_snorkel_matrix,
     prepare_empty_rule_matches,
-    add_labels_for_empty_examples)
+    add_labels_for_empty_examples
+)
 from knodle.transformation.filter import filter_tensor_dataset_by_indices
+
 
 @AutoTrainer.register('snorkel')
 class SnorkelTrainer(MajorityVoteTrainer):
@@ -67,11 +69,15 @@ class SnorkelTrainer(MajorityVoteTrainer):
 
         # train LabelModel
         label_model = LabelModel(cardinality=self.mapping_rules_labels_t.shape[1], verbose=True)
+        fitting_kwargs = {}
+        if self.trainer_config.seed is not None:
+            fitting_kwargs["seed"] = self.trainer_config.seed
+
         label_model.fit(
             L_train,
             n_epochs=self.trainer_config.label_model_num_epochs,
             log_freq=self.trainer_config.label_model_log_freq,
-            seed=self.trainer_config.seed
+            **fitting_kwargs
         )
         label_probs_gen = label_model.predict_proba(L_train)
 
