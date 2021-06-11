@@ -52,7 +52,7 @@ class KNNConfig(MajorityConfig):
                 "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
             )
 
-    def get_cache_file(self):
+    def get_knn_cache_file(self):
         nn_type = "ann" if self.use_approximation else "knn"
         file_tags = f"{self.k}_{nn_type}"
         if self.caching_suffix:
@@ -60,7 +60,7 @@ class KNNConfig(MajorityConfig):
 
         cache_file = os.path.join(
             self.caching_folder,
-            f"denoised_rule_matches_z_{file_tags}.lib"
+            f"knn_denoised_rule_matches_z_{file_tags}.lib"
         )
 
         return cache_file

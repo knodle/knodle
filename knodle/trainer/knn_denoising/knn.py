@@ -9,7 +9,7 @@ from torch.utils.data import TensorDataset
 
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-from annoy import AnnoyIndex
+#from annoy import AnnoyIndex
 
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
