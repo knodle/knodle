@@ -198,7 +198,7 @@ class BaseTrainer(Trainer):
 
             if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
-                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
+                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True, final=False)
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
@@ -268,7 +268,7 @@ class BaseTrainer(Trainer):
         return loss.detach()
 
     def test(
-            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False, final: bool = True
     ) -> Tuple[Dict, Union[float, None]]:
 
         gold_labels = labels.tensors[0].cpu().numpy()
@@ -281,7 +281,7 @@ class BaseTrainer(Trainer):
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
             predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
-        if self.trainer_config.evaluate_with_other_class:
+        if self.trainer_config.evaluate_with_other_class and final:
             clf_report = classification_report_other_class(
                 y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
                 other_class_id=self.trainer_config.other_class_id
