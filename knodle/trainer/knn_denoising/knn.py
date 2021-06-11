@@ -9,7 +9,7 @@ from torch.utils.data import TensorDataset
 
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
-#from annoy import AnnoyIndex
+from annoy import AnnoyIndex
 
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
@@ -80,7 +80,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
 
         # load cached data, if available
         if self.trainer_config.caching_folder:
-            cache_file = self.trainer_config.get_cache_file()
+            cache_file = self.trainer_config.get_knn_cache_file()
             if os.path.isfile(cache_file):
                 logger.info(f"Loaded knn matrix from cache: {cache_file}")
                 return joblib.load(cache_file)
