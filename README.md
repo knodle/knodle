@@ -14,6 +14,7 @@ More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.1
 
 ****
 ### Latest news
+- **June 2021:** Our paper was accepted on [ACL 2021 RepL4NLP Workshop](https://sites.google.com/view/repl4nlp-2021/home).  
 - **Apr 2021: Knodle first release! :rocket:**
 - **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
 
