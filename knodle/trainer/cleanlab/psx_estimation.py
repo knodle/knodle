@@ -127,11 +127,12 @@ def compute_psx_matrix(
 
     for k, (cv_train_dataset, cv_holdout_dataset) in tqdm(enumerate(zip(cv_train_datasets, cv_holdout_datasets))):
         model_copy = copy.deepcopy(model)
-        X_train_cv, y_train_cv = cv_train_dataset.tensors[0].cpu().detach().numpy(), \
-                                 cv_train_dataset.tensors[1].cpu().detach().numpy()
-        X_holdout_cv, indices_holdout_cv, y_holdout_cv = cv_holdout_dataset.tensors[0].cpu().detach().numpy(), \
-                                                         cv_holdout_dataset.tensors[1].cpu().detach().numpy(), \
-                                                         cv_holdout_dataset.tensors[2].cpu().detach().numpy()
+        X_train_cv = cv_train_dataset.tensors[0].cpu().detach().numpy()
+        y_train_cv = cv_train_dataset.tensors[1].cpu().detach().numpy()
+
+        X_holdout_cv = cv_holdout_dataset.tensors[0].cpu().detach().numpy()
+        indices_holdout_cv = cv_holdout_dataset.tensors[1].cpu().detach().numpy()
+        y_holdout_cv = cv_holdout_dataset.tensors[2].cpu().detach().numpy()
 
         # y_train_cv = np.argmax(y_train_cv, axis=1)
         model_copy.fit(X_train_cv, y_train_cv)

@@ -16,6 +16,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
+from knodle.trainer.cleanlab.model_wrapper import SkorchModel
 from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
@@ -250,8 +251,15 @@ class BaseTrainer(Trainer):
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
-        if isinstance(self.model, skorch.NeuralNetClassifier):       # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
-            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
+        if isinstance(self.model, SkorchModel) or isinstance(self.model, skorch.NeuralNetClassifier):
+            # when a pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+            prediction_vals = self.model.predict(dataset_to_numpy_input(features_dataset))
+            if len(prediction_vals.shape) == 1:
+                predictions = prediction_vals
+            elif len(prediction_vals.shape) == self.trainer_config.output_classes:
+                predictions = np.argmax(prediction_vals, axis=-1)
+            else:
+                raise ValueError(f"The predicted value dimension {prediction_vals.shap} is wrong.")
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)

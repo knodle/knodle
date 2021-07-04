@@ -14,6 +14,7 @@ class CleanLabConfig(MajorityConfig):
             psx_calculation_method: str = 'random',
             noise_matrix: str = 'rule2class',      # todo: rename!
             calibrate_cj_matrix: bool = True,
+            train_baseline: bool = False,
             **kwargs
     ):
         """
@@ -68,3 +69,4 @@ class CleanLabConfig(MajorityConfig):
         self.psx_calculation_method = psx_calculation_method
         self.noise_matrix = noise_matrix
         self.calibrate_cj_matrix = calibrate_cj_matrix
+        self.train_baseline = train_baseline
