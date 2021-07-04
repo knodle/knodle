@@ -9,7 +9,7 @@ def filter_tensor_dataset_by_indices(dataset: TensorDataset, filter_ids: Union[n
 
     Args:
         dataset: TensorDataset with a list of tensors, each having first dimension N
-        filter_ids: A list of K indices, K <= N
+        filter_ids: A list of K indices to be kept, K <= N
 
     Returns: TensorDataset with filtered indices
     """

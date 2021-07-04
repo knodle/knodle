@@ -10,7 +10,7 @@ from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
@@ -38,7 +38,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = WSCrossWeighDenoisingConfig(
+            kwargs["trainer_config"] = WSCrossWeighConfig(
                 optimizer=SGD,
                 cw_optimizer=SGD,
                 lr=0.001,
