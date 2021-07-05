@@ -1,6 +1,8 @@
 import os
 import logging
 from typing import Union, Dict, Tuple
+
+import skorch
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 
@@ -14,7 +16,8 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
+from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
 from knodle.trainer.config import BaseTrainerConfig
@@ -56,7 +59,11 @@ class Trainer(ABC):
             self.trainer_config = trainer_config
 
     @abstractmethod
-    def train(self, model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None):
+    def train(
+            self,
+            model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
+            dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
+    ):
         pass
 
     @abstractmethod
@@ -84,6 +91,14 @@ class BaseTrainer(Trainer):
         if dev_model_input_x is not None and dev_gold_labels_y is not None:
             self.dev_model_input_x = dev_model_input_x
             self.dev_gold_labels_y = dev_gold_labels_y
+
+    def _apply_rule_reduction(self):
+        reduced_dict = reduce_rule_matches(
+            rule_matches_z=self.rule_matches_z, mapping_rules_labels_t=self.mapping_rules_labels_t,
+            drop_rules=self.trainer_config.drop_rules, max_rules=self.trainer_config.max_rules,
+            min_coverage=self.trainer_config.min_coverage)
+        self.rule_matches_z = reduced_dict["train_rule_matches_z"]
+        self.mapping_rules_labels_t = reduced_dict["mapping_rules_labels_t"]
 
     def _make_dataloader(
             self, dataset: TensorDataset, shuffle: bool = True
@@ -195,6 +210,7 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
+
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
@@ -242,10 +258,15 @@ class BaseTrainer(Trainer):
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
-        feature_label_dataset = input_labels_to_tensordataset(features_dataset, labels.tensors[0].cpu().numpy())
-        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        gold_labels = labels.tensors[0].cpu().numpy()
 
-        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+        if isinstance(self.model, skorch.NeuralNetClassifier):
+            # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
+        else:
+            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
         if self.trainer_config.evaluate_with_other_class:
             clf_report = classification_report_other_class(

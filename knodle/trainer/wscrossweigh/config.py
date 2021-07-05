@@ -5,7 +5,7 @@ from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("wscrossweigh")
-class WSCrossWeighDenoisingConfig(MajorityConfig):
+class WSCrossWeighConfig(MajorityConfig):
     def __init__(
             self,
             partitions: int = 2,
@@ -20,10 +20,31 @@ class WSCrossWeighDenoisingConfig(MajorityConfig):
             cw_other_class_id: int = None,
             cw_grad_clipping: int = None,
             cw_seed: int = None,
+            draw_plot: bool = False,
             **kwargs
     ):
+        """
+        A default configuration of WSCrossWeigh Trainer.
+
+        :param partitions: number of times the sample weights calculation procedure will be performed
+        (with different folds splitting)
+        :param folds: number of folds the samples will be splitted into in each sample weights calculation iteration
+        :param weight_reducing_rate: a value the sample weight is reduced by each time the sample is misclassified
+        :param samples_start_weights: a start weight of all samples
+        :param cw_epochs: number of epochs WSCrossWeigh models are to be trained
+        :param cw_batch_size: batch size for WSCrossWeigh models training
+        :param cw_optimizer: optimizer for WSCrossWeigh models training
+        :param cw_lr: learning rate for WSCrossWeigh models training
+        :param cw_filter_non_labelled: whether the samples where no rule matched are to be filtered out in WSCrossWeigh
+        :param cw_other_class_id: id of the negative class; if set, the samples with no rule matched will be assigned to
+        it in WSCrossWeigh
+        :param cw_grad_clipping: if set to True, gradient norm of an iterable of parameters will be clipped in WSCrossWeigh
+        :param cw_seed: the desired seed for generating random numbers in WSCrossWeigh
+        :param draw_plot: draw a plot of development data (accuracy & loss)
+        """
 
         super().__init__(**kwargs)
+        self.draw_plot = draw_plot
         self.partitions = partitions
         self.folds = folds
         self.weight_reducing_rate = weight_reducing_rate

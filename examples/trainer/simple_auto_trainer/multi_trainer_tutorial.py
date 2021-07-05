@@ -1,6 +1,5 @@
 import os
-from typing import List
-
+from torch import Tensor
 from tqdm.auto import tqdm
 
 import joblib
@@ -12,24 +11,22 @@ import scipy.sparse as sp
 
 import torch
 from torch.utils.data import TensorDataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
+from transformers import AdamW
 
-from examples.trainer.preprocessing import convert_text_to_transformer_input
-from knodle.trainer import AutoTrainer, AutoConfig
-
+from examples.trainer.preprocessing import get_tfidf_features
+from knodle.trainer import MajorityConfig, KNNConfig, SnorkelConfig, SnorkelKNNConfig
+from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 # This python script contains rarely any explanation. For more description, we refer to the corresponding
 # jupyter notebook. There the steps are explained in more detail
 
 
 # Define some functions
+from knodle.trainer.multi_trainer import MultiTrainer
+from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 
 
 def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
-    """
-
-    :rtype: object
-    """
     if isinstance(x, sp.csr_matrix):
         x = x.toarray()
     x = torch.from_numpy(x)
@@ -38,78 +35,73 @@ def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
 
 
 # Define constants
-imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spouse")
+imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spam")
 processed_data_dir = os.path.join(imdb_data_dir, "processed")
 os.makedirs(processed_data_dir, exist_ok=True)
 
 # Download data
 client = Minio("knodle.dm.univie.ac.at", secure=False)
 files = [
-    "df_train.csv", "df_dev.csv", "df_test.csv",
-    "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
+    "df_train.csv", "df_test.csv",
+    "train_rule_matches_z.lib", "test_rule_matches_z.lib",
     "mapping_rules_labels_t.lib"
 ]
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/spouse/processed", file),
+        object_name=os.path.join("datasets/spam/processed", file),
         file_path=os.path.join(processed_data_dir, file),
     )
 
 # Load data into memory
 df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
-df_dev = pd.read_csv(os.path.join(processed_data_dir, "df_dev.csv"))
 df_test = pd.read_csv(os.path.join(processed_data_dir, "df_test.csv"))
 
 mapping_rules_labels_t = joblib.load(os.path.join(processed_data_dir, "mapping_rules_labels_t.lib"))
 
 train_rule_matches_z = joblib.load(os.path.join(processed_data_dir, "train_rule_matches_z.lib"))
-dev_rule_matches_z = joblib.load(os.path.join(processed_data_dir, "dev_rule_matches_z.lib"))
 test_rule_matches_z = joblib.load(os.path.join(processed_data_dir, "test_rule_matches_z.lib"))
 
 print(f"Train Z dimension: {train_rule_matches_z.shape}")
 print(f"Train avg. matches per sample: {train_rule_matches_z.sum() / train_rule_matches_z.shape[0]}")
 
-model_name = "distilbert-base-uncased"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+# tfidf
+X_train_tfidf, X_test_tfidf, _ = get_tfidf_features(
+    train_data=df_train["sample"].tolist(),
+    test_data=df_test["sample"].tolist()
+)
+# convert input features to datasets
+X_train_tfidf_dataset = TensorDataset(Tensor(X_train_tfidf.toarray()))
+X_test_tfidf_dataset = TensorDataset(Tensor(X_test_tfidf.toarray()))
 
-X_train = convert_text_to_transformer_input(tokenizer, df_train["sample"].tolist())
-X_dev = convert_text_to_transformer_input(tokenizer, df_dev["sample"].tolist())
-X_test = convert_text_to_transformer_input(tokenizer, df_test["sample"].tolist())
-
-y_dev = np_array_to_tensor_dataset(df_dev['label'].values)
+# get test labels
 y_test = np_array_to_tensor_dataset(df_test['label'].values)
 
-# Load AutoTrainer
+# initilize model
+logreg_model = LogisticRegressionModel(X_train_tfidf.shape[1], 2)
 
-model = AutoModelForSequenceClassification.from_pretrained(model_name)
+configs = [
+    MajorityConfig(optimizer=AdamW, lr=1e-4, batch_size=16, epochs=3),
+    KNNConfig(optimizer=AdamW, k=2, lr=1e-4, batch_size=32, epochs=2),
+    SnorkelConfig(optimizer=AdamW),
+    SnorkelKNNConfig(optimizer=AdamW, radius=0.8),
+    WSCrossWeighConfig(optimizer=AdamW)
+]
 
-trainer_type = "majority"
-custom_model_config = AutoConfig.create_config(
-    name=trainer_type,
-    optimizer=AdamW,
-    lr=1e-4,
-    batch_size=16,
-    epochs=2,
-    filter_non_labelled=True
-)
 
-print(custom_model_config)
-
-trainer = AutoTrainer(
-    name="majority",
-    model=model,
+trainer = MultiTrainer(
+    name=["majority", "knn", "snorkel", "snorkel_knn", "wscrossweigh"],
+    model=logreg_model,
     mapping_rules_labels_t=mapping_rules_labels_t,
-    model_input_x=X_train,
+    model_input_x=X_train_tfidf_dataset,
     rule_matches_z=train_rule_matches_z,
-    dev_model_input_x=X_dev,
-    dev_gold_labels_y=y_dev,
-    trainer_config=custom_model_config,
+    trainer_config=configs,
 )
 
 # Run training
 trainer.train()
 
 # Run evaluation
-eval_dict, _ = trainer.test(X_test, y_test)
-print(f"Accuracy: {eval_dict.get('accuracy')}")
+metrics = trainer.test(X_test_tfidf_dataset, y_test)
+for trainer, metric in metrics.items():
+    print(f"Trainer: {trainer}, accuracy: {metric[0].get('accuracy')}")

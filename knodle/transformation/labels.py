@@ -1,20 +1,21 @@
 from typing import Dict
 import numpy as np
 
-def translate_predictions(predictions: np.ndarray, labels: np.ndarray, ids2labels: Dict) -> Dict:
+
+def label_ids_to_labels(predictions: np.ndarray, labels: np.ndarray, ids2labels: Dict) -> [np.ndarray, np.ndarray]:
     """
     Prepare data for string label based evaluation.
-    :param predictions: predicted label ids
-    :param labels: gold label ids
-    :param ids2labels: translation dictionary from string labels to label ids
-    :return:
+
+    Args:
+        predictions: predicted label ids
+        labels: gold label ids
+        ids2labels: translation dictionary from string labels to label ids
+    Returns:
+        Two lists of class labels for predictions and gold labels
     """
     predictions_idx = predictions.astype(int).tolist()
     labels_idx = labels.astype(int).tolist()
 
     predictions = [ids2labels[p] for p in predictions_idx]
-    test_labels = [ids2labels[p] for p in labels_idx]
-    return predictions, test_labels
-
-
-# TODO: add function adding "other" class, if no label is given.
+    gold_labels = [ids2labels[p] for p in labels_idx]
+    return predictions, gold_labels
