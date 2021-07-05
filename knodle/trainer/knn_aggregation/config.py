@@ -52,6 +52,10 @@ class kNNConfig(MajorityConfig):
                 "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
             )
 
+        # if both number of neighbors and radius size are empty, set k=2 by default
+        if self.k is None and self.radius is None:
+            self.k = 2
+
     def get_cache_file(self):
         nn_type = "ann" if self.use_approximation else "knn"
         file_tags = f"{self.k}_{nn_type}"
