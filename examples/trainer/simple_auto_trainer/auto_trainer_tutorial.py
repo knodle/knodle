@@ -38,7 +38,7 @@ def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
 
 
 # Define constants
-imdb_data_dir = os.path.join(os.getcwd(), "data", "imdb")
+imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spouse")
 processed_data_dir = os.path.join(imdb_data_dir, "processed")
 os.makedirs(processed_data_dir, exist_ok=True)
 
@@ -52,7 +52,7 @@ files = [
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/imdb/processed", file),
+        object_name=os.path.join("datasets/spouse/processed", file),
         file_path=os.path.join(processed_data_dir, file),
     )
 
