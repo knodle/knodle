@@ -1,9 +1,5 @@
 import os
-import time
-from typing import List
-
 from torch import Tensor
-from torch.optim import SGD
 from tqdm.auto import tqdm
 
 import joblib
@@ -19,6 +15,7 @@ from transformers import AdamW
 
 from examples.trainer.preprocessing import get_tfidf_features
 from knodle.trainer import MajorityConfig, kNNConfig, SnorkelConfig, SnorkelkNNConfig
+from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 # This python script contains rarely any explanation. For more description, we refer to the corresponding
 # jupyter notebook. There the steps are explained in more detail
@@ -85,7 +82,6 @@ X_test_tfidf_dataset = TensorDataset(Tensor(X_test_tfidf.toarray()))
 y_test = np_array_to_tensor_dataset(df_test['label'].values)
 
 # initilize model
-from knodle.model.logistic_regression_model import LogisticRegressionModel
 logreg_model = LogisticRegressionModel(X_train_tfidf.shape[1], 2)
 
 configs = [
