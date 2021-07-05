@@ -9,6 +9,7 @@ from torch.nn import Module
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
+from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
+@AutoTrainer.register('wscrossweigh')
 class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def __init__(
@@ -76,7 +78,9 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
             input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().detach().numpy(), train_labels)
         )
 
-        self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)
+        self._train_loop(train_loader, use_sample_weights=True, draw_plot=self.trainer_config.draw_plot)
+
+        return self
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """

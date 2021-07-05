@@ -66,3 +66,5 @@ class MajorityVoteTrainer(BaseTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
+
+        return self

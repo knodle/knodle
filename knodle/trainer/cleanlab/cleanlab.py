@@ -88,3 +88,5 @@ class CleanLabTrainer(MajorityVoteTrainer):
         )
         _ = rp.fit(model_input_x_numpy, noisy_y_train, psx=psx)
         logging.info("Training is done.")
+
+        return self
