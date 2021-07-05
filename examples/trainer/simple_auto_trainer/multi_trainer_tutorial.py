@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset
 from transformers import AdamW
 
 from examples.trainer.preprocessing import get_tfidf_features
-from knodle.trainer import MajorityConfig, kNNConfig, SnorkelConfig, SnorkelkNNConfig
+from knodle.trainer import MajorityConfig, KNNConfig, SnorkelConfig, SnorkelKNNConfig
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 # This python script contains rarely any explanation. For more description, we refer to the corresponding
@@ -82,9 +82,9 @@ logreg_model = LogisticRegressionModel(X_train_tfidf.shape[1], 2)
 
 configs = [
     MajorityConfig(optimizer=AdamW, lr=1e-4, batch_size=16, epochs=3),
-    kNNConfig(optimizer=AdamW, k=2, lr=1e-4, batch_size=32, epochs=2),
+    KNNConfig(optimizer=AdamW, k=2, lr=1e-4, batch_size=32, epochs=2),
     SnorkelConfig(optimizer=AdamW),
-    SnorkelkNNConfig(optimizer=AdamW, radius=0.8),
+    SnorkelKNNConfig(optimizer=AdamW, radius=0.8),
     WSCrossWeighConfig(optimizer=AdamW)
 ]
 

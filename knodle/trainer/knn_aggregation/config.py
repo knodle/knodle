@@ -5,7 +5,7 @@ from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("knn")
-class kNNConfig(MajorityConfig):
+class KNNConfig(MajorityConfig):
     def __init__(
             self,
             k: int = None,
@@ -16,7 +16,7 @@ class kNNConfig(MajorityConfig):
             **kwargs
     ):
         """
-        A default configuration of kNNConfig Trainer.
+        A default configuration of KNNConfig Trainer.
 
         :param k: number of neighbors that are to be found
         :param radius: a radius of a point or points the neighbors are to be found within

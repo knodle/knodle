@@ -10,7 +10,7 @@ def test_auto_train(std_trainer_input_1):
         y_labels
     ) = std_trainer_input_1
 
-    trainers = ["majority", "snorkel"]
+    trainers = ["majority", "snorkel", "knn", "snorkel_knn"]
     trainer = MultiTrainer(
         name=trainers,
         model=model,
