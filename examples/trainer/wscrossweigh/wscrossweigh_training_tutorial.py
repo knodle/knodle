@@ -29,7 +29,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     num_classes = int(num_classes)
 
     # Define constants
-    imdb_data_dir = os.path.join(os.getcwd(), "data", "imdb")
+    imdb_data_dir = os.path.join(os.getcwd(), "datasets", "imdb")
     processed_data_dir = os.path.join(imdb_data_dir, "processed")
     os.makedirs(processed_data_dir, exist_ok=True)
 
