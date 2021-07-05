@@ -99,6 +99,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
 
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
@@ -107,6 +108,8 @@ class SnorkelTrainer(MajorityVoteTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
+
+        return self
 
 
 @AutoTrainer.register('snorkel_knn')
@@ -123,6 +126,9 @@ class SnorkelkNNAggregationTrainer(SnorkelTrainer, kNNAggregationTrainer):
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
+        self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
+
         # Snorkel denoising
         denoised_rule_matches_z = self._knn_denoise_rule_matches()
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
@@ -132,3 +138,5 @@ class SnorkelkNNAggregationTrainer(SnorkelTrainer, kNNAggregationTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
+
+        return self

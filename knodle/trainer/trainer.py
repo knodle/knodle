@@ -201,6 +201,8 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
+        return self
+
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
