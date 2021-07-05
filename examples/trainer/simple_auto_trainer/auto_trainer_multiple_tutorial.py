@@ -22,15 +22,11 @@ from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 
 # Define some functions
-from knodle.trainer.auto_multi_trainer import AutoMultiTrainer
+from knodle.trainer.auto_multi_trainer import MultiTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 
 
 def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
-    """
-
-    :rtype: object
-    """
     if isinstance(x, sp.csr_matrix):
         x = x.toarray()
     x = torch.from_numpy(x)
@@ -93,7 +89,7 @@ configs = [
 ]
 
 
-trainer = AutoMultiTrainer(
+trainer = MultiTrainer(
     name=["majority", "knn", "snorkel", "snorkel_knn", "wscrossweigh"],
     model=logreg_model,
     mapping_rules_labels_t=mapping_rules_labels_t,
