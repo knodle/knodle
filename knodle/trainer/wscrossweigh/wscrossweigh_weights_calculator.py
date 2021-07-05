@@ -23,7 +23,7 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
         # save the copy of the original model; later wscrossweigh models for each training with a new hold-out fold
         # will be copied from it
-        self.wscrossweigh_model = copy.deepcopy(self.model)
+        self.wscrossweigh_model = copy.deepcopy(self.model).to(self.trainer_config.device)
         self.sample_weights = torch.empty(0)
 
     def calculate_weights(self) -> torch.FloatTensor:

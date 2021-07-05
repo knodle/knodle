@@ -67,7 +67,6 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
 
         self._train_loop(feature_label_dataloader)
 
-
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """
         Denoises the applied weak supervision source.
