@@ -67,7 +67,6 @@ class kNNAggregationTrainer(MajorityVoteTrainer):
 
         self._train_loop(feature_label_dataloader)
 
-        return self
 
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """

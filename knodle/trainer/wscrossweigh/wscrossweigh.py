@@ -81,7 +81,6 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
 
         self._train_loop(train_loader, use_sample_weights=True, draw_plot=self.trainer_config.draw_plot)
 
-        return self
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """

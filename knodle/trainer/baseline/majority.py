@@ -68,4 +68,3 @@ class MajorityVoteTrainer(BaseTrainer):
 
         self._train_loop(feature_label_dataloader)
 
-        return self

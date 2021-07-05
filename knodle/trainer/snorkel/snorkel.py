@@ -109,8 +109,6 @@ class SnorkelTrainer(MajorityVoteTrainer):
 
         self._train_loop(feature_label_dataloader)
 
-        return self
-
 
 @AutoTrainer.register('snorkel_knn')
 class SnorkelkNNAggregationTrainer(SnorkelTrainer, kNNAggregationTrainer):
@@ -138,5 +136,3 @@ class SnorkelkNNAggregationTrainer(SnorkelTrainer, kNNAggregationTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
-
-        return self
