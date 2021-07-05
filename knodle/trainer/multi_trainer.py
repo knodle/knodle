@@ -22,10 +22,12 @@ class MultiTrainer:
     """ Internal registry for available trainers """
 
     def __init__(self, name: List, **kwargs):
-        self.trainer = []
-        configs = copy.deepcopy(kwargs["trainer_config"])
+        self.trainer, configs = [], []
+        if "trainer_config" in kwargs:
+            configs = copy.deepcopy(kwargs["trainer_config"])
         for i, n in enumerate(name):
-            kwargs["trainer_config"] = configs[i]
+            if configs:
+                kwargs["trainer_config"] = configs[i]
             self.trainer.append(copy.deepcopy(AutoTrainer(n, **kwargs).trainer))
 
     def train(

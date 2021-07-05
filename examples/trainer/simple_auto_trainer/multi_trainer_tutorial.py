@@ -22,7 +22,7 @@ from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 
 # Define some functions
-from knodle.trainer.auto_multi_trainer import MultiTrainer
+from knodle.trainer.multi_trainer import MultiTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 
 
