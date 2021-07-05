@@ -60,6 +60,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with WSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
 
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
