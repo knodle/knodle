@@ -16,21 +16,21 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.knn_aggregation.config import kNNConfig
+from knodle.trainer.knn_aggregation.config import KNNConfig
 from knodle.trainer.utils.denoise import activate_neighbors
 
 logger = logging.getLogger(__name__)
 
 
 @AutoTrainer.register('knn')
-class kNNAggregationTrainer(MajorityVoteTrainer):
+class KNNAggregationTrainer(MajorityVoteTrainer):
     def __init__(
             self,
             knn_feature_matrix: np.ndarray = None,
             **kwargs
     ):
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = kNNConfig(optimizer=SGD, lr=0.001)
+            kwargs["trainer_config"] = KNNConfig(optimizer=SGD, lr=0.001)
         super().__init__(**kwargs)
 
         if knn_feature_matrix is None:
@@ -66,6 +66,7 @@ class kNNAggregationTrainer(MajorityVoteTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
+
 
     def _knn_denoise_rule_matches(self) -> np.ndarray:
         """

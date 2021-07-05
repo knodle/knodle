@@ -5,7 +5,7 @@ from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("knn")
-class kNNConfig(MajorityConfig):
+class KNNConfig(MajorityConfig):
     def __init__(
             self,
             k: int = None,
@@ -16,7 +16,7 @@ class kNNConfig(MajorityConfig):
             **kwargs
     ):
         """
-        A default configuration of kNNConfig Trainer.
+        A default configuration of KNNConfig Trainer.
 
         :param k: number of neighbors that are to be found
         :param radius: a radius of a point or points the neighbors are to be found within
@@ -51,6 +51,10 @@ class kNNConfig(MajorityConfig):
                 "The kNN trainer with exact neighbor selection always uses all of the instances. "
                 "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
             )
+
+        # if both number of neighbors and radius size are empty, set k=2 by default
+        if self.k is None and self.radius is None:
+            self.k = 2
 
     def get_cache_file(self):
         nn_type = "ann" if self.use_approximation else "knn"
