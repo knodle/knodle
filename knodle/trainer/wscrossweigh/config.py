@@ -5,7 +5,7 @@ from knodle.trainer.auto_config import AutoConfig
 
 
 @AutoConfig.register("wscrossweigh")
-class WSCrossWeighDenoisingConfig(MajorityConfig):
+class WSCrossWeighConfig(MajorityConfig):
     def __init__(
             self,
             partitions: int = 2,
@@ -20,6 +20,7 @@ class WSCrossWeighDenoisingConfig(MajorityConfig):
             cw_other_class_id: int = None,
             cw_grad_clipping: int = None,
             cw_seed: int = None,
+            draw_plot: bool = False,
             **kwargs
     ):
         """
@@ -39,9 +40,11 @@ class WSCrossWeighDenoisingConfig(MajorityConfig):
         it in WSCrossWeigh
         :param cw_grad_clipping: if set to True, gradient norm of an iterable of parameters will be clipped in WSCrossWeigh
         :param cw_seed: the desired seed for generating random numbers in WSCrossWeigh
+        :param draw_plot: draw a plot of development data (accuracy & loss)
         """
 
         super().__init__(**kwargs)
+        self.draw_plot = draw_plot
         self.partitions = partitions
         self.folds = folds
         self.weight_reducing_rate = weight_reducing_rate

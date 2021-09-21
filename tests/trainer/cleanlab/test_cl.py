@@ -1,31 +1,19 @@
-import numpy as np
-import torch
 from torch.nn import CrossEntropyLoss
-from torch.utils.data import TensorDataset
 
-from knodle.model.logistic_regression_model import LogisticRegressionModel
+from tests.trainer.generic import std_trainer_input_2
+
 from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 
 
-def test_cleanlab_base_test():
+def test_cleanlab_base_test(std_trainer_input_2):
+    (
+        model,
+        inputs_x, mapping_rules_labels_t, train_rule_matches_z,
+        test_dataset, test_labels
+    ) = std_trainer_input_2
 
-    model = LogisticRegressionModel(5, 2)
-
-    inputs_x = TensorDataset(torch.Tensor(np.array([[1, 1, 1, 1, 1],
-                                                    [2, 2, 2, 2, 2],
-                                                    [3, 3, 3, 3, 3],
-                                                    [6, 6, 6, 6, 6],
-                                                    [7, 7, 7, 7, 7]])))
-
-    mapping_rules_labels_t = np.array([[1, 0], [1, 0], [0, 1]])
-    train_rule_matches_z = np.array([[1, 0, 0], [1, 1, 0], [1, 0, 1], [0, 1, 0], [0, 0, 1]])
-
-    test_dataset = TensorDataset(torch.Tensor(np.array([[4, 4, 4, 4, 4], [5, 5, 5, 5, 5]])))
-    test_labels = TensorDataset(torch.Tensor(np.array([0, 1])))
-
-    config = CleanLabConfig(
-        cv_n_folds=2, criterion=CrossEntropyLoss, use_probabilistic_labels=False, calibrate_cj_matrix=False)
+    config = CleanLabConfig(cv_n_folds=2, criterion=CrossEntropyLoss, use_probabilistic_labels=False)
 
     trainer = CleanLabTrainer(
         model=model,

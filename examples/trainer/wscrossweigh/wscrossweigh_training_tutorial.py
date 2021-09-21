@@ -12,7 +12,7 @@ from tqdm import tqdm
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 from examples.trainer.preprocessing import convert_text_to_transformer_input, get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh import WSCrossWeighTrainer
 
 
@@ -29,7 +29,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     num_classes = int(num_classes)
 
     # Define constants
-    imdb_data_dir = os.path.join(os.getcwd(), "data", "imdb")
+    imdb_data_dir = os.path.join(os.getcwd(), "datasets", "imdb")
     processed_data_dir = os.path.join(imdb_data_dir, "processed")
     os.makedirs(processed_data_dir, exist_ok=True)
 
@@ -87,8 +87,8 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
 
     # define a custom WSCrossWeigh config. If no custom config is defined, the WSCrossWeighTrainer will use the default
-    # WSCrossWeighDenoisingConfig which is stored in the fold with the WSCrossWeigh trainer
-    custom_wscrossweigh_config = WSCrossWeighDenoisingConfig(
+    # WSCrossWeighConfig which is stored in the fold with the WSCrossWeigh trainer
+    custom_wscrossweigh_config = WSCrossWeighConfig(
         # general trainer parameters
         output_classes=num_classes,
         filter_non_labelled=False,

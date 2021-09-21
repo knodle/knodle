@@ -16,14 +16,14 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.knn_denoising.config import KNNConfig
+from knodle.trainer.knn_aggregation.config import KNNConfig
 from knodle.trainer.utils.denoise import activate_neighbors
 
 logger = logging.getLogger(__name__)
 
 
 @AutoTrainer.register('knn')
-class KnnDenoisingTrainer(MajorityVoteTrainer):
+class KNNAggregationTrainer(MajorityVoteTrainer):
     def __init__(
             self,
             knn_feature_matrix: np.ndarray = None,
@@ -44,6 +44,7 @@ class KnnDenoisingTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
 
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()

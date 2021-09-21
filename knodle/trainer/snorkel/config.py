@@ -1,5 +1,5 @@
 from knodle.trainer.baseline.config import MajorityConfig
-from knodle.trainer.knn_denoising.config import KNNConfig
+from knodle.trainer.knn_aggregation.config import KNNConfig
 
 from knodle.trainer.auto_config import AutoConfig
 
@@ -26,7 +26,7 @@ class SnorkelConfig(MajorityConfig):
 
 @AutoConfig.register("snorkel_knn")
 class SnorkelKNNConfig(SnorkelConfig, KNNConfig):
-    """Config class for the SnorkelKNNTrainer, which combines k-NN denoising and the Snorkel Label model, in that order.
+    """Config class for the SnorkelkNNTrainer, which combines k-NN denoising and the Snorkel Label model, in that order.
     See base trainers for configuration possibilities.
     """
 

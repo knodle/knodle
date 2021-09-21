@@ -2,16 +2,19 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()
 [![build status](https://github.com/knodle/knodle/workflows/lint_n_test/badge.svg)](https://github.com/knodle/knodle/actions?branch=style_guide)
 ![PyPI](https://img.shields.io/pypi/v/knodle)
-[![GitHub Release](https://img.shields.io/github/release/knodle/knodle.svg?style=flat)]()  
-
+[![codecov](https://codecov.io/gh/knodle/knodle/branch/develop/graph/badge.svg?token=Y11QJSZKW6)](https://codecov.io/gh/knodle/knodle)
+    
+    
 Knodle (_Knowledge-supervised Deep Learning Framework_) - a new framework for weak supervision with neural networks. It provides a modularization for separating weak data annotations, powerful deep learning models, and methods for improving weakly supervised training.
 
 More details about Knodle are in our recent [paper](https://arxiv.org/abs/2104.11557). 
 
 ****
 ### Latest news
+- **June 2021:** Our paper was accepted on [ACL 2021 RepL4NLP Workshop](https://sites.google.com/view/repl4nlp-2021/home).  
 - **Apr 2021: Knodle first release! :rocket:**
 - **Apr 2021:** Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, Benjamin Roth. [Knodle: Modular Weakly Supervised Learning with PyTorch](https://arxiv.org/abs/2104.11557) (preprint).
 
@@ -71,7 +74,7 @@ variants and is applicable to a large number of tasks.
 - *Accessibility*. There is a high-level access to the library, that makes it easy to test existing methods, incorporate new ones and benchmark them against each other.
 
 
-<img src="img/schema.jpg" height="300"/>
+<img src="img/schema.png" height="300"/>
 
 Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
@@ -94,7 +97,7 @@ There are several denoising methods available.
 | -------------------- | -------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | MajorityVoteTrainer  |`knodle.trainer.baseline`             | This builds the baseline for all methods. No denoising takes place. The final label will be decided by using a simple majority vote approach and the provided model will be trained with these labels.        |
 | AutoTrainer          |`knodle.trainer`                      | This incorporates all denoising methods currently provided in Knodle. |
-| KnnDenoisingTrainer  |`knodle.trainer.knn_denoising`        | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
+| KNNAggregationTrainer|`knodle.trainer.knn_aggregation`      | This method looks at the similarities in sentence values. The intuition behind it is that similar samples should be activated by the same rules which is allowed by a smoothness assumption on the target space. Similar sentences will receive the same label matches of the rules. This counteracts the problem of missing rules for certain labels. |
 | WSCrossWeighTrainer  |`knodle.trainer.wscrossweigh`         | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences. |
 | SnorkelTrainer       |`knodle.trainer.snorkel`              | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.  |
 
@@ -126,7 +129,7 @@ knodle
 │    ├── model
 │    ├── trainer
 │          ├── baseline
-│          ├── knn_denoising
+│          ├── knn_aggregation
 │          ├── snorkel
 │          ├── wscrossweigh
 │          └── utils

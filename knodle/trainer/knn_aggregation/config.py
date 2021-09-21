@@ -35,22 +35,26 @@ class KNNConfig(MajorityConfig):
 
         if self.k is not None and self.radius is not None:
             raise RuntimeError(
-                "The Knn trainer can either use the radius or the number of "
+                "The kNN trainer can either use the radius or the number of "
                 "neighbours to denoise by neighborhood activation"
             )
 
         if self.k is None and self.use_approximation:
             raise RuntimeError(
-                "The Knn trainer can only use the radius for exact neighbor search "
+                "The kNN trainer can only use the radius for exact neighbor search "
                 "Distance-based selection is currently unavailable for approximate NN."
             )
 
         # Currently impossible, though can (should?) be done in the future.
         if not self.use_approximation and not self.activate_no_match_instances:
             raise RuntimeError(
-                "The Knn trainer with exact neighbor selection always uses all of the instances. "
+                "The kNN trainer with exact neighbor selection always uses all of the instances. "
                 "Either 'activate_no_match_instances' or 'use_approximation' has to be set to True."
             )
+
+        # if both number of neighbors and radius size are empty, set k=2 by default
+        if self.k is None and self.radius is None:
+            self.k = 2
 
     def get_cache_file(self):
         nn_type = "ann" if self.use_approximation else "knn"

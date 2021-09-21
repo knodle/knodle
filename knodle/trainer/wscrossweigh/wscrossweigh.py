@@ -9,8 +9,9 @@ from torch.nn import Module
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
+from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
-from knodle.trainer.wscrossweigh.config import WSCrossWeighDenoisingConfig
+from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
+@AutoTrainer.register('wscrossweigh')
 class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def __init__(
@@ -38,7 +40,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         self.cw_rule_matches_z = cw_rule_matches_z if cw_rule_matches_z else kwargs.get("rule_matches_z")
 
         if kwargs.get("trainer_config") is None:
-            kwargs["trainer_config"] = WSCrossWeighDenoisingConfig(
+            kwargs["trainer_config"] = WSCrossWeighConfig(
                 optimizer=SGD,
                 cw_optimizer=SGD,
                 lr=0.001,
@@ -58,6 +60,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
     ):
         """ This function sample_weights the samples with WSCrossWeigh method and train the model """
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self._apply_rule_reduction()
 
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
@@ -76,7 +79,7 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
             input_info_labels_to_tensordataset(self.model_input_x, sample_weights.cpu().detach().numpy(), train_labels)
         )
 
-        self._train_loop(train_loader, use_sample_weights=True, draw_plot=True)
+        self._train_loop(train_loader, use_sample_weights=True, draw_plot=self.trainer_config.draw_plot)
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
