@@ -77,7 +77,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
         # CL denoising and training
         rp = LearningWithNoisyLabelsTorch(
-            clf=self.psx_model,
+            clf=self.model,
             seed=self.trainer_config.seed,
             cv_n_folds=self.trainer_config.cv_n_folds,
             prune_method=self.trainer_config.prune_method,
@@ -123,9 +123,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
         _ = self.fit(rp, self.model_input_x, noisy_y_train, psx)
         logging.info("Training is done.")
 
-    def fit(self, rp: LearningWithNoisyLabels, model_input_x: TensorDataset, noisy_labels: np.ndarray, psx: np.ndarray):
-
-        # self.model = wrap_model_default(self.model, self.trainer_config)
+    def fit(self, rp: LearningWithNoisyLabelsTorch, model_input_x: TensorDataset, noisy_labels: np.ndarray, psx: np.ndarray):
 
         # todo: add rp.pulearning not None
         # Number of classes
@@ -161,21 +159,12 @@ class CleanLabTrainer(MajorityVoteTrainer):
         else:
             raise ValueError("Unknown input format")
 
-        noisy_labels_pruned =noisy_labels[x_mask]
-
-        # noisy_labels_pruned = torch.from_numpy(noisy_labels[x_mask])
-        # x_y_pruned_dataset = TensorDataset(*model_input_x_pruned, torch.from_numpy(noisy_labels_pruned))
-
+        noisy_labels_pruned = noisy_labels[x_mask]
         rule_matches_z_pruned = self.rule_matches_z[x_mask]
 
         rp.sample_weight = calculate_sample_weights(
             rp.K, rp.noise_matrix, noisy_labels_pruned, self.mapping_rules_labels_t, rule_matches_z_pruned
         )
-
-        # in order to train a skorch model with sample weights, we need to pass all the data as dicts - #todo tests lack
-        # todo: what tests? it doesn't work
-        # model_input_x_pruned = {'X': model_input_x_pruned, 'sample_weight': rp.sample_weight}
-        # self.model.fit(model_input_x_pruned, noisy_labels_pruned)
 
         train_loader = self._make_dataloader(
             input_labels_to_tensordataset(model_input_x_pruned, noisy_labels_pruned)
