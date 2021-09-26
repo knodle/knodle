@@ -1,5 +1,4 @@
-import os
-
+import shutil
 from torch.nn import CrossEntropyLoss
 
 from knodle.trainer import WSCrossWeighConfig, WSCrossWeighTrainer
@@ -26,11 +25,7 @@ def test_dscw_base_test(std_trainer_input_2):
     trainer.train()
     clf_report, _ = trainer.test(test_dataset, test_labels)
 
-    os.rmdir(
-        os.path.join(
-            trainer.trainer_config.caching_folder, f"sample_weights_{trainer.trainer_config.caching_suffix}.lib"
-        )
-    )
+    shutil.rmtree(trainer.trainer_config.caching_folder)
 
     # Check that this runs without error
     assert True
@@ -56,9 +51,7 @@ def test_dscw_base_test_with_CE_loss(std_trainer_input_2):
     trainer.train()
     clf_report, _ = trainer.test(test_dataset, test_labels)
 
-    os.rmdir(
-        trainer.trainer_config.caching_folder
-    )
+    shutil.rmtree(trainer.trainer_config.caching_folder)
 
     # Check that this runs without error
     assert True
