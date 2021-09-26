@@ -26,7 +26,7 @@ def test_dscw_base_test(std_trainer_input_2):
     trainer.train()
     clf_report, _ = trainer.test(test_dataset, test_labels)
 
-    os.remove(
+    os.rmdir(
         os.path.join(
             trainer.trainer_config.caching_folder, f"sample_weights_{trainer.trainer_config.caching_suffix}.lib"
         )
@@ -56,7 +56,7 @@ def test_dscw_base_test_with_CE_loss(std_trainer_input_2):
     trainer.train()
     clf_report, _ = trainer.test(test_dataset, test_labels)
 
-    os.remove(
+    os.rmdir(
         trainer.trainer_config.caching_folder
     )
 

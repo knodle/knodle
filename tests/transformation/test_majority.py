@@ -86,8 +86,9 @@ def prob_values():
 def test_get_majority_vote_labels(prob_values):
     z, t, _, gold_labels = prob_values
 
-    majority_labels = z_t_matrices_to_majority_vote_probs(z, t, other_class_id=2, use_probabilistic_labels=False)
-    print(majority_labels)
+    majority_labels = z_t_matrices_to_majority_vote_probs(
+        z, t, choose_random_label=False, other_class_id=2, use_probabilistic_labels=False
+    )
     assert np.array_equal(majority_labels, gold_labels)
 
 
