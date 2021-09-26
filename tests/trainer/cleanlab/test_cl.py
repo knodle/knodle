@@ -9,11 +9,14 @@ from knodle.trainer.cleanlab.config import CleanLabConfig
 def test_cleanlab_base_test(std_trainer_input_2):
     (
         model,
-        inputs_x, mapping_rules_labels_t, train_rule_matches_z,
-        test_dataset, test_labels
+        inputs_x,
+        mapping_rules_labels_t,
+        train_rule_matches_z,
+        test_dataset,
+        test_labels
     ) = std_trainer_input_2
 
-    config = CleanLabConfig(cv_n_folds=2, criterion=CrossEntropyLoss, use_probabilistic_labels=False)
+    config = CleanLabConfig(cv_n_folds=2, criterion=CrossEntropyLoss)
 
     trainer = CleanLabTrainer(
         model=model,

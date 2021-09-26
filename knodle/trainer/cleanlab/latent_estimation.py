@@ -37,7 +37,6 @@ def estimate_cv_predicted_probabilities_split_by_signatures(
         seed: int = None,
         other_class_id: int = None
 ):
-
     cv_train_datasets, cv_holdout_datasets = k_folds_splitting_by_signatures(
         model_input_x, labels, rule_matches_z, partitions=1, num_folds=cv_n_folds, seed=seed,
         other_class_id=other_class_id
@@ -47,7 +46,6 @@ def estimate_cv_predicted_probabilities_split_by_signatures(
 
 
 def compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, labels, num_classes):
-
     psx = np.zeros((len(labels), num_classes))
 
     for k, (cv_train_dataset, cv_holdout_dataset) in tqdm(enumerate(zip(cv_train_datasets, cv_holdout_datasets))):

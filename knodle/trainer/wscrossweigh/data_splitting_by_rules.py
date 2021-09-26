@@ -5,7 +5,8 @@ from typing import List, Dict, Union, Tuple
 import scipy.sparse as sp
 import numpy as np
 import torch
-from torch.utils.data import TensorDataset
+from sklearn.model_selection import KFold
+from torch.utils.data import TensorDataset, SubsetRandomSampler
 
 from knodle.trainer.wscrossweigh.utils import return_unique
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset, input_labels_to_tensordataset
@@ -55,7 +56,7 @@ def k_folds_splitting_by_rules(
 
 
 def k_folds_splitting_by_signatures(
-        data_features: np.ndarray, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
+        data_features: TensorDataset, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
         seed: int = None, other_class_id: int = None
 ) -> Tuple[List, List]:
     """
@@ -91,6 +92,23 @@ def k_folds_splitting_by_signatures(
     return compose_train_n_test_datasets(
         data_features, signature2samples, labels, num_folds, partitions, other_class_id
     )
+
+
+def k_folds_splitting_random(
+        data_features: TensorDataset, labels: np.ndarray, num_folds: int, seed: int = None
+) -> Tuple[List[TensorDataset], List[TensorDataset]]:
+    random.seed(seed) if seed is not None else random.choice(range(9999))
+    kf = KFold(n_splits=num_folds, shuffle=True, random_state=seed)
+
+    train_datasets, test_datasets = [], []
+    for train_ids, test_ids in kf.split(data_features):
+
+        train_dataset = get_dataset_by_sample_ids(data_features, labels, train_ids, save_ids=False)
+        test_dataset = get_dataset_by_sample_ids(data_features, labels, test_ids, save_ids=True)
+        train_datasets.append(train_dataset)
+        test_datasets.append(test_dataset)
+
+    return train_datasets, test_datasets
 
 
 def get_rules_sample_ids(rule_matches_z: Union[np.ndarray, sp.csr_matrix]) -> Dict[str, List[int]]:
@@ -204,22 +222,19 @@ def get_train_test_datasets_by_rule_indices(
     train_rules, test_rules = calculate_rules_indices(rules_ids, fold_id, num_folds)
 
     # select train and test samples and labels according to the selected rules idx
-    test_samples, test_labels, test_idx = get_samples_labels_idx_by_rule_id(
+    test_dataset = get_samples_labels_idx_by_rule_id(
         data_features, labels, test_rules, rule2samples, check_intersections=None,
-        other_sample_ids=other_sample_ids
+        other_sample_ids=other_sample_ids, save_ids=True
     )
 
-    train_samples, train_labels, _ = get_samples_labels_idx_by_rule_id(
-        data_features, labels, train_rules, rule2samples, check_intersections=test_idx,
-        other_sample_ids=other_sample_ids
+    train_dataset = get_samples_labels_idx_by_rule_id(
+        data_features, labels, train_rules, rule2samples, check_intersections=test_dataset.tensors[-2],
+        other_sample_ids=other_sample_ids, save_ids=False
     )
-
-    train_dataset = input_labels_to_tensordataset(train_samples, train_labels)
-    test_dataset = input_info_labels_to_tensordataset(test_samples, test_idx, test_labels)
 
     logger.info(
         f"Fold {fold_id}     Rules in training set: {len(train_rules)}, rules in test set: {len(test_rules)}, "
-        f"samples in training set: {len(train_samples)}, samples in test set: {len(test_samples)}"
+        f"samples in training set: {len(train_dataset.tensors[0])}, samples in test set: {len(test_dataset.tensors[0])}"
     )
 
     return train_dataset, test_dataset
@@ -245,9 +260,9 @@ def calculate_rules_indices(rules_idx: list, fold_id: int, num_folds: int) -> Tu
 
 
 def get_samples_labels_idx_by_rule_id(
-        data_features: TensorDataset, labels: np.ndarray, indices: list, rule2samples: Dict,
-        check_intersections: np.ndarray = None, other_sample_ids: list = None
-) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
+        data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict,
+        check_intersections: np.ndarray = None, other_sample_ids: List = None, save_ids: bool = False
+) -> TensorDataset:
     """
     Extracts the samples and labels from the original matrices by indices. If intersection is filled with
     another sample matrix, it also checks whether the sample is not in this other matrix yet.
@@ -260,8 +275,9 @@ def get_samples_labels_idx_by_rule_id(
     exclude the sentences from the training set which are already in the test set)
     :param other_sample_ids: a list of sample ids that belong to the other class. They won't be included in the test
     set, but only to the training set.
+    :param save_ids: a boolean whether the indices of selected samples will be saved to the dataset.
 
-    :return: samples, labels and indices in the original matrix
+    :return: TensorDataset with samples, labels and (optionally) indices in the original matrix
     """
     sample_ids = [list(rule2samples.get(idx)) for idx in indices]
     sample_ids = list(set([value for sublist in sample_ids for value in sublist]))
@@ -272,9 +288,20 @@ def get_samples_labels_idx_by_rule_id(
     if check_intersections is not None:
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
 
-    # samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
-    samples_dataset = TensorDataset(*[inp[sample_ids] for inp in data_features.tensors])
-    samples_labels = np.array(labels[sample_ids])
-    samples_idx = np.array(sample_ids)
+    return get_dataset_by_sample_ids(data_features, labels, sample_ids, save_ids)
 
-    return samples_dataset, samples_labels, samples_idx
+
+def get_dataset_by_sample_ids(
+        data_features: TensorDataset, labels: np.ndarray, sample_ids: List, save_ids: bool = False
+) -> TensorDataset:
+    """
+    Extracts datasets containing x, y and ids from the original dataset and labels array basing on the ids
+    """
+    # samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
+    samples = TensorDataset(*[inp[sample_ids] for inp in data_features.tensors])
+    labels = np.array(labels[sample_ids])
+    if save_ids:
+        idx = np.array(sample_ids)
+        return input_info_labels_to_tensordataset(samples, idx, labels)
+    else:
+        return input_labels_to_tensordataset(samples, labels)

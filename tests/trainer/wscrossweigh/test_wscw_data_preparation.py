@@ -95,33 +95,39 @@ def test_sample_ids_matched_rules_correspondence(get_test_data):
 
 def test_get_cw_data_test(get_cw_data_test):
     for data in get_cw_data_test:
-        samples, labels, ids = get_samples_labels_idx_by_rule_id(
-            data[0], data[1], data[2], data[3]
+        dataset = get_samples_labels_idx_by_rule_id(
+            data[0], data[1], data[2], data[3], save_ids=True
         )
+        samples, ids, labels = dataset.tensors[0], dataset.tensors[1], dataset.tensors[2]
 
-        assert torch.equal(samples.tensors[0], data[4])
+        assert torch.equal(samples, data[4])
         np.testing.assert_array_equal(labels, data[5])
         np.testing.assert_array_equal(ids, data[6])
 
 
 def test_get_cw_data_train(get_cw_data_train):
     for data in get_cw_data_train:
-        samples, labels, ids = get_samples_labels_idx_by_rule_id(
-            data[0], data[1], data[2], data[3], data[4]
+
+        dataset = get_samples_labels_idx_by_rule_id(
+            data[0], data[1], data[2], data[3], data[4], save_ids=True
         )
 
-        assert torch.equal(samples.tensors[0], data[5])
+        samples, ids, labels = dataset.tensors[0], dataset.tensors[1], dataset.tensors[2]
+
+        assert torch.equal(samples, data[5])
         np.testing.assert_array_equal(labels, data[6])
         np.testing.assert_array_equal(ids, data[7])
 
 
 def test_random_check(get_cw_data_train):
     for data in get_cw_data_train:
-        samples, labels, ids = get_samples_labels_idx_by_rule_id(
-            data[0], data[1], data[2], data[3], data[4]
+        dataset = get_samples_labels_idx_by_rule_id(
+            data[0], data[1], data[2], data[3], data[4], save_ids=True
         )
-        rnd_tst = np.random.randint(0, samples.tensors[0].shape[0])  # take some random index
-        tst_sample = samples.tensors[0][rnd_tst, :]
+        samples, ids, labels = dataset.tensors[0], dataset.tensors[1], dataset.tensors[2]
+
+        rnd_tst = np.random.randint(0, samples.shape[0])  # take some random index
+        tst_sample = samples[rnd_tst, :]
         tst_idx = ids[rnd_tst]
         tst_label = labels[rnd_tst, :] if len(labels.shape) > 1 else labels[rnd_tst]
 

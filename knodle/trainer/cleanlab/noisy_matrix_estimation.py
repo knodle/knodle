@@ -4,6 +4,8 @@ import numpy as np
 from cleanlab.latent_estimation import estimate_latent
 from cleanlab.util import value_counts, clip_values
 
+from knodle.transformation.majority import probabilities_to_majority_vote
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +22,7 @@ def calculate_noise_matrix(
     # calculate noise matrix as a (#rules x #classes) matrix - i.e., original noisy inputs are given with correspondence
     # to rules matched in each sample, while the estimated labels are aggregated pro class.
     if noise_matrix == "rule2class":
-        return estimate_noise_matrix(noisy_labels, psx, rule_matches_z, thresholds, num_classes, calibrate=calibrate)
+        return estimate_noise_matrix_rule2class(noisy_labels, psx, rule_matches_z, thresholds, num_classes, calibrate=calibrate)
 
     # if no special noise matrix calculation method is specified, it will be calculated in CL as usual
     elif noise_matrix == "class2class":
@@ -30,7 +32,7 @@ def calculate_noise_matrix(
         raise ValueError("Unknown noise matrix calculation method.")
 
 
-def estimate_noise_matrix(
+def estimate_noise_matrix_rule2class(
         noisy_labels,
         psx: np.ndarray,
         rule_matches_z: np.ndarray,
@@ -91,9 +93,9 @@ def compute_confident_joint_rule2class(
     confident_joint = np.array(rule_matches_per_class).T
 
     if calibrate:
-        calibrated_confident_joint = calibrate_confident_joint_rule2class(confident_joint, rule_matches_z)
+        return calibrate_confident_joint_rule2class(confident_joint, rule_matches_z)
 
-    return calibrated_confident_joint
+    return confident_joint
 
 
 def estimate_latent_rule2class(

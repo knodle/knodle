@@ -26,7 +26,7 @@ def train_cleanlab(path_to_data: str) -> None:
         # seed=None,
         lr=[0.1],
         cv_n_folds=[3, 5, 8],
-        prune_method=['prune_by_class', 'prune_by_noise_rate', 'both'],
+        prune_method=['prune_by_noise_rate', 'prune_by_class', 'both'],
         epochs=[200],
         batch_size=[128],
         psx_calculation_method=['signatures', 'rules', 'random'],       # how the splitting into folds will be performed
@@ -80,6 +80,9 @@ def train_cleanlab(path_to_data: str) -> None:
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config
             )
+
+            # todo: add params for training while psx matrix calculation (optimizer etc)
+
 
             trainer.train()
             clf_report, _ = trainer.test(test_features_dataset, test_labels_dataset)

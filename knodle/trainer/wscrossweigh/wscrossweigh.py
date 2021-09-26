@@ -15,7 +15,7 @@ from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
+from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs, input_to_majority_vote_input
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
 
 torch.set_printoptions(edgeitems=100)
@@ -65,7 +65,17 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         # initialise optimizer
         self.trainer_config.optimizer = self.initialise_optimizer()
 
-        train_labels = self.calculate_labels()
+        # train_labels = self.calculate_labels()
+
+        # calculate labels based on t and z; perform additional filtering if applicable
+        self.model_input_x, train_labels, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z,
+            self.mapping_rules_labels_t,
+            self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id
+        )
 
         sample_weights = self._get_sample_weights() if self.use_weights \
             else torch.FloatTensor([1] * len(self.model_input_x))
@@ -135,4 +145,5 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
         weights_calculation_config.seed = self.trainer_config.cw_seed
         weights_calculation_config.saved_models_dir = None
+        weights_calculation_config.use_probabilistic_labels = self.trainer_config.use_probabilistic_labels
         return weights_calculation_config

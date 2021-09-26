@@ -37,7 +37,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
             self, model_input_x: TensorDataset, rule_matches_z: np.ndarray
     ) -> Tuple[TensorDataset, np.ndarray]:
         """
-		Trains the generative model.
+        Trains the generative model.
         Premise:
             Snorkel can not make use of rule-unlabeled examples (no rule matches).
             The generative LabelModel assigns such examples a uniform distribution over all available labels,
@@ -114,6 +114,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
 class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
     """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
     """
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)

@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from knodle.transformation.majority import (
-    probabilies_to_majority_vote, z_t_matrices_to_majority_vote_probs, z_t_matrices_to_majority_vote_labels
+    probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, input_to_majority_vote_input
 )
 
 
@@ -20,7 +20,7 @@ def test_probabilies_to_majority_vote_fixed():
     ]
 
     for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
         assert isinstance(result, int)
         assert result == gold_label
@@ -38,7 +38,7 @@ def test_probabilies_to_majority_vote_random():
     ]
 
     for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
         assert isinstance(result, int)
         assert result in gold_label
@@ -50,7 +50,7 @@ def test_probabilies_to_majority_vote_errors():
     )
 
     with pytest.raises(ValueError):
-        result = probabilies_to_majority_vote(probs, **settings)
+        result = probabilities_to_majority_vote(probs, **settings)
 
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def prob_values():
         [0, 0]
     ])
 
-    gold_labels = np.array([-1, 1, 1, -1])
+    gold_labels = np.array([2, 1, 1, 2])
 
     return z, t, gold_probs, gold_labels
 
@@ -86,7 +86,7 @@ def prob_values():
 def test_get_majority_vote_labels(prob_values):
     z, t, _, gold_labels = prob_values
 
-    majority_labels = z_t_matrices_to_majority_vote_labels(z, t, choose_random_label=False, other_class_id=-1)
+    majority_labels = z_t_matrices_to_majority_vote_probs(z, t, other_class_id=2, use_probabilistic_labels=False)
     print(majority_labels)
     assert np.array_equal(majority_labels, gold_labels)
 

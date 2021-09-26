@@ -73,9 +73,9 @@ print(f"Train avg. matches per sample: {train_rule_matches_z.sum() / train_rule_
 model_name = "distilbert-base-uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-X_train = convert_text_to_transformer_input(tokenizer, df_train["sample"].tolist())
-X_dev = convert_text_to_transformer_input(tokenizer, df_dev["sample"].tolist())
-X_test = convert_text_to_transformer_input(tokenizer, df_test["sample"].tolist())
+X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
+X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
+X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
 
 y_dev = np_array_to_tensor_dataset(df_dev['label'].values)
 y_test = np_array_to_tensor_dataset(df_test['label'].values)

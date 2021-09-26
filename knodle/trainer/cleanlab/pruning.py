@@ -20,7 +20,7 @@ def get_noise_indices(
         num_to_remove_per_class=None,
         multi_label=False,
 ) -> np.ndarray:
-    # todo: add multiprocessing as in original CleanLab
+    # todo: add multiprocessing as in the original CleanLab
     # todo: add multi_label
     # todo: sorted_index_method
 
@@ -55,9 +55,12 @@ def get_noise_indices(
     if prune_method == 'prune_by_class' or prune_method == 'both':
         raise ValueError("Method is not implemented yet.")
 
-    if prune_method == 'prune_by_noise_rate':
+    elif prune_method == 'prune_by_noise_rate':
         noise_masks_per_class = [_prune_by_count(k, args) for k in range(num_classes)]
         label_errors_mask = np.stack(noise_masks_per_class).any(axis=0)
+
+    else:
+        raise ValueError("Unknown pruning method!")
 
     # Remove label errors if given label == model prediction
     pred = psx.argmax(axis=1)

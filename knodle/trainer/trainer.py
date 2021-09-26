@@ -3,6 +3,7 @@ import logging
 from typing import Union, Dict, Tuple
 
 import skorch
+from torch.nn.modules.loss import _Loss
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 
@@ -16,6 +17,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
+from knodle.trainer.cleanlab.model_wrapper import SkorchModel
 from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
@@ -164,12 +166,22 @@ class BaseTrainer(Trainer):
                     logits = outputs[0]
 
                 if use_sample_weights:
-                    loss_no_reduction = self.trainer_config.criterion(
-                        logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
-                    )
+                    if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+                        criterion = self.trainer_config.criterion(
+                            weight=self.trainer_config.class_weights, reduction="none"
+                        )
+                        loss_no_reduction = criterion(logits, label_batch)
+                    else:
+                        loss_no_reduction = self.trainer_config.criterion(
+                            logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
+                        )
                     loss = (loss_no_reduction * sample_weights).mean()
                 else:
-                    loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
+                    if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+                        criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights)
+                        loss = criterion(logits, label_batch)
+                    else:
+                        loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
 
                 # backward pass
                 loss.backward()
@@ -224,7 +236,6 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
-
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
@@ -243,10 +254,7 @@ class BaseTrainer(Trainer):
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 outputs = self.model(*input_batch)
-                if isinstance(outputs, torch.Tensor):
-                    prediction_vals = outputs
-                else:
-                    prediction_vals = outputs[0]
+                prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
 
                 if loss_calculation:
                     dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
@@ -274,8 +282,8 @@ class BaseTrainer(Trainer):
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
-        if isinstance(self.model, skorch.NeuralNetClassifier):
-            # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
+        if isinstance(self.model, skorch.NeuralNetClassifier) or isinstance(self.model, SkorchModel):
+            # when the pytorch model is wrapped as a sklearn model (e.g. in cleanlab)
             predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)

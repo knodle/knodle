@@ -16,6 +16,8 @@ class CleanLabConfig(MajorityConfig):
             calibrate_cj_matrix: bool = True,
             train_baseline: bool = False,
             **kwargs
+
+            # todo: add params for training while psx matrix calculation (optimizer etc)
     ):
         """
         All CleanLab specific parameters (except for psx_calculation_method parameter) are inherited from the original

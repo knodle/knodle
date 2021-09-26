@@ -10,7 +10,7 @@ from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.wscrossweigh.data_splitting_by_rules import k_folds_splitting_by_rules
 from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
+from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs, input_to_majority_vote_input
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
@@ -41,14 +41,23 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
         logger.info("======= Denoising with WSCrossWeigh is started =======")
         os.makedirs(self.trainer_config.caching_folder, exist_ok=True)
 
-        noisy_y_train = z_t_matrices_to_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
+        # noisy_y_train = z_t_matrices_to_majority_vote_probs(
+        #     self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
+        # )
+
+        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z,
+            self.mapping_rules_labels_t,
+            self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            other_class_id=self.trainer_config.other_class_id
         )
 
-        if self.trainer_config.filter_non_labelled:
-            self.model_input_x, noisy_y_train, self.rule_matches_z = filter_empty_probabilities(
-                self.model_input_x, noisy_y_train, self.rule_matches_z
-            )
+        # if self.trainer_config.filter_non_labelled:
+        #     self.model_input_x, noisy_y_train, self.rule_matches_z = filter_empty_probabilities(
+        #         self.model_input_x, noisy_y_train, self.rule_matches_z
+        #     )
 
         # initialise sample weights
         self.sample_weights = self.initialise_sample_weights()
@@ -105,9 +114,12 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
 
                 for curr_pred in range(len(predictions)):
                     gold = labels.tolist()[curr_pred]
-                    gold_classes = gold.index(max(gold))
+
+                    if isinstance(gold, list):
+                        gold = gold.index(max(gold))
+
                     guess = predictions[curr_pred]
-                    if guess != gold_classes:       # todo: what if more than one class could be predicted? e.g. conll
+                    if guess != gold:       # todo: what if more than one class could be predicted? e.g. conll
                         wrong_predictions += 1
                         curr_id = data_indices[curr_pred].tolist()
                         self.sample_weights[curr_id] *= self.trainer_config.weight_reducing_rate
