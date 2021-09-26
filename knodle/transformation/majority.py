@@ -65,63 +65,6 @@ def z_t_matrices_to_majority_vote_probs(
         return labels
 
 
-# def input_to_majority_vote_input(
-#         rule_matches_z: np.ndarray,
-#         mapping_rules_labels_t: np.ndarray,
-#         model_input_x: TensorDataset = None,
-#         use_probabilistic_labels: bool = True,
-#         filter_non_labelled: bool = True,
-#         probability_threshold: int = None,
-#         other_class_id: int = None,
-#         choose_random_label: bool = True
-# ) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
-#     """
-#     This function calculates noisy labels y_hat from Knodle Z and T matrices.
-#     :rtype: object
-#     :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules
-#     :param mapping_rules_labels_t: mapping of rules to labels, binary encoded. Shape: rules x classes
-#     :param model_input_x:
-#     :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
-#     or single values.
-#     :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
-#     :param probability_threshold:
-#     :param other_class_id: the id of other class, i.e. the class of no matched samples, if they are to be stored.
-#     :param choose_random_label: Whether a random label is chosen, if there's no clear majority vote.
-#     :return:
-#     """
-#     if other_class_id is not None and filter_non_labelled:
-#         raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
-#
-#     noisy_y_train = z_t_matrices_to_majority_vote_probs(
-#         rule_matches_z,
-#         mapping_rules_labels_t,
-#         use_probabilistic_labels=use_probabilistic_labels,
-#         other_class_id=other_class_id
-#     )
-#
-#     if filter_non_labelled and probability_threshold is not None:
-#         raise ValueError("You can either filter all non labeled samples or those that have probabilities below "
-#                          "some threshold.")
-#
-#     #  filter out samples where no pattern matched
-#     if filter_non_labelled:
-#         model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities(
-#             model_input_x, noisy_y_train, rule_matches_z
-#         )
-#
-#     #  filter out samples where that have probabilities below the threshold
-#     elif probability_threshold is not None:
-#         model_input_x, noisy_y_train = filter_probability_threshold(
-#             model_input_x, noisy_y_train, probability_threshold=probability_threshold
-#             )
-#
-#     if not use_probabilistic_labels:
-#         # convert labels represented as a prob distribution to a single label using majority voting
-#         kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
-#         noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
-#
-#     return model_input_x, noisy_y_train, rule_matches_z
-
 def input_to_majority_vote_input(
         rule_matches_z: np.ndarray,
         mapping_rules_labels_t: np.ndarray,
@@ -130,20 +73,26 @@ def input_to_majority_vote_input(
         filter_non_labelled: bool = True,
         probability_threshold: int = None,
         other_class_id: int = None,
+        choose_random_label: bool = True
 ) -> np.ndarray:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
-    :param model_input_x:
     :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules
     :param mapping_rules_labels_t: mapping of rules to labels, binary encoded. Shape: rules x classes
-    :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
-    :param other_class_id: the id of other class, i.e. the class of no matched samples, if they are to be stored.
+    :param model_input_x:
     :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
     or single values.
+    :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
+    :param probability_threshold:
+    :param other_class_id: the id of other class, i.e. the class of no matched samples, if they are to be stored.
+    :param choose_random_label:
     :return:
     """
     if other_class_id is not None and filter_non_labelled:
         raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
+
+    if other_class_id:
+        choose_random_label = False     # todo: refactoring needed
 
     noisy_y_train = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
 
@@ -165,7 +114,7 @@ def input_to_majority_vote_input(
 
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
-        kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
+        kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
         noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
     return model_input_x, noisy_y_train, rule_matches_z
