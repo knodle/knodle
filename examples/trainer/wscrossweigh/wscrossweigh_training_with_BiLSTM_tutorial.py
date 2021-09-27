@@ -93,7 +93,7 @@ def train_wscrossweigh(
         run_classifier=True
     )
     trainer.train()
-    clf_report, _ = trainer.test(test_dataset, test_labels_dataset)
+    clf_report = trainer.test(test_dataset, test_labels_dataset)
     print(clf_report)
 
 

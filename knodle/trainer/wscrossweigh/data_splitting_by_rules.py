@@ -97,12 +97,13 @@ def k_folds_splitting_by_signatures(
 def k_folds_splitting_random(
         data_features: TensorDataset, labels: np.ndarray, num_folds: int, seed: int = None
 ) -> Tuple[List[TensorDataset], List[TensorDataset]]:
+    """ """
     random.seed(seed) if seed is not None else random.choice(range(9999))
     kf = KFold(n_splits=num_folds, shuffle=True, random_state=seed)
 
     train_datasets, test_datasets = [], []
-    for train_ids, test_ids in kf.split(data_features):
 
+    for train_ids, test_ids in kf.split(data_features):
         train_dataset = get_dataset_by_sample_ids(data_features, labels, train_ids, save_ids=False)
         test_dataset = get_dataset_by_sample_ids(data_features, labels, test_ids, save_ids=True)
         train_datasets.append(train_dataset)
@@ -200,7 +201,7 @@ def compose_train_n_test_datasets(
 
 def get_train_test_datasets_by_rule_indices(
         data_features: TensorDataset, rules_ids: List[int], rule2samples: Dict, labels: np.ndarray, fold_id: int,
-        num_folds: int, other_sample_ids: List[int]
+        num_folds: int, other_sample_ids: List[int] = None
 ) -> Tuple[TensorDataset, TensorDataset]:
     """
     This function returns train and test datasets for k-fold cross validation training. Each dataloader comprises
@@ -240,9 +241,10 @@ def get_train_test_datasets_by_rule_indices(
     return train_dataset, test_dataset
 
 
-def calculate_rules_indices(rules_idx: list, fold_id: int, num_folds: int) -> Tuple[list, list]:
+def calculate_rules_indices(rules_idx: List, fold_id: int, num_folds: int) -> Tuple[List, List]:
     """
-    Calculates the indices of the samples which are to be included in training and test sets for k-fold cross validation
+    Calculates the indices of the rules; samples that contain these rules
+    will be included in training and test sets for k-fold cross validation
 
     :param rules_idx: all rules indices (shuffled) that are to be splitted into cw training & cw test set rules
     :param fold_id: number of a current hold-out fold
@@ -297,7 +299,6 @@ def get_dataset_by_sample_ids(
     """
     Extracts datasets containing x, y and ids from the original dataset and labels array basing on the ids
     """
-    # samples_dataset = TensorDataset(torch.Tensor(data_features.tensors[0][sample_ids]))
     samples = TensorDataset(*[inp[sample_ids] for inp in data_features.tensors])
     labels = np.array(labels[sample_ids])
     if save_ids:

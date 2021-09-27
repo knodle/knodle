@@ -23,7 +23,7 @@ def test_dscw_base_test(std_trainer_input_2):
     )
 
     trainer.train()
-    clf_report, _ = trainer.test(test_dataset, test_labels)
+    clf_report = trainer.test(test_dataset, test_labels)
 
     shutil.rmtree(trainer.trainer_config.caching_folder)
 
@@ -49,7 +49,7 @@ def test_dscw_base_test_with_CE_loss(std_trainer_input_2):
     )
 
     trainer.train()
-    clf_report, _ = trainer.test(test_dataset, test_labels)
+    _ = trainer.test(test_dataset, test_labels)
 
     shutil.rmtree(trainer.trainer_config.caching_folder)
 

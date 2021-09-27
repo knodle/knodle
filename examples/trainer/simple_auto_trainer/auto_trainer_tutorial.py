@@ -111,5 +111,5 @@ trainer = AutoTrainer(
 trainer.train()
 
 # Run evaluation
-eval_dict, _ = trainer.test(X_test, y_test)
+eval_dict = trainer.test(X_test, y_test)
 print(f"Accuracy: {eval_dict.get('accuracy')}")
