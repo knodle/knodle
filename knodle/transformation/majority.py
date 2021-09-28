@@ -9,12 +9,12 @@ from torch.utils.data import TensorDataset
 from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
 
 
+# todo: all functions here need refactoring...
+
 def z_t_matrices_to_majority_vote_probs(
         rule_matches_z: np.ndarray,
         mapping_rules_labels_t: np.ndarray,
-        other_class_id: int = None,
-        use_probabilistic_labels: bool = True,
-        choose_random_label: bool = True
+        other_class_id: int = None
 ) -> np.ndarray:
     """
     This function calculates a majority vote probability for all rule_matches_z. The difference from simple
@@ -26,6 +26,8 @@ def z_t_matrices_to_majority_vote_probs(
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         other_class_id: Class which is chosen, if no function is hitting.
+        use_probabilistic_labels:
+        choose_random_label:
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
 
@@ -52,17 +54,11 @@ def z_t_matrices_to_majority_vote_probs(
             rule_counts[~rule_counts.any(axis=1), other_class_id] = 1
         else:
             raise ValueError("Other class id is incorrect")
+
     labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
     labels_probs[np.isnan(labels_probs)] = 0
 
-    if use_probabilistic_labels:
-        return labels_probs
-
-    else:
-        # convert labels represented as a prob distribution to a single label using majority voting
-        kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
-        labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=labels_probs, **kwargs)
-        return labels
+    return labels_probs
 
 
 def input_to_majority_vote_input(
@@ -74,7 +70,7 @@ def input_to_majority_vote_input(
         probability_threshold: int = None,
         other_class_id: int = None,
         choose_random_label: bool = True
-) -> np.ndarray:
+) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
     :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules
@@ -91,14 +87,17 @@ def input_to_majority_vote_input(
     if other_class_id is not None and filter_non_labelled:
         raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
 
-    if other_class_id:
-        choose_random_label = False     # todo: refactoring needed
-
-    noisy_y_train = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
-
     if filter_non_labelled and probability_threshold is not None:
-        raise ValueError("You can either filter all non labeled samples or those that have probabilities below "
-                         "some threshold.")
+        raise ValueError("You can either filter all non labeled samples or those with probabilities below threshold.")
+
+    if other_class_id:
+        choose_random_label = False     # todo: more reflection & ev. refactoring needed
+
+    noisy_y_train = z_t_matrices_to_majority_vote_probs(
+        rule_matches_z,
+        mapping_rules_labels_t,
+        other_class_id=other_class_id
+    )
 
     #  filter out samples where no pattern matched
     if filter_non_labelled:
