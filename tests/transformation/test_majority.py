@@ -124,15 +124,6 @@ def prob_values_filtered():
     return z, t, x, x_filtered, z_filtered, gold_probs_filtered, gold_labels_filtered
 
 
-def test_get_majority_vote_labels(prob_values):
-    z, t, _, _, gold_labels = prob_values
-
-    majority_labels = z_t_matrices_to_majority_vote_probs(
-        z, t, choose_random_label=False, other_class_id=2, use_probabilistic_labels=False
-    )
-    assert np.array_equal(majority_labels, gold_labels)
-
-
 def test_get_majority_vote_probs(prob_values):
     z, t, _, gold_probs, _ = prob_values
 
