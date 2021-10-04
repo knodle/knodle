@@ -15,7 +15,7 @@ from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 
 from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs, input_to_majority_vote_input
+from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
 
 torch.set_printoptions(edgeitems=100)
@@ -93,8 +93,13 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
-        train_labels = z_t_matrices_to_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
+        train_labels = input_to_majority_vote_input(
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            probability_threshold=self.trainer_config.probability_threshold,
+            other_class_id=self.trainer_config.other_class_id,
+            choose_random_label=self.trainer_config.choose_random_label
         )
 
         if self.trainer_config.filter_non_labelled:

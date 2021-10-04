@@ -101,6 +101,7 @@ class BaseTrainerConfig(TrainerConfig):
             self,
             filter_non_labelled: bool = True,
             other_class_id: int = None,
+            choose_random_label: bool = True,
             evaluate_with_other_class: bool = False,
             ids2labels: Dict = None,
             max_rules: int = None,
@@ -121,6 +122,7 @@ class BaseTrainerConfig(TrainerConfig):
         super().__init__(**kwargs)
         self.filter_non_labelled = filter_non_labelled
         self.other_class_id = other_class_id
+        self.choose_random_label = choose_random_label
         self.evaluate_with_other_class = evaluate_with_other_class
         self.ids2labels = ids2labels
 

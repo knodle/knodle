@@ -1,8 +1,7 @@
 import os
 import logging
-from typing import Union, Dict, Tuple
+from typing import Dict, Tuple
 
-import skorch
 from torch.nn.modules.loss import _Loss
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
@@ -17,8 +16,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.trainer.cleanlab.model_wrapper import SkorchModel
-from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 
@@ -135,8 +133,8 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False,
-            draw_plot: bool = False
+            self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False,
+            print_progress: bool = True
     ):
         log_section("Training starts", logger)
 
@@ -148,8 +146,12 @@ class BaseTrainer(Trainer):
             dev_losses, dev_acc = [], []
 
         for current_epoch in range(self.trainer_config.epochs):
-            # logger.info("Epoch: {}".format(current_epoch))
+
+            if print_progress:
+                logger.info("Epoch: {}".format(current_epoch))
+
             epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
+
             for batch in feature_label_dataloader:
                 input_batch, label_batch = self._load_batch(batch)
                 steps += 1
@@ -165,29 +167,16 @@ class BaseTrainer(Trainer):
                 else:
                     logits = outputs[0]
 
-                # todo: refactoring needed
                 if use_sample_weights:
-                    if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
-                        criterion = self.trainer_config.criterion(
-                            weight=self.trainer_config.class_weights, reduction="none"
-                        )
-                        loss_no_reduction = criterion(logits, label_batch)
-                    else:
-                        loss_no_reduction = self.trainer_config.criterion(
-                            logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
-                        )
-                    loss = (loss_no_reduction * sample_weights).mean()
+                    loss = self.calculate_loss_with_sample_weights(logits, label_batch, sample_weights)
                 else:
-                    if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
-                        criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights)
-                        loss = criterion(logits, label_batch)
-                    else:
-                        loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
+                    loss = self.calculate_loss(logits, label_batch)
 
                 # backward pass
                 loss.backward()
                 if isinstance(self.trainer_config.grad_clipping, (int, float)):
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
+
                 self.trainer_config.optimizer.step()
                 acc = accuracy_of_probs(logits, label_batch)
 
@@ -195,19 +184,21 @@ class BaseTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                # try:
-                #     if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
-                #         logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
-                # except ZeroDivisionError:
-                #     continue
+                if print_progress:
+                    try:
+                        if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
+                            logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                    except ZeroDivisionError:
+                        continue
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            # logger.info("Epoch train loss: {}".format(avg_loss))
-            # logger.info("Epoch train accuracy: {}".format(avg_acc))
+            if print_progress:
+                logger.info("Epoch train loss: {}".format(avg_loss))
+                logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
@@ -260,7 +251,8 @@ class BaseTrainer(Trainer):
                 prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
 
                 if loss_calculation:
-                    dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
+                    # dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
+                    dev_loss += self.calculate_loss(prediction_vals, label_batch.long())
 
                 # add predictions and labels
                 predictions = np.argmax(prediction_vals.detach().cpu().numpy(), axis=-1)
@@ -272,12 +264,12 @@ class BaseTrainer(Trainer):
 
         return predictions, gold_labels, dev_loss
 
-    def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
-        """ Calculates the loss on the dev set using given criterion"""
-        predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
-        labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
-        loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
-        return loss.detach()
+    # def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
+    #     """ Calculates the loss on the dev set using given criterion"""
+    #     predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
+    #     labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
+    #     loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
+    #     return loss.detach()
 
     def test(self, features_dataset: TensorDataset, labels: TensorDataset) -> Dict:
         """
@@ -288,20 +280,15 @@ class BaseTrainer(Trainer):
         """
 
         gold_labels = labels.tensors[0].cpu().numpy()
-
-        if isinstance(self.model, skorch.NeuralNetClassifier) or isinstance(self.model, SkorchModel):
-            # when the pytorch model is wrapped as a sklearn model (e.g. in cleanlab)
-            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
-        else:
-            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
-            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
-            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader)
+        feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader)
 
         clf_report = self.collect_report(predictions, gold_labels)
 
         return clf_report
 
-    def test_with_loss(self, features_dataset: TensorDataset, labels: TensorDataset) -> Union[Dict, Tuple[Dict, float]]:
+    def test_with_loss(self, features_dataset: TensorDataset, labels: TensorDataset) -> Tuple[Dict, float]:
         """
         The function tests the trained model on the test set and returns the classification report and average loss.
         :param features_dataset: TensorDataset with test samples
@@ -310,21 +297,14 @@ class BaseTrainer(Trainer):
         """
         gold_labels = labels.tensors[0].cpu().numpy()
 
-        if isinstance(self.model, skorch.NeuralNetClassifier) or isinstance(self.model, SkorchModel):
-            # when the pytorch model is wrapped as a sklearn model (e.g. in cleanlab)
-            logging.warning(
-                "Loss calculation with skorch is not possible. Validation report without loss will be returned"
-            )
-            return self.test(features_dataset, labels)
-        else:
-            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
-            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
-            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation=True)
+        feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation=True)
 
-            clf_report = self.collect_report(predictions, gold_labels)
-            avg_los = dev_loss / len(feature_label_dataloader)
+        clf_report = self.collect_report(predictions, gold_labels)
+        avg_los = dev_loss / len(feature_label_dataloader)
 
-            return clf_report, avg_los
+        return clf_report, avg_los
 
     def collect_report(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Dict:
         """
@@ -340,3 +320,22 @@ class BaseTrainer(Trainer):
             )
         else:
             return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
+
+    def calculate_loss_with_sample_weights(self, logits: Tensor, gold_labels: Tensor, sample_weights: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(
+                weight=self.trainer_config.class_weights, reduction="none"
+            )
+            loss_no_reduction = criterion(logits, gold_labels)
+        else:
+            loss_no_reduction = self.trainer_config.criterion(
+                logits, gold_labels, weight=self.trainer_config.class_weights, reduction="none"
+            )
+        return (loss_no_reduction * sample_weights).mean()
+
+    def calculate_loss(self, logits: Tensor, gold_labels: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights)
+            return criterion(logits, gold_labels)
+        else:
+            return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)

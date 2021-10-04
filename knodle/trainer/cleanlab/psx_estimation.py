@@ -1,14 +1,16 @@
 import copy
 import logging
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 import torch
 from skorch import NeuralNetClassifier
-from torch import Tensor
+from torch import Tensor, nn
+from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
+from knodle.trainer import MajorityConfig
 from knodle.trainer.wscrossweigh.data_splitting_by_rules import (
     k_folds_splitting_by_rules, k_folds_splitting_by_signatures, k_folds_splitting_random
 )
@@ -22,8 +24,10 @@ def calculate_psx(
         noisy_labels: np.ndarray,
         rule_matches_z: np.ndarray,
         model: NeuralNetClassifier,
-        config,
+        config: MajorityConfig,
 ) -> Union[np.ndarray, None]:
+
+    num_samples = len(model_input_x)
 
     # calculate psx in advance with splitting by rules
     if config.psx_calculation_method == "rules":
@@ -38,7 +42,7 @@ def calculate_psx(
             other_class_id=None
         )
 
-        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, noisy_labels, config)
+        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, num_samples, config)
 
     # calculate psx in advance with splitting by signatures
     elif config.psx_calculation_method == "signatures":
@@ -52,7 +56,7 @@ def calculate_psx(
             other_class_id=None
         )
 
-        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, noisy_labels, config)
+        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, num_samples, config)
 
     # calculate psx in advance with splitting randomly
     elif config.psx_calculation_method == "random":
@@ -64,7 +68,7 @@ def calculate_psx(
             seed=config.seed
         )
 
-        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, noisy_labels, config)
+        return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, num_samples, config)
 
     else:
         raise ValueError("Unknown psx calculation method.")
@@ -72,63 +76,49 @@ def calculate_psx(
 
 def compute_psx_matrix(
         model: NeuralNetClassifier,
-        cv_train_datasets: TensorDataset,
-        cv_holdout_datasets: TensorDataset,
-        labels: np.ndarray,
-        config
+        cv_train_datasets: List[TensorDataset],
+        cv_holdout_datasets: List[TensorDataset],
+        num_samples: int,
+        config: MajorityConfig
 ) -> np.ndarray:
     """ my function """
-
-    if not config.output_classes:
-        output_classes = len(np.unique(labels))
-    else:
-        output_classes = config.output_classes
-
-    # Ensure labels are of type np.array()
-    labels = np.asarray(labels)
-
-    psx = np.zeros((len(labels), output_classes))
+    psx = np.zeros((num_samples, config.output_classes))
 
     for k, (cv_train_dataset, cv_holdout_dataset) in tqdm(enumerate(zip(cv_train_datasets, cv_holdout_datasets))):
-        model_copy = copy.deepcopy(model).to(config.device)
-
         indices_holdout_cv = cv_holdout_dataset.tensors[1].cpu().detach().numpy()
+        curr_psx_cv = calculate_psx_row(cv_train_dataset, cv_holdout_dataset, model, config)
 
-        test_loader = make_dataloader(cv_holdout_dataset)   # todo: here shuffle = True by default. Shouldn't it be false?
-        train_loader = make_dataloader(cv_train_dataset)
+        assert [psx[idx][0] == 0 and psx[idx][1] == 0 for idx in indices_holdout_cv]
 
-        model_copy = wscl_train_loop(
-            model_copy,
-            train_loader,
-            config      # todo: add special params for calculation psx
-        )
-        psx_cv = wscl_test_loop(
-            model_copy,
-            test_loader,
-            config.device
-        )
-        psx[indices_holdout_cv] = psx_cv
-
-        # Fit the clf classifier to the training set and
-        # predict on the holdout set and update psx.
-        # model_copy.fit(X_train_cv, y_train_cv)
-        # psx_cv = model_copy.predict_proba(X_holdout_cv)  # P(s = k|x) # [:,1]
-        # psx[indices_holdout_cv] = psx_cv
+        psx[indices_holdout_cv] = curr_psx_cv.cpu().detach().numpy()
 
     return psx
 
 
-def wscl_train_loop(model, feature_label_dataloader, config):
+def calculate_psx_row(
+        cv_train_dataset: TensorDataset, cv_holdout_dataset: TensorDataset, model: NeuralNetClassifier,
+        config: MajorityConfig
+) -> Tensor:
+    model_copy = copy.deepcopy(model).to(config.device)
+
+    test_loader = DataLoader(cv_holdout_dataset, batch_size=config.batch_size)
+    train_loader = DataLoader(cv_train_dataset, batch_size=config.batch_size)
+
+    model_copy = wscl_train_loop(model_copy, train_loader, config)  # todo: add special params for calculation psx
+    psx_cv = wscl_test_loop(model_copy, test_loader, config)
+
+    return psx_cv
+
+
+def wscl_train_loop(model: nn.Module, feature_label_dataloader: DataLoader, config: MajorityConfig):
     model.to(config.device)
     model.train()
 
-    optimizer = config.optimizer(params=model.parameters(), lr=config.lr)
-    criterion = config.criterion()
+    optimizer = config.cl_optimizer(params=model.parameters(), lr=config.cl_lr)
 
-    for current_epoch in range(config.epochs):
-        logger.info("Epoch: {}".format(current_epoch))
+    for current_epoch in range(config.cl_epochs):
 
-        for batch in tqdm(feature_label_dataloader):
+        for batch in feature_label_dataloader:
             features, labels = load_batch(batch, config.device)
 
             # forward pass
@@ -138,26 +128,36 @@ def wscl_train_loop(model, feature_label_dataloader, config):
                 logits = outputs
             else:
                 logits = outputs[0]
-            loss = criterion(logits, labels)
+
+            # todo: duplicated code (the same is in trainer.py)
+            if isinstance(config.cl_criterion, type) and issubclass(config.cl_criterion, _Loss):
+                criterion = config.cl_criterion(weight=config.class_weights).to(config.device)
+                loss = criterion(logits, labels)
+            else:
+                loss = config.cl_criterion(logits, labels, weight=config.class_weights)
+
+            if isinstance(config.grad_clipping, (int, float)):
+                torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clipping)
+
             loss.backward()
             optimizer.step()
-
+            model.to(config.device)
     return model
 
 
-def wscl_test_loop(model, test_loader, device):
+def wscl_test_loop(model: nn.Module, test_loader: DataLoader, config: MajorityConfig) -> Tensor:
     model.eval()
     predictions_list = []
 
     with torch.no_grad():
-        for batch in tqdm(test_loader):
-            features, labels = load_batch(batch, device)
+        for batch in test_loader:
+            features, labels = load_batch(batch, config.device)
             data_features, data_indices = features[:-1], features[-1]
 
             outputs = model(*data_features)
             prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
             predictions_list.append(prediction_vals)
-    predictions = np.squeeze(np.hstack(predictions_list))
+    predictions = torch.cat(predictions_list)
     return predictions
 
 
@@ -165,7 +165,3 @@ def load_batch(batch, device):
     features = [inp.to(device) for inp in batch[0: -1]]
     labels = batch[-1].to(device)
     return features, labels
-
-
-def make_dataloader(dataset: TensorDataset, batch_size: int = 32, shuffle: bool = True) -> DataLoader:
-    return DataLoader(dataset, batch_size=batch_size, drop_last=False, shuffle=shuffle)

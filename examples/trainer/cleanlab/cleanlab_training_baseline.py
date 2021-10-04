@@ -38,7 +38,7 @@ def train_cleanlab(path_to_data: str) -> None:
     exp_results = []
     for exp in range(0, num_experiments):
         clf = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=1000)
-        rp = LearningWithNoisyLabels(clf=clf, seed=seed)
+        rp = LearningWithNoisyLabels(clf=clf, seed=seed, n_jobs=1)
         _ = rp.fit(train_input_x, train_labels)
         pred = rp.predict(test_input_x)
 

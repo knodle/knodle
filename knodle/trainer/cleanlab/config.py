@@ -1,3 +1,8 @@
+from typing import Callable
+
+from torch import Tensor
+from torch.optim.optimizer import Optimizer
+
 from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.auto_config import AutoConfig
 
@@ -7,14 +12,19 @@ class CleanLabConfig(MajorityConfig):
     def __init__(
             self,
             cv_n_folds=5,
+            iterations=1,
+            use_prior: bool = False,
             prune_method: str = 'prune_by_noise_rate',
             converge_latent_estimates=False,
             pulearning=None,
             n_jobs: int = None,
             psx_calculation_method: str = 'random',
-            noise_matrix: str = 'rule2class',      # todo: rename!
+            noise_matrix: str = 'rule2class',
             calibrate_cj_matrix: bool = True,
-            train_baseline: bool = False,
+            cl_epochs: int = None,
+            cl_optimizer: Optimizer = None,
+            cl_lr: float = None,
+            cl_criterion: Callable[[Tensor, Tensor], float] = None,
             **kwargs
 
             # todo: add params for training while psx matrix calculation (optimizer etc)
@@ -64,6 +74,8 @@ class CleanLabConfig(MajorityConfig):
 
         super().__init__(**kwargs)
         self.cv_n_folds = cv_n_folds
+        self.iterations = iterations
+        self.use_prior = use_prior
         self.prune_method = prune_method
         self.converge_latent_estimates = converge_latent_estimates
         self.pulearning = pulearning
@@ -71,4 +83,23 @@ class CleanLabConfig(MajorityConfig):
         self.psx_calculation_method = psx_calculation_method
         self.noise_matrix = noise_matrix
         self.calibrate_cj_matrix = calibrate_cj_matrix
-        self.train_baseline = train_baseline
+
+        if cl_criterion:
+            self.cl_criterion = cl_criterion
+        else:
+            self.cl_criterion = self.criterion
+
+        if cl_epochs:
+            self.cl_epochs = cl_epochs
+        else:
+            self.cl_epochs = self.epochs
+
+        if cl_optimizer:
+            self.cl_optimizer = cl_optimizer
+        else:
+            self.cl_optimizer = self.optimizer
+
+        if cl_lr:
+            self.cl_lr = cl_lr
+        else:
+            self.cl_lr = self.lr

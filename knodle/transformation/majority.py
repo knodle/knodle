@@ -64,7 +64,7 @@ def z_t_matrices_to_majority_vote_probs(
 def input_to_majority_vote_input(
         rule_matches_z: np.ndarray,
         mapping_rules_labels_t: np.ndarray,
-        model_input_x: TensorDataset,
+        model_input_x: TensorDataset = None,
         use_probabilistic_labels: bool = True,
         filter_non_labelled: bool = True,
         probability_threshold: int = None,
@@ -101,12 +101,16 @@ def input_to_majority_vote_input(
 
     #  filter out samples where no pattern matched
     if filter_non_labelled:
+        if not model_input_x:
+            raise ValueError("In order to filter non labeled samples, please provide X matrix as well.")
         model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities(
             model_input_x, noisy_y_train, rule_matches_z
         )
 
     #  filter out samples where that have probabilities below the threshold
     elif probability_threshold is not None:
+        if not model_input_x:
+            raise ValueError("In order to filter non labeled samples, please provide X matrix as well.")
         model_input_x, noisy_y_train = filter_probability_threshold(
             model_input_x, noisy_y_train, probability_threshold=probability_threshold
             )

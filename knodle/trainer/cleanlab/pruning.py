@@ -3,72 +3,88 @@ from typing import List
 import numpy as np
 from cleanlab.pruning import _prune_by_class, _prune_by_count
 from cleanlab.util import value_counts, round_preserving_row_totals
+from sklearn.preprocessing import normalize
 
 # Leave at least this many examples in each class after
 # pruning, regardless if noise estimates are larger.
 MIN_NUM_PER_CLASS = 5         # 100
 
 
-def get_noise_indices(
-        noisy_labels,
-        psx,
-        confident_joint,
-        rule2class,
-        prune_method='prune_by_noise_rate',
-        num_classes=None,
-        frac_noise=1.0,
-        num_to_remove_per_class=None,
-        multi_label=False,
-) -> np.ndarray:
-    # todo: add multiprocessing as in the original CleanLab
-    # todo: add multi_label
-    # todo: sorted_index_method
+# def get_noise_indices(
+#         noisy_labels,
+#         psx,
+#         confident_joint,
+#         rule2class,
+#         t_matrix,
+#         prune_method='prune_by_noise_rate',
+#         num_classes=None,
+#         frac_noise=1.0,
+#         num_to_remove_per_class=None,
+#         multi_label=False,
+# ) -> np.ndarray:
+#     """
+#
+#     :param noisy_labels: original labels calculated from x and t multiplication
+#     :param psx: probabilistic labels calculated with cross-validation
+#     :param confident_joint: C matrix (rules x classes) with confident estimations
+#     :param rule2class: t matrix = rules to classes correspondence
+#     :param prune_method: prune method that will be used:
+#             'prune_by_noise_rate':
+#             'prune_by_class':
+#             'both':
+#             # todo: sorted_index_method
+#     :param num_classes: number of output classes
+#     :param frac_noise:
+#     :param num_to_remove_per_class:
+#     :param multi_label:  # todo: add multi_label
+#     :return:
+#     """
+#     # todo: add multiprocessing as in the original CleanLab
+#
+#     # amount of samples in each class (according to the original noisy labels)
+#     noisy_labels_counts = value_counts(noisy_labels)
+#     noisy_labels = np.asarray(noisy_labels)
+#
+#     # todo: add custom_keep_at_least_n_per_class
+#     # todo: add if num_to_remove_per_class is not None
+#
+#     args = (noisy_labels, noisy_labels_counts, confident_joint, psx, multi_label, t_matrix)
+#
+#
+#     return t_matrix_updated
 
-    noisy_labels_counts = value_counts(noisy_labels)
-    noisy_labels = np.asarray(noisy_labels)  # ensure labels are of type np.array()
 
-    # Number of classes s
-    if not num_classes:
-        num_classes = len(psx.T)
+def update_t_matrix(prune_count_matrix, t_matrix) -> np.ndarray:
+    """
 
-    # Leave at least MIN_NUM_PER_CLASS examples per class.
-    # NOTE prune_count_matrix is transposed (relative to confident_joint)
-    prune_count_matrix = custom_keep_at_least_n_per_class(
-        prune_count_matrix=confident_joint.T,
-        mapping_rules_labels_t=rule2class.T,
-        min_per_class=MIN_NUM_PER_CLASS,
-        frac_noise=frac_noise,
-    )
+    :param noisy_labels: original labels calculated from x and t multiplication
+    :param psx: probabilistic labels calculated with cross-validation
+    :param confident_joint: C matrix (rules x classes) with confident estimations
+    :return:
+    """
+    normalized_prune_counts = normalize(prune_count_matrix, axis=1, norm='l1')
+    updated_t_matrix = t_matrix * 0.5 + normalized_prune_counts * 0.5
 
-    if num_to_remove_per_class is not None:
-        # Estimate joint probability distribution over label errors
-        psy = prune_count_matrix / np.sum(prune_count_matrix, axis=1)
-        noise_per_noisy_label = psy.sum(axis=1) - psy.diagonal()
-        # Calibrate s.t. noise rates sum to num_to_remove_per_class
-        tmp = (psy.T * num_to_remove_per_class / noise_per_noisy_label).T
-        np.fill_diagonal(tmp, noisy_labels_counts - num_to_remove_per_class)
-        prune_count_matrix = round_preserving_row_totals(tmp)
+    # the first version: sum and divide
+    # t_matrix_updated = np.zeros_like(t_matrix, dtype="float")
+    # for rule in range(prune_count_matrix.shape[0]):
+    #     rule_count_sum = sum(prune_count_matrix[rule, :]) + sum(t_matrix[rule, :])
+    #     for label in range(prune_count_matrix.shape[1]):
+    #         t_matrix_updated[rule][label] = (prune_count_matrix[rule][label] + t_matrix[rule][label]) / rule_count_sum
 
-    args = (noisy_labels, noisy_labels_counts, prune_count_matrix, psx, multi_label)
+    return updated_t_matrix
 
-    # Perform Pruning with threshold probabilities from BFPRT algorithm in O(n)
-    if prune_method == 'prune_by_class' or prune_method == 'both':
-        raise ValueError("Method is not implemented yet.")
 
-    elif prune_method == 'prune_by_noise_rate':
-        noise_masks_per_class = [_prune_by_count(k, args) for k in range(num_classes)]
-        label_errors_mask = np.stack(noise_masks_per_class).any(axis=0)
-
-    else:
-        raise ValueError("Unknown pruning method!")
-
-    # Remove label errors if given label == model prediction
-    pred = psx.argmax(axis=1)
-    for i, pred_label in enumerate(pred):
-        if pred_label == noisy_labels[i]:
-            label_errors_mask[i] = False
-
-    return label_errors_mask
+def update_t_matrix_with_prior(prune_count_matrix, t_matrix) -> np.ndarray:
+    """
+    :param prune_count_matrix: C matrix (rules x classes) with confident estimations
+    :return:
+    """
+    prior = np.mean(prune_count_matrix)
+    print(f"Prior: {prior}")
+    t_matrix_with_prior = t_matrix * prior
+    updated_t_matrix = normalize(t_matrix_with_prior + prune_count_matrix, axis=1, norm='l1')
+    return updated_t_matrix
 
 
 def _prune_by_count_rule2class(k: int, args: List) -> np.ndarray:
@@ -109,8 +125,13 @@ return noise_mask
 def custom_keep_at_least_n_per_class(
         prune_count_matrix: np.ndarray, mapping_rules_labels_t: np.ndarray, min_per_class: int, frac_noise: float = 1.0
 ) -> np.ndarray:
-
-    # get the entries which are corresponded to the original (noisy) t matrix entries (let's call them "equalities")
+    """
+    Make sure every class has at least n examples after removing noise.
+    # Leave at least MIN_NUM_PER_CLASS examples per class.
+    # NOTE prune_count_matrix is transposed (relative to confident_joint)
+    """
+    # get the number of samples corresponded to the original (noisy) t matrix entries (let's call them "equalities")
+    # e.g. how many samples labeled originally with some label y' get the same label in prune_count_matrix
     prune_count_matrix_equals = prune_count_matrix.T[mapping_rules_labels_t.T == 1]
 
     # Set "equalities" that are less than n, to n.
@@ -144,9 +165,10 @@ def custom_keep_at_least_n_per_class(
 def custom_reduce_prune_counts(
         prune_count_matrix: np.ndarray, mapping_rules_labels_t: np.ndarray, frac_noise: float = 1.0
 ) -> np.ndarray:
-
+    # todo: clarify this function!
     eq_idx = (mapping_rules_labels_t == 1)
 
+    # todo: this is relevant only if frac_noise != 1 -> clarify !
     new_mat = prune_count_matrix * frac_noise
     new_mat[eq_idx] = prune_count_matrix[eq_idx]
 

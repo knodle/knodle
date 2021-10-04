@@ -1,16 +1,13 @@
 import logging
 from typing import Union, Tuple
 import numpy as np
-from cleanlab.latent_estimation import estimate_latent
-from cleanlab.util import value_counts, clip_values
-
-from knodle.transformation.majority import probabilities_to_majority_vote
+import scipy.sparse as sp
+from cleanlab.util import clip_values
 
 logger = logging.getLogger(__name__)
 
 
 def calculate_noise_matrix(
-        noisy_labels,
         psx: np.ndarray,
         rule_matches_z: np.ndarray,
         thresholds: np.ndarray,
@@ -22,7 +19,7 @@ def calculate_noise_matrix(
     # calculate noise matrix as a (#rules x #classes) matrix - i.e., original noisy inputs are given with correspondence
     # to rules matched in each sample, while the estimated labels are aggregated pro class.
     if noise_matrix == "rule2class":
-        return estimate_noise_matrix_rule2class(noisy_labels, psx, rule_matches_z, thresholds, num_classes, calibrate=calibrate)
+        return estimate_noise_matrix_rule2class(psx, rule_matches_z, thresholds, num_classes, calibrate=calibrate)
 
     # if no special noise matrix calculation method is specified, it will be calculated in CL as usual
     elif noise_matrix == "class2class":
@@ -33,19 +30,16 @@ def calculate_noise_matrix(
 
 
 def estimate_noise_matrix_rule2class(
-        noisy_labels,
         psx: np.ndarray,
         rule_matches_z: np.ndarray,
         thresholds: np.ndarray,
         num_classes: int,
-        converge_latent_estimates: bool = False,
-        calibrate: bool = True,
-        py_method: str = 'cnt'
+        calibrate: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     confident_joint = compute_confident_joint_rule2class(psx, rule_matches_z, thresholds, num_classes, calibrate)
 
-    py, noise_matrix, inv_noise_matrix = estimate_latent_rule2class(
+    _, noise_matrix, inv_noise_matrix = estimate_latent_rule2class(
         confident_joint=confident_joint,
         rule_matches_z=rule_matches_z,
         # py_method=py_method,
@@ -89,7 +83,12 @@ def compute_confident_joint_rule2class(
     # get indices of samples that belong to a particular class
     sample_indices_per_class = [np.where(y_confident == k)[0] for k in range(num_classes)]
     # calculate the number of each rule matched in samples in each class
-    rule_matches_per_class = [rule_matches_z[sample_idx].sum(axis=0) for sample_idx in sample_indices_per_class]
+    if isinstance(rule_matches_z, sp.csr_matrix):
+        rule_matches_per_class = [
+            np.squeeze(np.array(rule_matches_z[sample_idx, :].sum(axis=0))) for sample_idx in sample_indices_per_class
+        ]
+    else:
+        rule_matches_per_class = [rule_matches_z[sample_idx].sum(axis=0) for sample_idx in sample_indices_per_class]
     confident_joint = np.array(rule_matches_per_class).T
 
     if calibrate:
@@ -120,15 +119,23 @@ def estimate_latent_rule2class(
     # todo: add clip_noise_rates from the original CL estimate_latent ?
     # py = compute_py_rule2class(p_rules, noise_matrix, inv_noise_matrix, py_method)
     py = 0
+
+    # todo: add converge_latent_estimates
     return py, noise_matrix, inv_noise_matrix
 
 
 def calibrate_confident_joint_rule2class(confident_joint: np.ndarray, rule_matches_z: np.ndarray) -> np.ndarray:
-
-    sample_pro_rule_counts = rule_matches_z.sum(axis=0)
-    calibrated_cj = (confident_joint.T / confident_joint.sum(axis=1) * sample_pro_rule_counts).T
-    # calibrated_cj = calibrated_cj / np.sum(calibrated_cj) * sum(noisy_labels_counts)        # double check
-    return calibrated_cj
+    # confident_joint: (9, 2)
+    # rule_matches_z: (5734, 9)
+    # sample_pro_rule_counts: (9, )
+    if isinstance(rule_matches_z, sp.csr_matrix):
+        sample_pro_rule_counts_ = np.squeeze(np.array(rule_matches_z.sum(axis=0)))
+        calibrated_cj = (confident_joint.T / confident_joint.sum(axis=1) * sample_pro_rule_counts_).T
+        return np.nan_to_num(calibrated_cj)
+    else:
+        sample_pro_rule_counts = rule_matches_z.sum(axis=0)
+        # calibrated_cj = calibrated_cj / np.sum(calibrated_cj) * sum(noisy_labels_counts)        # double check
+        return (confident_joint.T / confident_joint.sum(axis=1) * sample_pro_rule_counts).T
 
 
 def compute_py_rule2class(ps, noise_matrix, inverse_noise_matrix, py_method='cnt'):

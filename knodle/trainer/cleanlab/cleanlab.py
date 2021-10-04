@@ -1,8 +1,10 @@
 import logging
+from typing import Union, Tuple
 
 import torch
 import numpy as np
-from cleanlab.classification import LearningWithNoisyLabels
+import scipy.sparse as sp
+
 from torch.utils.data import TensorDataset
 from torch.utils.data.dataset import Subset
 
@@ -10,12 +12,14 @@ from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.cleanlab.classification import LearningWithNoisyLabelsTorch
 from knodle.trainer.cleanlab.config import CleanLabConfig
-from knodle.trainer.cleanlab.pruning import get_noise_indices
+from knodle.trainer.cleanlab.pruning import update_t_matrix, update_t_matrix_with_prior
 from knodle.trainer.cleanlab.psx_estimation import calculate_psx
 from knodle.trainer.cleanlab.noisy_matrix_estimation import calculate_noise_matrix
-from knodle.trainer.cleanlab.utils import calculate_sample_weights
-from knodle.transformation.majority import input_to_majority_vote_input, probabilities_to_majority_vote
-from knodle.transformation.torch_input import dataset_to_numpy_input, input_labels_to_tensordataset
+from knodle.trainer.cleanlab.utils import calculate_threshold
+from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
+from knodle.transformation.majority import probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, \
+    input_to_majority_vote_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +45,6 @@ class CleanLabTrainer(MajorityVoteTrainer):
                            "each sample will be chosen with majority voting instead")
             self.trainer_config.use_probabilistic_labels = False
 
-            # todo: check the compatibility of criterion for correct loss calculation
-
     def train(
             self,
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
@@ -50,30 +52,48 @@ class CleanLabTrainer(MajorityVoteTrainer):
     ) -> None:
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+        self.trainer_config.optimizer = self.initialise_optimizer()
 
-        if dev_model_input_x is not None and dev_gold_labels_y is not None:
-            logger.info("Validation data is not used in Cleanlab training")
+        noisy_y_train = self.calculate_labels()
+        best_dev_loss = 1000
 
-        # CL accepts only sklearn.classifier compliant class -> we wrap the PyTorch models with Scorch
-        # self.psx_model = wrap_model_default(self.psx_model, self.trainer_config)
+        for i in range(self.trainer_config.iterations):
 
-        # todo: current testing: noisy_y_train = matrix with probs (samples x classes), NOT ONE HOT - test differently
-        #  as well
+            logger.info(f"Iteration: {i}")
+            t_matrix_updated = self.denoise_t_matrix(noisy_y_train)
+            self.psx_model_input_x, new_noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+                self.rule_matches_z, t_matrix_updated, self.psx_model_input_x,
+                filter_non_labelled=self.trainer_config.filter_non_labelled,
+                choose_random_label=self.trainer_config.choose_random_label,
+                other_class_id=self.trainer_config.other_class_id,
+                use_probabilistic_labels=False
+            )
+            labels_updated = sum(~np.equal(noisy_y_train, new_noisy_y_train))
+            logger.info(
+                f"Labels changed: {labels_updated} out of {len(noisy_y_train)}"
+            )
+            noisy_y_train = new_noisy_y_train
 
-        # calculate labels based on t and z; perform additional filtering if applicable
-        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
-            self.rule_matches_z,
-            self.mapping_rules_labels_t,
-            self.model_input_x,
-            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
-            filter_non_labelled=self.trainer_config.filter_non_labelled,
-            other_class_id=self.trainer_config.other_class_id
-        )
+            train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train))
+            self._train_loop(train_loader, print_progress=False)
 
-        # train simple baseline with the original CL
-        if self.trainer_config.train_baseline:
-            model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
-            return self.train_baseline(model_input_x_numpy, noisy_y_train)
+            if self.dev_model_input_x:
+                clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
+                if dev_loss < best_dev_loss:
+                    best_dev_loss = dev_loss
+                    logger.info(f"Clf_report: {clf_report}, Dev loss: {dev_loss}, denoising continues. ")
+                else:
+                    logger.info(f"The model does not improve on the dev set (dev loss: {dev_loss}). Denoising stops.")
+                    break
+
+            else:
+                if labels_updated == 0:
+                    logger.info("No more iterations since the labels do not change anymore.")
+                    break
+
+        logging.info("Training is done.")
+
+    def denoise_t_matrix(self, noisy_y_train):
 
         # CL denoising and training
         rp = LearningWithNoisyLabelsTorch(
@@ -95,93 +115,118 @@ class CleanLabTrainer(MajorityVoteTrainer):
             config=self.trainer_config
         )
 
-        # calculate thresholds per class
-        # P(we predict the given noisy label is k | given noisy label is k) - the same way it is done in the original CL
-        if self.trainer_config.use_probabilistic_labels:
-            noisy_y_train_labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train)
-            thresholds = np.asarray(
-                [np.mean(psx[:, k][np.asarray(noisy_y_train_labels) == k]) for k in
-                 range(self.trainer_config.output_classes)]
-            )
-        else:
-            thresholds = np.asarray(
-                [np.mean(psx[:, k][np.asarray(noisy_y_train) == k]) for k in
-                 range(self.trainer_config.output_classes)]
-            )
+        # calculate threshold values
+        thresholds = calculate_threshold(psx, noisy_y_train, self.trainer_config.output_classes)
 
         # calculate a noise matrix in advance if applicable
         rp.noise_matrix, rp.inv_noise_matrix, rp.confident_joint = calculate_noise_matrix(
-            noisy_y_train,
-            psx=psx,
-            rule_matches_z=self.rule_matches_z,
-            thresholds=thresholds,
+            psx, self.rule_matches_z, thresholds,
             num_classes=self.trainer_config.output_classes,
             noise_matrix=self.trainer_config.noise_matrix,
             calibrate=self.trainer_config.calibrate_cj_matrix
         )
 
-        _ = self.fit(rp, self.model_input_x, noisy_y_train, psx)
-        logging.info("Training is done.")
-
-    def fit(self, rp: LearningWithNoisyLabelsTorch, model_input_x: TensorDataset, noisy_labels: np.ndarray, psx: np.ndarray):
-
-        # todo: add rp.pulearning not None
-        # Number of classes
-        if not self.trainer_config.output_classes:
-            rp.K = len(np.unique(noisy_labels))
+        if self.trainer_config.use_prior:
+            # 2nd method: normalized((t matrix * prior) + confident_joint)
+            t_matrix_updated = update_t_matrix_with_prior(rp.confident_joint, self.mapping_rules_labels_t)
         else:
-            rp.K = self.trainer_config.output_classes
+            # 1st method: 0,5 * (normalized confident_joint) + 0,5 * (t matrix)
+            t_matrix_updated = update_t_matrix(rp.confident_joint, self.mapping_rules_labels_t)
 
-        # rp.ps = value_counts(noisy_labels) / float(len(noisy_labels))       # 'ps' is p(s=k)
-        rp.noise_mask = get_noise_indices(
-            noisy_labels,
-            psx,
-            confident_joint=rp.confident_joint,
-            rule2class=self.mapping_rules_labels_t,
-            prune_method=rp.prune_method,
-            num_classes=self.trainer_config.output_classes,
-            # n_jobs=rp.n_jobs,
-            # frac_noise=0.5
-        )
-        x_mask = ~rp.noise_mask
+        logger.info(t_matrix_updated)
+        return t_matrix_updated
 
-        if isinstance(model_input_x, np.ndarray):
-            model_input_x_pruned = model_input_x[x_mask]
+    def calculate_labels(self):
 
-        elif isinstance(model_input_x, TensorDataset):
-            # todo: write tests
-            model_input_x_pruned_subset = [data for data in Subset(model_input_x, np.where(x_mask)[0])]
-            model_input_x_pruned = TensorDataset(*[
-                torch.stack(([tensor[i] for tensor in model_input_x_pruned_subset]))
-                for i in range(len(model_input_x.tensors))
-            ])
+        # todo: mb merge all checks to a separate function (in majority.py as well)?
+        if self.trainer_config.filter_non_labelled and self.trainer_config.probability_threshold is not None:
+            raise ValueError(
+                "You can either filter all non labeled samples or those with probabilities below threshold.")
+        if self.trainer_config.other_class_id is not None and self.trainer_config.filter_non_labelled:
+            raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
 
-        else:
-            raise ValueError("Unknown input format")
+        # calculate labels based on t and z; perform additional filtering if applicable
+        labels_probs = z_t_matrices_to_majority_vote_probs(self.rule_matches_z, self.mapping_rules_labels_t)
+
+        #  filter out samples where no pattern matched
+        if self.trainer_config.filter_non_labelled:
+            self.model_input_x, labels_probs_filtered_, rule_matches_z_filtered_ = filter_empty_probabilities(
+                self.model_input_x, labels_probs, self.rule_matches_z
+            )
+            self.psx_model_input_x, labels_probs_filtered, rule_matches_z_filtered = filter_empty_probabilities(
+                self.psx_model_input_x, labels_probs, self.rule_matches_z
+            )
+
+            assert np.array_equal(labels_probs_filtered, labels_probs_filtered_)
+
+            if isinstance(rule_matches_z_filtered, sp.csr_matrix):
+                assert np.sum(rule_matches_z_filtered != rule_matches_z_filtered) == 0
+            else:
+                assert np.array_equal(rule_matches_z_filtered, rule_matches_z_filtered_)
+
+            labels_probs = labels_probs_filtered
+            self.rule_matches_z = rule_matches_z_filtered
+
+        #  filter out samples where that have probabilities below the threshold
+        elif self.trainer_config.probability_threshold is not None:
+            self.model_input_x, labels_probs_filtered_ = filter_probability_threshold(
+                self.model_input_x, labels_probs, probability_threshold=self.trainer_config.probability_threshold
+            )
+            self.psx_model_input_x, labels_probs_filtered = filter_probability_threshold(
+                self.psx_model_input_x, labels_probs, probability_threshold=self.trainer_config.probability_threshold
+            )
+            assert np.array_equal(labels_probs_filtered, labels_probs_filtered_)
+            labels_probs = labels_probs_filtered
+
+        kwargs = {
+            "choose_random_label": self.trainer_config.choose_random_label,
+            "other_class_id": self.trainer_config.other_class_id
+        }
+        labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=labels_probs, **kwargs)
+
+        return labels
+
+    def get_pruned_input(self, x_mask, noisy_labels) -> Tuple[Union[np.ndarray, TensorDataset], np.ndarray, np.ndarray]:
 
         noisy_labels_pruned = noisy_labels[x_mask]
         rule_matches_z_pruned = self.rule_matches_z[x_mask]
 
-        rp.sample_weight = calculate_sample_weights(
-            rp.K, rp.noise_matrix, noisy_labels_pruned, self.mapping_rules_labels_t, rule_matches_z_pruned
-        )
+        if isinstance(self.model_input_x, np.ndarray):
+            return self.model_input_x[x_mask], noisy_labels_pruned, rule_matches_z_pruned
 
-        train_loader = self._make_dataloader(
-            input_labels_to_tensordataset(model_input_x_pruned, noisy_labels_pruned)
-        )
-        self.trainer_config.optimizer = self.initialise_optimizer()
-        self._train_loop(train_loader)
+        elif isinstance(self.model_input_x, TensorDataset):
+            # todo: write tests
+            model_input_x_pruned_subset = [data for data in Subset(self.model_input_x, np.where(x_mask)[0])]
+            model_input_x_pruned = TensorDataset(*[
+                torch.stack(([tensor[i] for tensor in model_input_x_pruned_subset]))
+                for i in range(len(self.model_input_x.tensors))
+            ])
+            return model_input_x_pruned, noisy_labels_pruned, rule_matches_z_pruned
 
-    def train_baseline(self, model_input_x: np.ndarray, noisy_labels: np.ndarray):
-        rp = LearningWithNoisyLabels(clf=self.model, seed=self.trainer_config.seed)
-        _ = rp.fit(model_input_x, noisy_labels)
-        return rp.clf
+        else:
+            raise ValueError("Unknown input format")
+
+    # def fit(self, rp: LearningWithNoisyLabelsTorch, noisy_labels: np.ndarray, psx: np.ndarray):
+    #
+    #     # todo: add rp.pulearning not None
+    #
+    #     rp.ps = value_counts(noisy_labels) / float(len(noisy_labels))       # 'ps' is p(s=k)
+    #
+    #     model_input_x_pruned, noisy_labels_pruned, rule_matches_z_pruned = self.get_pruned_input(
+    #         ~label_errors_mask, noisy_labels
+    #     )
+    #     # todo: add sample weights (currently: only the function from the original CL)
+    #     rp.sample_weight = calculate_sample_weights(
+    #         rp.K, label_errors_mask, noisy_labels_pruned, self.mapping_rules_labels_t, rule_matches_z_pruned
+    #     )
+    #     train_loader = self._make_dataloader(
+    #         input_labels_to_tensordataset(model_input_x_pruned, noisy_labels_pruned)
+    #     )
 
 
 
 
 '''
-Ben: 
 1) calculate a threshold per class (the average probability of a class for instances labeled as the class)
         -> average probability that we expect for this class 
 2) C matrix (LFs x classes): how many instances for one LF are confidently labeled as the class of the LF

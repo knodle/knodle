@@ -9,8 +9,7 @@ from joblib import dump
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.utils import log_section
 from knodle.trainer.wscrossweigh.data_splitting_by_rules import k_folds_splitting_by_rules
-from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs, input_to_majority_vote_input
+from knodle.transformation.majority import input_to_majority_vote_input
 
 logger = logging.getLogger(__name__)
 torch.set_printoptions(edgeitems=100)
