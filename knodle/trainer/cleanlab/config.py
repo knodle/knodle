@@ -21,10 +21,10 @@ class CleanLabConfig(MajorityConfig):
             psx_calculation_method: str = 'random',
             noise_matrix: str = 'rule2class',
             calibrate_cj_matrix: bool = True,
-            cl_epochs: int = None,
-            cl_optimizer: Optimizer = None,
-            cl_lr: float = None,
-            cl_criterion: Callable[[Tensor, Tensor], float] = None,
+            psx_epochs: int = None,
+            psx_optimizer: Optimizer = None,
+            psx_lr: float = None,
+            psx_criterion: Callable[[Tensor, Tensor], float] = None,
             **kwargs
 
             # todo: add params for training while psx matrix calculation (optimizer etc)
@@ -84,22 +84,22 @@ class CleanLabConfig(MajorityConfig):
         self.noise_matrix = noise_matrix
         self.calibrate_cj_matrix = calibrate_cj_matrix
 
-        if cl_criterion:
-            self.cl_criterion = cl_criterion
+        if psx_criterion:
+            self.psx_criterion = psx_criterion
         else:
-            self.cl_criterion = self.criterion
+            self.psx_criterion = self.criterion
 
-        if cl_epochs:
-            self.cl_epochs = cl_epochs
+        if psx_epochs:
+            self.psx_epochs = psx_epochs
         else:
-            self.cl_epochs = self.epochs
+            self.psx_epochs = self.epochs
 
-        if cl_optimizer:
-            self.cl_optimizer = cl_optimizer
+        if psx_optimizer:
+            self.psx_optimizer = psx_optimizer
         else:
-            self.cl_optimizer = self.optimizer
+            self.psx_optimizer = self.optimizer
 
-        if cl_lr:
-            self.cl_lr = cl_lr
+        if psx_lr:
+            self.psx_lr = psx_lr
         else:
-            self.cl_lr = self.lr
+            self.psx_lr = self.lr

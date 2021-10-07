@@ -28,11 +28,11 @@ def train_cleanlab_bert(path_to_data: str) -> None:
         lr=[0.1],
         cv_n_folds=[3, 5, 8],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
-        epochs=[20],
+        epochs=[2],
         batch_size=[32],
         psx_calculation_method=['random', 'signatures', 'rules'],      # how the splitting into folds will be performed
-        cl_epochs=[2],
-        cl_lr=[0.8]
+        psx_epochs=[20],
+        psx_lr=[0.8]
     )
     parameter_values = [v for v in parameters.values()]
 
@@ -53,17 +53,19 @@ def train_cleanlab_bert(path_to_data: str) -> None:
     X_test_bert = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
 
     results = []
-    for run_id, (lr, cv_n_folds, prune_method, epochs, batch_size, psx_calculation_method, cl_epochs, cl_lr) in \
-            enumerate(product(*parameter_values)):
+    for run_id, (params) in enumerate(product(*parameter_values)):
+
+        lr, cv_n_folds, prune_method, epochs, batch_size, psx_calculation_method, psx_epochs, psx_lr = params
 
         print("======================================")
         params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
-                 f'batch_size = {batch_size} psx_calculation_method = {psx_calculation_method} cl_epochs = {cl_epochs}'\
-                 f'cl_lr = {cl_lr} '
+                 f'batch_size = {batch_size} psx_calculation_method = {psx_calculation_method} ' \
+                 f'psx_epochs = {psx_epochs} psx_lr = {psx_lr} '
         print(f"Parameters: {params}")
         print("======================================")
 
-        exp_results = []
+        exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
+
         for exp in range(0, num_experiments):
 
             model_logreg = LogisticRegressionModel(train_input_x.shape[1], num_classes)
@@ -81,8 +83,8 @@ def train_cleanlab_bert(path_to_data: str) -> None:
                 psx_calculation_method=psx_calculation_method,
                 prune_method=prune_method,
                 use_probabilistic_labels=False,
-                cl_epochs=cl_epochs,
-                cl_lr=cl_lr
+                psx_epochs=psx_epochs,
+                psx_lr=psx_lr
             )
             trainer = CleanLabTrainer(
                 model=model_bert,
@@ -98,18 +100,35 @@ def train_cleanlab_bert(path_to_data: str) -> None:
             trainer.train()
             clf_report = trainer.test(X_test_bert, y_test)
             print(f"Accuracy is: {clf_report['accuracy']}")
+            print(f"Precision is: {clf_report['macro avg']['precision']}")
+            print(f"Recall is: {clf_report['macro avg']['recall']}")
+            print(f"F1 is: {clf_report['macro avg']['f1-score']}")
             print(clf_report)
 
-            exp_results.append(clf_report['accuracy'])
+            exp_results_acc.append(clf_report['accuracy'])
+            exp_results_prec.append(clf_report['macro avg']['precision'])
+            exp_results_recall.append(clf_report['macro avg']['recall'])
+            exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
-        results.append({
+        result = {
             "lr": lr, "cv_n_folds": cv_n_folds, "prune_method": prune_method, "epochs": epochs,
-            "batch_size": batch_size, "psx_calculation_method": psx_calculation_method, "accuracy": exp_results,
-            "mean_accuracy": statistics.mean(exp_results),
-            "std_accuracy": statistics.stdev(exp_results)
-        })
+            "batch_size": batch_size, "psx_calculation_method": psx_calculation_method,
+            "accuracy": exp_results_acc,
+            "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
+            "precision": exp_results_prec,
+            "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
+            "recall": exp_results_recall,
+            "mean_recall": statistics.mean(exp_results_recall), "std_recall": statistics.stdev(exp_results_recall),
+            "f1-score": exp_results_f1,
+            "mean_f1": statistics.mean(exp_results_f1), "std_f1": statistics.stdev(exp_results_f1),
+        }
+        results.append(result)
 
-    with open(os.path.join(path_to_data, 'cl_results_spam.json'), 'w') as file:
+        print("======================================")
+        print(f"Result: {result}")
+        print("======================================")
+
+    with open(os.path.join(path_to_data, 'cl_results_imdb.json'), 'w') as file:
         json.dump(results, file)
 
 

@@ -60,7 +60,9 @@ class CleanLabTrainer(MajorityVoteTrainer):
         for i in range(self.trainer_config.iterations):
 
             logger.info(f"Iteration: {i}")
+
             t_matrix_updated = self.denoise_t_matrix(noisy_y_train)
+
             self.psx_model_input_x, new_noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
                 self.rule_matches_z, t_matrix_updated, self.psx_model_input_x,
                 filter_non_labelled=self.trainer_config.filter_non_labelled,

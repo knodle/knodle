@@ -38,7 +38,7 @@ def train_cleanlab(path_to_data: str) -> None:
         path_to_data, if_dev_data=True)
 
     train_input_x, test_input_x, dev_input_x = get_tfidf_features(
-        df_train["sample"], dev_data=df_dev["sample"], test_data=df_test["sample"]
+        df_train["sample"], test_data=df_test["sample"], dev_data=df_dev["sample"],
     )
 
     train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
@@ -63,7 +63,7 @@ def train_cleanlab(path_to_data: str) -> None:
         print(f"Parameters: {params}")
         print("======================================")
 
-        exp_results = []
+        exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
         for exp in range(0, num_experiments):
 
             model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
@@ -74,7 +74,7 @@ def train_cleanlab(path_to_data: str) -> None:
                 psx_calculation_method=psx_calculation_method,
                 prune_method=prune_method,
                 iterations=iterations,
-                use_prior=True,
+                use_prior=False,
                 output_classes=num_classes,
                 optimizer=Adam,
                 criterion=CrossEntropyLoss,
@@ -96,20 +96,30 @@ def train_cleanlab(path_to_data: str) -> None:
 
             )
 
-            # todo: add params for training while psx matrix calculation (optimizer etc)
-
             trainer.train()
             clf_report = trainer.test(test_features_dataset, test_labels_dataset)
             print(f"Accuracy is: {clf_report['accuracy']}")
+            print(f"Precision is: {clf_report['macro avg']['precision']}")
+            print(f"Recall is: {clf_report['macro avg']['recall']}")
+            print(f"F1 is: {clf_report['macro avg']['f1-score']}")
             print(clf_report)
 
-            exp_results.append(clf_report['accuracy'])
+            exp_results_acc.append(clf_report['accuracy'])
+            exp_results_prec.append(clf_report['macro avg']['precision'])
+            exp_results_recall.append(clf_report['macro avg']['recall'])
+            exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
         result = {
             "lr": lr, "cv_n_folds": cv_n_folds, "prune_method": prune_method, "epochs": epochs,
-            "batch_size": batch_size, "psx_calculation_method": psx_calculation_method, "accuracy": exp_results,
-            "mean_accuracy": statistics.mean(exp_results),
-            "std_accuracy": statistics.stdev(exp_results)
+            "batch_size": batch_size, "psx_calculation_method": psx_calculation_method,
+            "accuracy": exp_results_acc,
+            "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
+            "precision": exp_results_prec,
+            "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
+            "recall": exp_results_recall,
+            "mean_recall": statistics.mean(exp_results_recall), "std_recall": statistics.stdev(exp_results_recall),
+            "f1-score": exp_results_f1,
+            "mean_f1": statistics.mean(exp_results_f1), "std_f1": statistics.stdev(exp_results_f1),
         }
         results.append(result)
 
@@ -117,7 +127,7 @@ def train_cleanlab(path_to_data: str) -> None:
         print(f"Result: {result}")
         print("======================================")
 
-    with open(os.path.join(path_to_data, 'cl_results_spam.json'), 'w') as file:
+    with open(os.path.join(path_to_data, 'cl_results_spouse_w_prior_nexp_20.json'), 'w') as file:
         json.dump(results, file)
 
 

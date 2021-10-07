@@ -114,9 +114,9 @@ def wscl_train_loop(model: nn.Module, feature_label_dataloader: DataLoader, conf
     model.to(config.device)
     model.train()
 
-    optimizer = config.cl_optimizer(params=model.parameters(), lr=config.cl_lr)
+    optimizer = config.psx_optimizer(params=model.parameters(), lr=config.psx_lr)
 
-    for current_epoch in range(config.cl_epochs):
+    for current_epoch in range(config.psx_epochs):
 
         for batch in feature_label_dataloader:
             features, labels = load_batch(batch, config.device)
@@ -130,11 +130,11 @@ def wscl_train_loop(model: nn.Module, feature_label_dataloader: DataLoader, conf
                 logits = outputs[0]
 
             # todo: duplicated code (the same is in trainer.py)
-            if isinstance(config.cl_criterion, type) and issubclass(config.cl_criterion, _Loss):
-                criterion = config.cl_criterion(weight=config.class_weights).to(config.device)
+            if isinstance(config.psx_criterion, type) and issubclass(config.psx_criterion, _Loss):
+                criterion = config.psx_criterion(weight=config.class_weights).to(config.device)
                 loss = criterion(logits, labels)
             else:
-                loss = config.cl_criterion(logits, labels, weight=config.class_weights)
+                loss = config.psx_criterion(logits, labels, weight=config.class_weights)
 
             if isinstance(config.grad_clipping, (int, float)):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clipping)
