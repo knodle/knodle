@@ -127,7 +127,7 @@ def train_cleanlab(path_to_data: str) -> None:
         print(f"Result: {result}")
         print("======================================")
 
-    with open(os.path.join(path_to_data, 'cl_results_spouse_w_prior_nexp_20.json'), 'w') as file:
+    with open(os.path.join(path_to_data, '____.json'), 'w') as file:
         json.dump(results, file)
 
 
