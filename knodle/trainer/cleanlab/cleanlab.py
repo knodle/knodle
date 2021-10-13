@@ -49,6 +49,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ) -> None:
 
+        # save the original non-trained model in order to copy it for further trainings
         end_model = copy.deepcopy(self.model).to(self.trainer_config.device)
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
@@ -77,7 +78,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
             train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train))
             self.model = copy.deepcopy(end_model).to(self.trainer_config.device)
-            self._train_loop(train_loader, print_progress=False)
+            self._train_loop(train_loader, print_progress=True)
 
             if self.dev_model_input_x:
                 clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
