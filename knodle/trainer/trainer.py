@@ -231,7 +231,7 @@ class BaseTrainer(Trainer):
         self.model.eval()
 
     def _prediction_loop(
-            self, feature_label_dataloader: DataLoader, loss_calculation: str = False
+            self, feature_label_dataloader: DataLoader, loss_calculation: bool = False
     ) -> Tuple[np.ndarray, np.ndarray, float]:
 
         self.model.to(self.trainer_config.device)
@@ -239,7 +239,6 @@ class BaseTrainer(Trainer):
         predictions_list, label_list = [], []
         dev_loss, dev_acc = 0.0, 0.0
 
-        i = 0
         # Loop over predictions
         with torch.no_grad():
             for batch in tqdm(feature_label_dataloader):
@@ -251,7 +250,6 @@ class BaseTrainer(Trainer):
                 prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
 
                 if loss_calculation:
-                    # dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
                     dev_loss += self.calculate_loss(prediction_vals, label_batch.long())
 
                 # add predictions and labels
@@ -263,13 +261,6 @@ class BaseTrainer(Trainer):
         gold_labels = np.squeeze(np.hstack(label_list))
 
         return predictions, gold_labels, dev_loss
-
-    # def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
-    #     """ Calculates the loss on the dev set using given criterion"""
-    #     predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
-    #     labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
-    #     loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
-    #     return loss.detach()
 
     def test(self, features_dataset: TensorDataset, labels: TensorDataset) -> Dict:
         """

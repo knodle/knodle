@@ -9,7 +9,7 @@ def input_labels_to_tensordataset(model_input_x: TensorDataset, labels: np.ndarr
     labels (num_samples x labels dimension) and turns it into one Dataset
     """
     model_tensors = model_input_x.tensors
-    input_label_dataset = TensorDataset(*model_tensors, torch.from_numpy(labels))
+    input_label_dataset = TensorDataset(*model_tensors, torch.from_numpy(labels).long())
 
     return input_label_dataset
 
@@ -23,7 +23,9 @@ def input_info_labels_to_tensordataset(
     a numpy array (num_samples x n; could be sample weights, sample indices etc) and turns it into one Dataset
     """
     model_tensors = model_input_x.tensors
-    input_ids_label_dataset = TensorDataset(*model_tensors, torch.from_numpy(input_info), torch.from_numpy(labels))
+    input_ids_label_dataset = TensorDataset(
+        *model_tensors, torch.from_numpy(input_info), torch.from_numpy(labels).long()
+    )
 
     return input_ids_label_dataset
 

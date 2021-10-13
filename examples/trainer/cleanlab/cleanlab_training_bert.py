@@ -27,16 +27,17 @@ def train_cleanlab_bert(path_to_data: str) -> None:
         # seed=None,
         lr=[0.1],
         cv_n_folds=[3, 5, 8],
+        iterations=[50],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
         epochs=[2],
-        batch_size=[32],
-        psx_calculation_method=['random', 'signatures', 'rules'],      # how the splitting into folds will be performed
+        batch_size=[64],
+        psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
         psx_epochs=[20],
         psx_lr=[0.8]
     )
     parameter_values = [v for v in parameters.values()]
 
-    df_train, df_dev, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(path_to_data)
+    df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(path_to_data)
 
     # create test labels dataset
     test_labels = df_test["label"].tolist()
@@ -55,7 +56,7 @@ def train_cleanlab_bert(path_to_data: str) -> None:
     results = []
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        lr, cv_n_folds, prune_method, epochs, batch_size, psx_calculation_method, psx_epochs, psx_lr = params
+        lr, cv_n_folds, iterations, prune_method, epochs, batch_size, psx_calculation_method,psx_epochs, psx_lr = params
 
         print("======================================")
         params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
@@ -74,18 +75,24 @@ def train_cleanlab_bert(path_to_data: str) -> None:
 
             custom_cleanlab_config = CleanLabConfig(
                 cv_n_folds=cv_n_folds,
+                psx_calculation_method=psx_calculation_method,
+                prune_method=prune_method,
+                iterations=iterations,
+                use_prior=False,
                 output_classes=num_classes,
                 optimizer=Adam,
                 criterion=CrossEntropyLoss,
+                use_probabilistic_labels=False,
                 lr=lr,
                 epochs=epochs,
                 batch_size=batch_size,
-                psx_calculation_method=psx_calculation_method,
-                prune_method=prune_method,
-                use_probabilistic_labels=False,
+                device="cpu",
+                grad_clipping=5,
+
                 psx_epochs=psx_epochs,
-                psx_lr=psx_lr
+                psx_lr=psx_lr,
             )
+
             trainer = CleanLabTrainer(
                 model=model_bert,
                 mapping_rules_labels_t=mapping_rules_labels_t,
@@ -128,7 +135,7 @@ def train_cleanlab_bert(path_to_data: str) -> None:
         print(f"Result: {result}")
         print("======================================")
 
-    with open(os.path.join(path_to_data, 'cl_results_imdb.json'), 'w') as file:
+    with open(os.path.join(path_to_data, 'cl_results.json'), 'w') as file:
         json.dump(results, file)
 
 

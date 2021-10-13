@@ -54,16 +54,9 @@ MIN_NUM_PER_CLASS = 5         # 100
 #     return t_matrix_updated
 
 
-def update_t_matrix(prune_count_matrix, t_matrix) -> np.ndarray:
-    """
-
-    :param noisy_labels: original labels calculated from x and t multiplication
-    :param psx: probabilistic labels calculated with cross-validation
-    :param confident_joint: C matrix (rules x classes) with confident estimations
-    :return:
-    """
+def update_t_matrix(prune_count_matrix, t_matrix, p=0.5) -> np.ndarray:
     normalized_prune_counts = normalize(prune_count_matrix, axis=1, norm='l1')
-    updated_t_matrix = t_matrix * 0.5 + normalized_prune_counts * 0.5
+    updated_t_matrix = t_matrix * (1-p) + normalized_prune_counts * p
 
     # the first version: sum and divide
     # t_matrix_updated = np.zeros_like(t_matrix, dtype="float")

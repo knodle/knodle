@@ -14,6 +14,7 @@ class CleanLabConfig(MajorityConfig):
             cv_n_folds=5,
             iterations=1,
             use_prior: bool = False,
+            p: float = 0.5,         # multiplier of the newly learned t matrix (see update_t_matrix function)
             prune_method: str = 'prune_by_noise_rate',
             converge_latent_estimates=False,
             pulearning=None,
@@ -76,6 +77,10 @@ class CleanLabConfig(MajorityConfig):
         self.cv_n_folds = cv_n_folds
         self.iterations = iterations
         self.use_prior = use_prior
+
+        if not self.use_prior:
+            self.p = p
+
         self.prune_method = prune_method
         self.converge_latent_estimates = converge_latent_estimates
         self.pulearning = pulearning

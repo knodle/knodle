@@ -1,10 +1,11 @@
 import argparse
+import json
 import os
 import statistics
 import sys
 from cleanlab.classification import LearningWithNoisyLabels
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from torch import Tensor
 from torch.utils.data import TensorDataset
 import numpy as np
@@ -35,7 +36,7 @@ def train_cleanlab(path_to_data: str) -> None:
     train_labels = np.argmax(train_labels, axis=1)
     test_labels = df_test["label"].to_numpy()
 
-    exp_results = []
+    exp_results_acc, exp_results_f1 = [], []
     for exp in range(0, num_experiments):
         clf = LogisticRegression(solver='lbfgs', multi_class='auto', max_iter=1000)
         rp = LearningWithNoisyLabels(clf=clf, seed=seed, n_jobs=1)
@@ -43,13 +44,30 @@ def train_cleanlab(path_to_data: str) -> None:
         pred = rp.predict(test_input_x)
 
         accuracy = accuracy_score(pred, test_labels)
+        f1 = f1_score(pred, test_labels)
+
         print(f"Accuracy is: {accuracy}")
-        exp_results.append(accuracy)
+        print(f"F1 is: {f1}")
+
+        exp_results_acc.append(accuracy)
+        exp_results_f1.append(f1)
+
+    result = {
+        "accuracy": exp_results_acc, "mean_accuracy": statistics.mean(exp_results_acc),
+        "std_accuracy": statistics.stdev(exp_results_acc),
+        "f1-score": exp_results_f1, "mean_f1": statistics.mean(exp_results_f1),
+        "std_f1": statistics.stdev(exp_results_f1),
+    }
 
     print("======================================")
-    print(f"Average accuracy after {num_experiments} experiments: {statistics.mean(exp_results)}, "
-          f"std: {statistics.stdev(exp_results)}")
+    print(f"Average accuracy after {num_experiments} experiments: {statistics.mean(exp_results_acc)}, "
+          f"std: {statistics.stdev(exp_results_acc)}"
+          f"Average F1 after {num_experiments} experiments: {statistics.mean(exp_results_f1)}"
+          f"std: {statistics.stdev(exp_results_f1)}")
     print("======================================")
+
+    with open(os.path.join(path_to_data, 'cl_results_spam_sklearn_baseline.json'), 'w') as file:
+        json.dump(result, file)
 
 
 if __name__ == '__main__':
