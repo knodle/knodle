@@ -29,13 +29,13 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
 
     parameters = dict(
         # seed=None,
-        lr=[0.1],
-        cv_n_folds=[3, 5, 8],
+        lr=[0.0001],
+        cv_n_folds=[5, 8],
         p=[0.1, 0.3, 0.5, 0.7, 0.9],
         iterations=[50],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
         epochs=[2],
-        batch_size=[64],
+        batch_size=[32],
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
         psx_epochs=[20],
         psx_lr=[0.8]
