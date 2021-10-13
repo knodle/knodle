@@ -51,9 +51,9 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
         # save the original non-trained model in order to copy it for further trainings
         end_model = copy.deepcopy(self.model).to(self.trainer_config.device)
+        opt = copy.deepcopy(self.trainer_config.optimizer)
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
-        self.trainer_config.optimizer = self.initialise_optimizer()
 
         self.model_input_x, self.psx_model_input_x, self.rule_matches_z, noisy_y_train = calculate_labels(
             self.model_input_x, self.psx_model_input_x, self.rule_matches_z, self.mapping_rules_labels_t,
@@ -66,25 +66,26 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
             logger.info(f"Iteration: {i}")
 
+            # update the t matrix and recalculate the labels
             t_matrix_updated = self.denoise_t_matrix(noisy_y_train)
+            noisy_y_train_upd, labels_updated = self.get_updated_labels(t_matrix_updated, noisy_y_train)
 
-            # todo: write tests that here no denoising is needed (all denoising was already done for BOTH matrices)
-            new_noisy_y_train_prob = z_t_matrices_to_majority_vote_probs(self.rule_matches_z, t_matrix_updated)
-            new_noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=new_noisy_y_train_prob)
+            # create the dataset
+            train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train_upd))
 
-            labels_updated = sum(~np.equal(noisy_y_train, new_noisy_y_train))
-            logger.info(f"Labels changed: {labels_updated} out of {len(noisy_y_train)}")
-            noisy_y_train = new_noisy_y_train
-
-            train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train))
+            # initialize the optimizer and the model anew
             self.model = copy.deepcopy(end_model).to(self.trainer_config.device)
-            self._train_loop(train_loader, print_progress=True)
+            self.trainer_config.optimizer = self.initialise_optimizer(opt)
+
+            # train the model
+            self._train_loop(train_loader, print_progress=False)
 
             if self.dev_model_input_x:
                 clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
                 if dev_loss < best_dev_loss:
                     best_dev_loss = dev_loss
-                    logger.info(f"Clf_report: {clf_report}, Dev loss: {dev_loss}, denoising continues.")
+                    logger.info(f"Clf_report: {clf_report}")
+                    logger.info(f"Dev loss: {dev_loss}, denoising continues.")
                 else:
                     logger.info(f"The model does not improve on the dev set (previous dev loss: {best_dev_loss}, "
                                 f"new dev loss: {dev_loss}). Denoising stops.")
@@ -139,6 +140,15 @@ class CleanLabTrainer(MajorityVoteTrainer):
         logger.info(t_matrix_updated)
         return t_matrix_updated
 
+    def get_updated_labels(self, t_matrix_updated, noisy_y_train):
+        # todo: write tests that here no denoising is needed (all denoising was already done for BOTH matrices)
+        new_noisy_y_train_prob = z_t_matrices_to_majority_vote_probs(self.rule_matches_z, t_matrix_updated)
+        new_noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=new_noisy_y_train_prob)
+
+        labels_updated = sum(~np.equal(noisy_y_train, new_noisy_y_train))
+        logger.info(f"Labels changed: {labels_updated} out of {len(noisy_y_train)}")
+        return new_noisy_y_train, labels_updated
+
     def get_pruned_input(self, x_mask, noisy_labels) -> Tuple[Union[np.ndarray, TensorDataset], np.ndarray, np.ndarray]:
 
         noisy_labels_pruned = noisy_labels[x_mask]
@@ -158,6 +168,13 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
         else:
             raise ValueError("Unknown input format")
+
+    def initialise_optimizer(self, custom_opt):
+        try:
+            return custom_opt(params=self.model.parameters(), lr=self.trainer_config.lr)
+        except TypeError:
+            logger.info("Wrong optimizer parameters. Optimizer should belong to torch.optim class or be PyTorch "
+                        "compatible.")
 
     # def fit(self, rp: LearningWithNoisyLabelsTorch, noisy_labels: np.ndarray, psx: np.ndarray):
     #
