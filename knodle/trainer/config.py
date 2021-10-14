@@ -30,7 +30,9 @@ class TrainerConfig:
             device: str = None,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
-            saved_models_dir: str = None
+            saved_models_dir: str = None,
+            save_model_name: str = "checkpoint",
+            early_stopping: bool = False
     ):
         """
         A default and minimum sufficient configuration of a Trainer instance.
@@ -77,6 +79,9 @@ class TrainerConfig:
         self.grad_clipping = grad_clipping
         self.device = torch.device(device) if device is not None else check_and_return_device()
         logger.info(f"Model will be trained on {self.device}")
+
+        self.early_stopping = early_stopping
+        self.save_model_name = save_model_name
 
         if epochs <= 0:
             raise ValueError("Epochs needs to be positive")

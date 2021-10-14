@@ -82,7 +82,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
 
             if self.dev_model_input_x:
                 clf_report, dev_loss = self.test_with_loss(
-                    self.dev_model_input_x, self.dev_gold_labels_y, load_best_model=True
+                    self.dev_model_input_x, self.dev_gold_labels_y          # , load_best_model=True
                 )
                 if dev_loss < best_dev_loss:
                     best_dev_loss = dev_loss

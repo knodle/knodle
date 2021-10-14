@@ -140,7 +140,10 @@ class BaseTrainer(Trainer):
     ):
         log_section("Training starts", logger)
 
-        es = EarlyStopping()
+        if self.trainer_config.early_stopping and self.dev_model_input_x is not None:
+            es = EarlyStopping(save_model_name = self.trainer_config.save_model_name)
+        elif self.trainer_config.early_stopping and self.dev_model_input_x is None:
+            logger.info("Early stopping won't be performed since there is no dev set provided.")
 
         self.model.to(self.trainer_config.device)
         self.model.train()
@@ -210,10 +213,11 @@ class BaseTrainer(Trainer):
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
-                es(dev_loss, self.model)
-                if es.early_stop:
-                    logger.info("The model performance on validation training does not change -> early stopping. ")
-                    break
+                if self.trainer_config.early_stopping:
+                    es(dev_loss, self.model)
+                    if es.early_stop:
+                        logger.info("The model performance on validation training does not change -> early stopping. ")
+                        break
 
             # saving model
             if self.trainer_config.saved_models_dir is not None:

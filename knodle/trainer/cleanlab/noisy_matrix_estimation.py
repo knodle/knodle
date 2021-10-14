@@ -66,7 +66,7 @@ def compute_confident_joint_rule2class(
     confident_argmax = psx_bool.argmax(axis=1)
 
     # num_confident_bins: number of classes above threshold
-    num_confident_bins = psx_bool.sum(axis=1)
+    num_confident_bins = np.nansum(psx_bool, axis=1)
     # at_least_one_confident: boolean; True if only one class is above threshold
     at_least_one_confident = num_confident_bins > 0
     # more_than_one_confident: boolean; True if more than one class is above threshold
@@ -85,10 +85,15 @@ def compute_confident_joint_rule2class(
     # calculate the number of each rule matched in samples in each class
     if isinstance(rule_matches_z, sp.csr_matrix):
         rule_matches_per_class = [
-            np.squeeze(np.array(rule_matches_z[sample_idx, :].sum(axis=0))) for sample_idx in sample_indices_per_class
+            np.squeeze(
+                np.nansum(rule_matches_z[sample_idx, :], axis=0)
+            ) for sample_idx in sample_indices_per_class
         ]
     else:
-        rule_matches_per_class = [rule_matches_z[sample_idx].sum(axis=0) for sample_idx in sample_indices_per_class]
+        rule_matches_per_class = [
+            np.nansum(rule_matches_z[sample_idx], axis=0) for sample_idx in sample_indices_per_class
+            # rule_matches_z[sample_idx].nansum(axis=0) for sample_idx in sample_indices_per_class
+        ]
     confident_joint = np.array(rule_matches_per_class).T
 
     if calibrate:
@@ -125,17 +130,15 @@ def estimate_latent_rule2class(
 
 
 def calibrate_confident_joint_rule2class(confident_joint: np.ndarray, rule_matches_z: np.ndarray) -> np.ndarray:
-    # confident_joint: (9, 2)
-    # rule_matches_z: (5734, 9)
-    # sample_pro_rule_counts: (9, )
     if isinstance(rule_matches_z, sp.csr_matrix):
-        sample_pro_rule_counts_ = np.squeeze(np.array(rule_matches_z.sum(axis=0)))
-        calibrated_cj = (confident_joint.T / confident_joint.sum(axis=1) * sample_pro_rule_counts_).T
+        sample_pro_rule_counts_ = np.squeeze(np.array(np.nansum(rule_matches_z, axis=0)))
+        calibrated_cj = (confident_joint.T / np.nansum(confident_joint, axis=1) * sample_pro_rule_counts_).T
         return np.nan_to_num(calibrated_cj)
     else:
-        sample_pro_rule_counts = rule_matches_z.sum(axis=0)
+        sample_pro_rule_counts = np.nansum(rule_matches_z, axis=0)
         # calibrated_cj = calibrated_cj / np.sum(calibrated_cj) * sum(noisy_labels_counts)        # double check
-        return (confident_joint.T / confident_joint.sum(axis=1) * sample_pro_rule_counts).T
+        calibrated_cj = (confident_joint.T / np.nansum(confident_joint, axis=1) * sample_pro_rule_counts).T
+        return np.nan_to_num(calibrated_cj)
 
 
 def compute_py_rule2class(ps, noise_matrix, inverse_noise_matrix, py_method='cnt'):
