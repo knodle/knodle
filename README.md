@@ -76,6 +76,8 @@ variants and is applicable to a large number of tasks.
 
 <img src="img/schema.png" height="300"/>
 
+## Datasets
+
 Apart from that, Knodle includes a selection of well-known data sets from prior work in weak supervision. Knodle ecosystem provides modular access to datasets and denoising methods (that can, in turn, be combined with arbitrary deep learning models), enabling easy experimentation.
 
 Datasets currently provided in Knodle:
@@ -85,7 +87,7 @@ Datasets currently provided in Knodle:
 - IMDb Dataset - a dataset, that consists of short movie reviews. The task is to determine whether a review holds a positive or negative sentiment. 
 - TAC-based Relation Extraction Dataset - a dataset built over Knowledge Base Population challenges in the Text Analysis Conference. For development and test purposes the corpus annotated via crowdsourcing and human labeling from KBP is used ([Zhang et al. (2017)](https://www.aclweb.org/anthology/D17-1004.pdf). The training is done on a weakly-supervised noisy dataset based on TAC KBP corpora ([Surdeanu (2013)](https://tac.nist.gov/publications/2013/additional.papers/KBP2013_English_and_Temporal_Slot_Filling_overview.TAC2013.proceedings.pdf)). 
 
-All datasets are added to the Knodle framework in the tensor format described above and could be dowloaded [here](http://knodle.dm.univie.ac.at/minio/knodle/datasets/).
+All datasets are added to the Knodle framework in the tensor format described above and could be dowloaded [here](https://knodle.cc/minio/knodle/).
 To see how the datasets were created please have a look at the [dedicated tutorial](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing).
 
 
