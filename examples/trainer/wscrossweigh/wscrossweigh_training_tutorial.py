@@ -142,9 +142,6 @@ if __name__ == "__main__":
     parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
     parser.add_argument("--num_classes", help="Number of classes")
 
-    parser.add_argument("--mode", default='client')
-    parser.add_argument("--port", default=51678)
-    
     args = parser.parse_args()
 
     train_wscrossweigh(args.path_to_data, args.num_classes)

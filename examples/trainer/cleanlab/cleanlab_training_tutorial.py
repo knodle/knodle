@@ -104,9 +104,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="")
 
-    #had to add these two lines
-    parser.add_argument("--mode", default='client')
-    parser.add_argument("--port", default=50488)
-
     args = parser.parse_args()
     train_cleanlab(args.path_to_data)
