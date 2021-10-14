@@ -1,26 +1,3 @@
-
-# Define constants
-imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spam")
-processed_data_dir = os.path.join(imdb_data_dir, "processed")
-os.makedirs(processed_data_dir, exist_ok=True)
-
-# Download data
-client = Minio("knodle.cc", secure=False)
-files = [
-    "df_train.csv", "df_test.csv",
-    "train_rule_matches_z.lib", "test_rule_matches_z.lib",
-    "mapping_rules_labels_t.lib"
-]
-for file in tqdm(files):
-    client.fget_object(
-        bucket_name="knodle",
-        object_name=os.path.join("datasets/spam/processed/", file),
-        file_path=os.path.join(processed_data_dir, file),
-    )
-
-# Load data into memory
-df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
-df_test = pd.read_csv(os.path.join(processed_data_dir, "df_test.csv"))
 import os
 from torch import Tensor
 from tqdm.auto import tqdm
@@ -47,6 +24,30 @@ from knodle.model.logistic_regression_model import LogisticRegressionModel
 # Define some functions
 from knodle.trainer.multi_trainer import MultiTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
+
+
+# Define constants
+imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spam")
+processed_data_dir = os.path.join(imdb_data_dir, "processed")
+os.makedirs(processed_data_dir, exist_ok=True)
+
+# Download data
+client = Minio("knodle.cc", secure=False)
+files = [
+    "df_train.csv", "df_test.csv",
+    "train_rule_matches_z.lib", "test_rule_matches_z.lib",
+    "mapping_rules_labels_t.lib"
+]
+for file in tqdm(files):
+    client.fget_object(
+        bucket_name="knodle",
+        object_name=os.path.join("datasets/spam/processed/", file),
+        file_path=os.path.join(processed_data_dir, file),
+    )
+
+# Load data into memory
+df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
+df_test = pd.read_csv(os.path.join(processed_data_dir, "df_test.csv"))
 
 
 def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
