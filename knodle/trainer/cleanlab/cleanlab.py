@@ -78,10 +78,12 @@ class CleanLabTrainer(MajorityVoteTrainer):
             self.trainer_config.optimizer = self.initialise_optimizer(opt)
 
             # train the model
-            self._train_loop(train_loader, print_progress=False)
+            self._train_loop(train_loader, verbose=False)
 
             if self.dev_model_input_x:
-                clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
+                clf_report, dev_loss = self.test_with_loss(
+                    self.dev_model_input_x, self.dev_gold_labels_y, load_best_model=True
+                )
                 if dev_loss < best_dev_loss:
                     best_dev_loss = dev_loss
                     logger.info(f"Clf_report: {clf_report}")

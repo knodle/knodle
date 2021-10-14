@@ -10,78 +10,70 @@ from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 
-from examples.trainer.preprocessing import get_tfidf_features
+from examples.trainer.preprocessing import convert_text_to_transformer_input
 from examples.utils import read_train_dev_test
-from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
+from knodle.trainer.cleanlab.cleanlab_with_pytorch import CleanLabPyTorchTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 
 
 logger = logging.getLogger(__name__)
 
 
-def train_cleanlab(path_to_data: str) -> None:
+def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 30
 
     parameters = dict(
         # seed=None,
-        lr=[0.1],
-        cv_n_folds=[5],
-        p=[0.1],
-        use_prior=[False],
-        iterations=[50],
+        lr=[0.0001],
+        cv_n_folds=[3, 5, 8],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
-        epochs=[100],
-        batch_size=[128],
-        psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
+        epochs=[2],
+        batch_size=[32]
     )
     parameter_values = [v for v in parameters.values()]
 
-    df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
-        path_to_data, if_dev_data=False)
+    df_train, df_dev, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
+        path_to_data, if_dev_data=True)
 
-    train_input_x, test_input_x, _ = get_tfidf_features(
-        df_train["sample"], test_data=df_test["sample"]         #, dev_data=df_dev["sample"]
-    )
-
-    train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
-    # dev_features_dataset = TensorDataset(Tensor(dev_input_x.toarray()))
-    test_features_dataset = TensorDataset(Tensor(test_input_x.toarray()))
-
-    # dev_labels = df_dev["label"].tolist()
+    # create test labels dataset
     test_labels = df_test["label"].tolist()
-    # dev_labels_dataset = TensorDataset(LongTensor(dev_labels))
-    test_labels_dataset = TensorDataset(LongTensor(test_labels))
+    dev_labels = df_dev["label"].tolist()
+    y_test = TensorDataset(LongTensor(test_labels))
+    y_dev = TensorDataset(LongTensor(dev_labels))
 
     num_classes = max(test_labels) + 1
 
+    # the classifier training is realized with BERT model (with BERT encoded features - input indices & attention mask)
+    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+    X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
+    X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
+    X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
+
     results = []
-    for run_id, (lr, cv_n_folds, p, use_prior, iterations, prune_method, epochs, batch_size, psx_calculation_method) in\
-            enumerate(product(*parameter_values)):
+    for run_id, (params) in enumerate(product(*parameter_values)):
+
+        lr, cv_n_folds, prune_method, epochs, batch_size = params
 
         logger.info("======================================")
-        params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} iterations = {iterations} ' \
-                 f'prune_method = {prune_method} epochs = {epochs} batch_size = {batch_size} ' \
-                 f'psx_calculation_method = {psx_calculation_method} p = {p} use_prior = {use_prior}'
+        params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
+                 f'batch_size = {batch_size} '
         logger.info(f"Parameters: {params}")
         logger.info("======================================")
 
         exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
+
         for exp in range(0, num_experiments):
 
-            model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
-
+            model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
             custom_cleanlab_config = CleanLabConfig(
                 # seed=seed,
                 cv_n_folds=cv_n_folds,
-                psx_calculation_method=psx_calculation_method,
                 prune_method=prune_method,
-                iterations=iterations,
-                use_prior=use_prior,
-                p=p,
+                use_prior=False,
                 output_classes=num_classes,
                 optimizer=Adam,
                 criterion=CrossEntropyLoss,
@@ -89,22 +81,22 @@ def train_cleanlab(path_to_data: str) -> None:
                 lr=lr,
                 epochs=epochs,
                 batch_size=batch_size,
-                grad_clipping=5,
-                # device="cpu"
+                grad_clipping=5
             )
-            trainer = CleanLabTrainer(
+            trainer = CleanLabPyTorchTrainer(
                 model=model,
                 mapping_rules_labels_t=mapping_rules_labels_t,
-                model_input_x=train_features_dataset,
+                model_input_x=X_train,
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                dev_model_input_x=test_features_dataset,
-                dev_gold_labels_y=test_labels_dataset
+                dev_model_input_x=X_dev,
+                dev_gold_labels_y=y_dev
             )
 
             trainer.train()
-            clf_report = trainer.test(test_features_dataset, test_labels_dataset)
+            clf_report = trainer.test(X_test, y_test)
+
             logger.info(f"Accuracy is: {clf_report['accuracy']}")
             logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
             logger.info(f"Recall is: {clf_report['macro avg']['recall']}")
@@ -117,9 +109,8 @@ def train_cleanlab(path_to_data: str) -> None:
             exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
         result = {
-            "lr": lr, "cv_n_folds": cv_n_folds, "p": p, "prune_method": prune_method, "epochs": epochs,
-            "use_prior": use_prior, "batch_size": batch_size, "psx_calculation_method": psx_calculation_method,
-            "accuracy": exp_results_acc,
+            "lr": lr, "cv_n_folds": cv_n_folds, "prune_method": prune_method, "epochs": epochs,
+            "batch_size": batch_size, "accuracy": exp_results_acc,
             "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
             "precision": exp_results_prec,
             "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
@@ -134,13 +125,14 @@ def train_cleanlab(path_to_data: str) -> None:
         logger.info(f"Result: {result}")
         logger.info("======================================")
 
-    with open(os.path.join(path_to_data, '___.json'), 'w') as file:
+    with open(os.path.join(path_to_data, output_file), 'w') as file:
         json.dump(results, file)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="")
+    parser.add_argument("--output_file", help="")
 
     args = parser.parse_args()
-    train_cleanlab(args.path_to_data)
+    train_cleanlab(args.path_to_data, args.output_file)

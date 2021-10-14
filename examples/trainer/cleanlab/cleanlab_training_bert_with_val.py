@@ -72,7 +72,7 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
 
         logger.info("======================================")
         params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
-                 f'batch_size = {batch_size} psx_calculation_method = {psx_calculation_method} ' \
+                 f'prior = False batch_size = {batch_size} psx_calculation_method = {psx_calculation_method} ' \
                  f'psx_epochs = {psx_epochs} psx_lr = {psx_lr} '
         logger.info(f"Parameters: {params}")
         logger.info("======================================")
@@ -82,8 +82,9 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
         for exp in range(0, num_experiments):
 
             model_logreg = LogisticRegressionModel(train_input_x.shape[1], num_classes)
-            model_bert = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased',
-                                                                             num_labels=num_classes)
+            model_bert = DistilBertForSequenceClassification.from_pretrained(
+                'distilbert-base-uncased', num_labels=num_classes
+            )
 
             custom_cleanlab_config = CleanLabConfig(
                 cv_n_folds=cv_n_folds,

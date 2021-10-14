@@ -351,9 +351,8 @@ def estimate_confident_joint_and_cv_pred_proba_baseline(
 
         model_copy = wscl_train_loop(model_copy, train_loader, config)  # todo: add special params for calculation psx
         psx_cv = wscl_test_loop(model_copy, test_loader, config)
-        psx[cv_holdout_idx] = psx_cv
-        #
-        #
+        psx[cv_holdout_idx] = psx_cv.cpu().detach().numpy()
+
         # clf.train()
         # clf_copy.fit(X_train_cv, s_train_cv)
         # psx_cv = clf_copy.predict_proba(X_holdout_cv)  # P(s = k|x) # [:,1]

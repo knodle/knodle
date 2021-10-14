@@ -16,6 +16,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import torch.nn.functional as F
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
+from knodle.model.EarlyStopping import EarlyStopping
 from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
@@ -23,6 +24,7 @@ from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.trainer.utils.checks import check_other_class_id
+
 
 logger = logging.getLogger(__name__)
 
@@ -133,10 +135,12 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False, draw_plot: bool = False,
-            print_progress: bool = True
+            self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False,
+            verbose: bool = True
     ):
         log_section("Training starts", logger)
+
+        es = EarlyStopping()
 
         self.model.to(self.trainer_config.device)
         self.model.train()
@@ -147,7 +151,7 @@ class BaseTrainer(Trainer):
 
         for current_epoch in range(self.trainer_config.epochs):
 
-            if print_progress:
+            if verbose:
                 logger.info("Epoch: {}".format(current_epoch))
 
             epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
@@ -184,7 +188,7 @@ class BaseTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                if print_progress:
+                if verbose:
                     try:
                         if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
                             logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
@@ -196,7 +200,7 @@ class BaseTrainer(Trainer):
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            if print_progress:
+            if verbose:
                 logger.info("Epoch train loss: {}".format(avg_loss))
                 logger.info("Epoch train accuracy: {}".format(avg_acc))
 
@@ -205,6 +209,11 @@ class BaseTrainer(Trainer):
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
+
+                es(dev_loss, self.model)
+                if es.early_stop:
+                    logger.info("The model performance on validation training does not change -> early stopping. ")
+                    break
 
             # saving model
             if self.trainer_config.saved_models_dir is not None:
@@ -262,13 +271,17 @@ class BaseTrainer(Trainer):
 
         return predictions, gold_labels, dev_loss
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset) -> Dict:
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = False,
+             saved_model_path: str = None) -> Dict:
         """
         The function tests the trained model on the test set and returns the classification report
         :param features_dataset: features_dataset: TensorDataset with test samples
         :param labels: true labels
         :return: classification report (either with respect to other class or not)
         """
+
+        if load_best_model:
+            self.load_model(saved_model_path)
 
         gold_labels = labels.tensors[0].cpu().numpy()
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
@@ -279,13 +292,19 @@ class BaseTrainer(Trainer):
 
         return clf_report
 
-    def test_with_loss(self, features_dataset: TensorDataset, labels: TensorDataset) -> Tuple[Dict, float]:
+    def test_with_loss(
+            self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = False,
+            saved_model_path: str = None
+    ) -> Tuple[Dict, float]:
         """
         The function tests the trained model on the test set and returns the classification report and average loss.
         :param features_dataset: TensorDataset with test samples
         :param labels: true labels
         :return: classification report (either with respect to other class or not) + average test loss
         """
+        if load_best_model:
+            self.load_model(saved_model_path)
+
         gold_labels = labels.tensors[0].cpu().numpy()
 
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
@@ -296,6 +315,21 @@ class BaseTrainer(Trainer):
         avg_los = dev_loss / len(feature_label_dataloader)
 
         return clf_report, avg_los
+
+    def load_model(self, saved_model_path: str) -> None:
+        if saved_model_path:
+            model_path = os.path.join(saved_model_path, "checkpoint.pt")
+            try:
+                self.model.load_state_dict(torch.load(model_path))
+            except ValueError:
+                logger.info(f"The saved model by provided path {saved_model_path} wasn't found. The latest trained "
+                            f"model will be validated instead.")
+        else:
+            model_path = os.path.join("trained_models", "checkpoint.pt")
+            try:
+                self.model.load_state_dict(torch.load(model_path))
+            except ValueError:
+                logger.info(f"The saved model wasn't found. The latest trained model will be validated instead.")
 
     def collect_report(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Dict:
         """

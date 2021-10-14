@@ -98,7 +98,7 @@ def get_lfs(conll_data: str, labels2ids: Dict) -> list:
                 subj, obj, subj_min_token_id, obj_min_token_id = extract_subj_obj(
                     line, subj, obj, subj_min_token_id, obj_min_token_id
                 )
-            print_progress(processed_lines, num_lines)
+            verbose(processed_lines, num_lines)
     return rules
 
 
@@ -110,7 +110,7 @@ def get_label_n_label_id(line: str, labels2ids: dict) -> Tuple[str, int]:
     return label, label_id
 
 
-def print_progress(processed_lines: int, num_lines: int) -> None:
+def verbose(processed_lines: int, num_lines: int) -> None:
     if processed_lines % (int(round(num_lines / 10))) == 0:
         print(f"Processed {processed_lines / num_lines * 100 :0.0f}%")
 

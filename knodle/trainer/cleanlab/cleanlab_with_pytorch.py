@@ -139,4 +139,4 @@ class CleanLabPyTorchTrainer(MajorityVoteTrainer):
             input_info_labels_to_tensordataset(x_pruned, self.sample_weight, s_pruned)
         )
 
-        self._train_loop(train_loader, use_sample_weights=True, print_progress=False)
+        self._train_loop(train_loader, use_sample_weights=True, verbose=False)
