@@ -21,7 +21,7 @@ from knodle.trainer.cleanlab.config import CleanLabConfig
 logger = logging.getLogger(__name__)
 
 
-def train_cleanlab(path_to_data: str) -> None:
+def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 30
@@ -39,16 +39,16 @@ def train_cleanlab(path_to_data: str) -> None:
     parameter_values = [v for v in parameters.values()]
 
     # for trec dataset
-    import pandas as pd
-    from joblib import load
-    df_train = pd.read_csv(os.path.join(path_to_data, 'df_train.csv'))
-    df_test = pd.read_csv(os.path.join(path_to_data, 'df_test.csv'))
-    train_rule_matches_z = load(os.path.join(path_to_data, 'train_rule_matches_z.lib'))
-    mapping_rules_labels_t = load(os.path.join(path_to_data, 'mapping_rules_labels_t.lib'))
-    df_dev = pd.read_csv(os.path.join(path_to_data, 'df_dev.csv'))
+    # import pandas as pd
+    # from joblib import load
+    # df_train = pd.read_csv(os.path.join(path_to_data, 'df_train.csv'))
+    # df_test = pd.read_csv(os.path.join(path_to_data, 'df_test.csv'))
+    # train_rule_matches_z = load(os.path.join(path_to_data, 'train_rule_matches_z.lib'))
+    # mapping_rules_labels_t = load(os.path.join(path_to_data, 'mapping_rules_labels_t.lib'))
+    # df_dev = pd.read_csv(os.path.join(path_to_data, 'df_dev.csv'))
 
-    # df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
-    #     path_to_data, if_dev_data=False)
+    df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
+        path_to_data, if_dev_data=False)
 
     train_input_x, test_input_x, _ = get_tfidf_features(
         df_train["sample"], test_data=df_test["sample"]         #, dev_data=df_dev["sample"]
@@ -96,7 +96,7 @@ def train_cleanlab(path_to_data: str) -> None:
                 epochs=epochs,
                 batch_size=128,
                 grad_clipping=5,
-                save_model_name="trec",
+                save_model_name=output_file,
                 early_stopping=True
                 # device="cpu"
             )
@@ -107,8 +107,8 @@ def train_cleanlab(path_to_data: str) -> None:
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                dev_model_input_x=test_features_dataset,
-                dev_gold_labels_y=test_labels_dataset
+                # dev_model_input_x=test_features_dataset,
+                # dev_gold_labels_y=test_labels_dataset
             )
 
             trainer.train()
@@ -142,13 +142,14 @@ def train_cleanlab(path_to_data: str) -> None:
         logger.info(f"Result: {result}")
         logger.info("======================================")
 
-    with open(os.path.join(path_to_data, '___.json'), 'w') as file:
+    with open(os.path.join(path_to_data, output_file + ".json"), 'w') as file:
         json.dump(results, file)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="")
+    parser.add_argument("--output_file", help="")
 
     args = parser.parse_args()
-    train_cleanlab(args.path_to_data)
+    train_cleanlab(args.path_to_data, args.output_file)

@@ -59,7 +59,8 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
             batch_size=128,
             device="cpu",
             grad_clipping=5,
-            early_stopping=True
+            early_stopping=True,
+            save_model_name=output_file
         )
         trainer = CleanLabPyTorchTrainer(
             model=model,
@@ -104,7 +105,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
         f"Average F1: {result['std_f1']}, std: {result['std_f1']}, sem: {result['sem_f1']}")
     print("======================================")
 
-    with open(os.path.join(path_to_data, output_file), 'w') as file:
+    with open(os.path.join(path_to_data, output_file + ".json"), 'w') as file:
         json.dump(results, file)
 
 

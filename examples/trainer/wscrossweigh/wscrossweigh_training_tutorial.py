@@ -100,7 +100,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
         lr=parameters.get("lr"),
         grad_clipping=5,
         caching_suffix=caching_suffix,
-        saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
+        save_model_path=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
         # WSCrossWeigh specific parameters
         partitions=parameters.get("cw_partitions"),  # number of WSCrossWeigh iterations (= splitting into folds)

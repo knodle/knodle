@@ -30,7 +30,7 @@ class TrainerConfig:
             device: str = None,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
-            saved_models_dir: str = None,
+            save_model_path: str = None,
             save_model_name: str = "checkpoint",
             early_stopping: bool = False
     ):
@@ -52,7 +52,7 @@ class TrainerConfig:
         :param caching_folder: a path to the folder where cache will be saved (default: root/cache)
         :param caching_suffix: a specific index that could be added to the caching file name (e.g. in WSCrossWeigh for
         sample weights calculated in different iterations and stored in different files.)
-        :param saved_models_dir: a path to the folder where trained models will be stored. If None, the trained models
+        :param save_model_path: a path to the folder where trained models will be stored. If None, the trained models
         won't be stored.
         """
         self.seed = seed
@@ -65,12 +65,10 @@ class TrainerConfig:
         logger.info(f"The cache will be saved to {self.caching_folder} folder")
 
         # create directory where saved models will be stored
-        if saved_models_dir:
-            self.saved_models_dir = saved_models_dir
-            os.makedirs(self.saved_models_dir, exist_ok=True)
-        else:
-            self.saved_models_dir = caching_folder
-        logger.info(f"The trained models will be saved to the {self.saved_models_dir} directory.")
+        self.save_model_path = save_model_path
+        if self.save_model_path:
+            os.makedirs(self.save_model_path, exist_ok=True)
+            logger.info(f"The trained models will be saved to the {self.save_model_path} directory.")
 
         self.criterion = criterion
         self.lr = lr

@@ -149,6 +149,6 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
         weights_calculation_config.seed = self.trainer_config.cw_seed
-        weights_calculation_config.saved_models_dir = None
+        weights_calculation_config.save_model_path = None
         weights_calculation_config.use_probabilistic_labels = self.trainer_config.use_probabilistic_labels
         return weights_calculation_config

@@ -141,7 +141,10 @@ class BaseTrainer(Trainer):
         log_section("Training starts", logger)
 
         if self.trainer_config.early_stopping and self.dev_model_input_x is not None:
-            es = EarlyStopping(save_model_name = self.trainer_config.save_model_name)
+            es = EarlyStopping(
+                save_model_path=self.trainer_config.save_model_path,
+                save_model_name=self.trainer_config.save_model_name
+            )
         elif self.trainer_config.early_stopping and self.dev_model_input_x is None:
             logger.info("Early stopping won't be performed since there is no dev set provided.")
 
@@ -194,7 +197,7 @@ class BaseTrainer(Trainer):
                 if verbose:
                     try:
                         if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
-                            logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                            logger.info(f"Train loss: {epoch_loss/steps:.3f}, Train accuracy: {epoch_acc/steps:.3f}")
                     except ZeroDivisionError:
                         continue
 
@@ -208,7 +211,10 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x is not None:
-                dev_clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
+                dev_clf_report, dev_loss = self.test_with_loss(
+                    self.dev_model_input_x, self.dev_gold_labels_y, save_model_name=self.trainer_config.save_model_name,
+                    save_model_path=self.trainer_config.save_model_path
+                )
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
@@ -216,17 +222,15 @@ class BaseTrainer(Trainer):
                 if self.trainer_config.early_stopping:
                     es(dev_loss, self.model)
                     if es.early_stop:
-                        logger.info("The model performance on validation training does not change -> early stopping. ")
+                        logger.info("The model performance on validation training does not change -> early stopping.")
                         break
 
             # saving model
-            if self.trainer_config.saved_models_dir is not None:
+            if self.trainer_config.save_model_path:
                 model_path = os.path.join(
-                    self.trainer_config.saved_models_dir,
-                    f"model_state_dict_epoch_{current_epoch}.pt"
+                    self.trainer_config.save_model_path, f"{self.trainer_config.save_model_name}_{current_epoch}.pt"
                 )
                 torch.save(self.model.cpu().state_dict(), model_path)
-                self.model.to(self.trainer_config.device)
 
         logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
         logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
@@ -275,8 +279,8 @@ class BaseTrainer(Trainer):
 
         return predictions, gold_labels, dev_loss
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = False,
-             saved_model_path: str = None) -> Dict:
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = True,
+             save_model_name: str = None, saved_model_path: str = None) -> Dict:
         """
         The function tests the trained model on the test set and returns the classification report
         :param features_dataset: features_dataset: TensorDataset with test samples
@@ -285,7 +289,7 @@ class BaseTrainer(Trainer):
         """
 
         if load_best_model:
-            self.load_model(saved_model_path)
+            self.load_model(save_model_name, saved_model_path)
 
         gold_labels = labels.tensors[0].cpu().numpy()
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
@@ -297,8 +301,8 @@ class BaseTrainer(Trainer):
         return clf_report
 
     def test_with_loss(
-            self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = False,
-            saved_model_path: str = None
+            self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = True,
+            save_model_name: str = None, saved_model_path: str = None
     ) -> Tuple[Dict, float]:
         """
         The function tests the trained model on the test set and returns the classification report and average loss.
@@ -307,7 +311,7 @@ class BaseTrainer(Trainer):
         :return: classification report (either with respect to other class or not) + average test loss
         """
         if load_best_model:
-            self.load_model(saved_model_path)
+            self.load_model(save_model_name, saved_model_path)
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
@@ -320,20 +324,21 @@ class BaseTrainer(Trainer):
 
         return clf_report, avg_los
 
-    def load_model(self, saved_model_path: str) -> None:
-        if saved_model_path:
-            model_path = os.path.join(saved_model_path, "checkpoint.pt")
-            try:
-                self.model.load_state_dict(torch.load(model_path))
-            except ValueError:
-                logger.info(f"The saved model by provided path {saved_model_path} wasn't found. The latest trained "
-                            f"model will be validated instead.")
-        else:
-            model_path = os.path.join("trained_models", "checkpoint.pt")
-            try:
-                self.model.load_state_dict(torch.load(model_path))
-            except ValueError:
-                logger.info(f"The saved model wasn't found. The latest trained model will be validated instead.")
+    def load_model(self, save_model_name: str = None, save_model_path: str = None) -> None:
+        if not save_model_name:
+            save_model_name = "checkpoint_best"
+        save_model_name = save_model_name + ".pt"
+
+        if not save_model_path:
+            save_model_path = "trained_models"
+
+        model_path = os.path.join(save_model_path, save_model_name)
+        try:
+            self.model.load_state_dict(torch.load(model_path))
+        except ValueError:
+            logger.info(
+                f"The saved model in {save_model_path} wasn't found.The latest trained model will be validated instead."
+            )
 
     def collect_report(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Dict:
         """

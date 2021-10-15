@@ -80,10 +80,19 @@ class CleanLabTrainer(MajorityVoteTrainer):
             # train the model
             self._train_loop(train_loader, verbose=False)
 
-            if self.dev_model_input_x:
-                clf_report, dev_loss = self.test_with_loss(
-                    self.dev_model_input_x, self.dev_gold_labels_y          # , load_best_model=True
-                )
+            if not self.dev_model_input_x:
+                if labels_updated == 0:
+                    logger.info("No more iterations since the labels do not change anymore.")
+                    break
+            else:
+                if self.trainer_config.early_stopping:
+                    clf_report, dev_loss = self.test_with_loss(
+                        self.dev_model_input_x, self.dev_gold_labels_y, load_best_model=True
+                    )
+                else:
+                    clf_report, dev_loss = self.test_with_loss(
+                        self.dev_model_input_x, self.dev_gold_labels_y, load_best_model=False
+                    )
                 if dev_loss < best_dev_loss:
                     best_dev_loss = dev_loss
                     logger.info(f"Clf_report: {clf_report}")
@@ -91,10 +100,6 @@ class CleanLabTrainer(MajorityVoteTrainer):
                 else:
                     logger.info(f"The model does not improve on the dev set (previous dev loss: {best_dev_loss}, "
                                 f"new dev loss: {dev_loss}). Denoising stops.")
-                    break
-            else:
-                if labels_updated == 0:
-                    logger.info("No more iterations since the labels do not change anymore.")
                     break
 
         logging.info("Training is done.")
