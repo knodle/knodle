@@ -8,7 +8,7 @@ class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
     def __init__(
-            self, patience=7, verbose: bool = False, delta=0, save_model_path: str = "trained_models",
+            self, patience=7, verbose: bool = False, delta: int = 0, save_model_path: str = None,
             save_model_name: str = None
     ):
         """
@@ -27,7 +27,10 @@ class EarlyStopping:
         self.early_stop = False
         self.val_loss_min = np.Inf
         self.delta = delta
-        self.save_model_path = save_model_path
+        if save_model_path:
+            self.save_model_path = save_model_path
+        else:
+            self.save_model_path = "trained_models"
 
         if save_model_name:
             self.save_model_name = save_model_name + "_best.pt"
@@ -62,5 +65,5 @@ class EarlyStopping:
             )
 
         os.makedirs(self.save_model_path, exist_ok=True)
-        torch.save(model.state_dict(), os.path.join(self.save_model_path, self.save_model_name))
+        torch.save(model.cpu().state_dict(), os.path.join(self.save_model_path, self.save_model_name))
         self.val_loss_min = val_loss

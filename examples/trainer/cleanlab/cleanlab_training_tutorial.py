@@ -107,12 +107,12 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                # dev_model_input_x=test_features_dataset,
-                # dev_gold_labels_y=test_labels_dataset
+                dev_model_input_x=test_features_dataset,
+                dev_gold_labels_y=test_labels_dataset
             )
 
             trainer.train()
-            clf_report = trainer.test(test_features_dataset, test_labels_dataset)       # , load_best_model=True)
+            clf_report = trainer.test(test_features_dataset, test_labels_dataset)
             logger.info(f"Accuracy is: {clf_report['accuracy']}")
             logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
             logger.info(f"Recall is: {clf_report['macro avg']['recall']}")

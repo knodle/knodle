@@ -211,10 +211,7 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x is not None:
-                dev_clf_report, dev_loss = self.test_with_loss(
-                    self.dev_model_input_x, self.dev_gold_labels_y, save_model_name=self.trainer_config.save_model_name,
-                    save_model_path=self.trainer_config.save_model_path
-                )
+                dev_clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
                 dev_losses.append(dev_loss)
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
@@ -224,13 +221,6 @@ class BaseTrainer(Trainer):
                     if es.early_stop:
                         logger.info("The model performance on validation training does not change -> early stopping.")
                         break
-
-            # saving model
-            if self.trainer_config.save_model_path:
-                model_path = os.path.join(
-                    self.trainer_config.save_model_path, f"{self.trainer_config.save_model_name}_{current_epoch}.pt"
-                )
-                torch.save(self.model.cpu().state_dict(), model_path)
 
         logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
         logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
@@ -246,6 +236,11 @@ class BaseTrainer(Trainer):
                 draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
 
         self.model.eval()
+
+        # load the best model for further evaluation
+        if self.trainer_config.early_stopping:
+            self.load_model(self.trainer_config.save_model_name, self.trainer_config.save_model_path)
+            logger.info("The best model on dev set will be used for evaluation. ")
 
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: bool = False
@@ -279,17 +274,13 @@ class BaseTrainer(Trainer):
 
         return predictions, gold_labels, dev_loss
 
-    def test(self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = True,
-             save_model_name: str = None, saved_model_path: str = None) -> Dict:
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset) -> Dict:
         """
         The function tests the trained model on the test set and returns the classification report
         :param features_dataset: features_dataset: TensorDataset with test samples
         :param labels: true labels
         :return: classification report (either with respect to other class or not)
         """
-
-        if load_best_model:
-            self.load_model(save_model_name, saved_model_path)
 
         gold_labels = labels.tensors[0].cpu().numpy()
         feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
@@ -300,18 +291,13 @@ class BaseTrainer(Trainer):
 
         return clf_report
 
-    def test_with_loss(
-            self, features_dataset: TensorDataset, labels: TensorDataset, load_best_model: bool = True,
-            save_model_name: str = None, saved_model_path: str = None
-    ) -> Tuple[Dict, float]:
+    def test_with_loss(self, features_dataset: TensorDataset, labels: TensorDataset) -> Tuple[Dict, float]:
         """
         The function tests the trained model on the test set and returns the classification report and average loss.
         :param features_dataset: TensorDataset with test samples
         :param labels: true labels
         :return: classification report (either with respect to other class or not) + average test loss
         """
-        if load_best_model:
-            self.load_model(save_model_name, saved_model_path)
 
         gold_labels = labels.tensors[0].cpu().numpy()
 
@@ -327,7 +313,7 @@ class BaseTrainer(Trainer):
     def load_model(self, save_model_name: str = None, save_model_path: str = None) -> None:
         if not save_model_name:
             save_model_name = "checkpoint_best"
-        save_model_name = save_model_name + ".pt"
+        save_model_name = save_model_name + "_best.pt"
 
         if not save_model_path:
             save_model_path = "trained_models"
@@ -335,7 +321,7 @@ class BaseTrainer(Trainer):
         model_path = os.path.join(save_model_path, save_model_name)
         try:
             self.model.load_state_dict(torch.load(model_path))
-        except ValueError:
+        except FileNotFoundError:
             logger.info(
                 f"The saved model in {save_model_path} wasn't found.The latest trained model will be validated instead."
             )
