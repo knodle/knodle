@@ -28,20 +28,27 @@ def train_cleanlab(path_to_data: str) -> None:
 
     parameters = dict(
         # seed=None,
-        lr=[0.1],
         cv_n_folds=[5],
         p=[0.1],
         use_prior=[False],
         iterations=[50],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
         epochs=[100],
-        batch_size=[128],
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
     )
     parameter_values = [v for v in parameters.values()]
 
-    df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
-        path_to_data, if_dev_data=False)
+    # for trec dataset
+    import pandas as pd
+    from joblib import load
+    df_train = pd.read_csv(os.path.join(path_to_data, 'df_train.csv'))
+    df_test = pd.read_csv(os.path.join(path_to_data, 'df_test.csv'))
+    train_rule_matches_z = load(os.path.join(path_to_data, 'train_rule_matches_z.lib'))
+    mapping_rules_labels_t = load(os.path.join(path_to_data, 'mapping_rules_labels_t.lib'))
+    df_dev = pd.read_csv(os.path.join(path_to_data, 'df_dev.csv'))
+
+    # df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
+    #     path_to_data, if_dev_data=False)
 
     train_input_x, test_input_x, _ = get_tfidf_features(
         df_train["sample"], test_data=df_test["sample"]         #, dev_data=df_dev["sample"]
@@ -59,14 +66,13 @@ def train_cleanlab(path_to_data: str) -> None:
     num_classes = max(test_labels) + 1
 
     results = []
-    for run_id, (lr, cv_n_folds, p, use_prior, iterations, prune_method, epochs, batch_size, psx_calculation_method) in\
+    for run_id, (cv_n_folds, p, use_prior, iterations, prune_method, epochs, psx_calculation_method) in\
             enumerate(product(*parameter_values)):
 
         logger.info("======================================")
-        params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} iterations = {iterations} ' \
-                 f'prune_method = {prune_method} epochs = {epochs} batch_size = {batch_size} ' \
-                 f'psx_calculation_method = {psx_calculation_method} p = {p} use_prior = {use_prior}'
-        logger.info(f"Parameters: {params}")
+        logger.info(f"Parameters: seed = None cv_n_folds = {cv_n_folds} iterations = {iterations} "
+                    f"prune_method = {prune_method} epochs = {epochs} psx_calculation_method = {psx_calculation_method}"
+                    f"p = {p} use_prior = {use_prior}")
         logger.info("======================================")
 
         exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
@@ -86,10 +92,12 @@ def train_cleanlab(path_to_data: str) -> None:
                 optimizer=Adam,
                 criterion=CrossEntropyLoss,
                 use_probabilistic_labels=False,
-                lr=lr,
+                lr=0.1,
                 epochs=epochs,
-                batch_size=batch_size,
+                batch_size=128,
                 grad_clipping=5,
+                save_model_name="trec",
+                early_stopping=True
                 # device="cpu"
             )
             trainer = CleanLabTrainer(
@@ -104,7 +112,7 @@ def train_cleanlab(path_to_data: str) -> None:
             )
 
             trainer.train()
-            clf_report = trainer.test(test_features_dataset, test_labels_dataset)
+            clf_report = trainer.test(test_features_dataset, test_labels_dataset)       # , load_best_model=True)
             logger.info(f"Accuracy is: {clf_report['accuracy']}")
             logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
             logger.info(f"Recall is: {clf_report['macro avg']['recall']}")
@@ -117,8 +125,8 @@ def train_cleanlab(path_to_data: str) -> None:
             exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
         result = {
-            "lr": lr, "cv_n_folds": cv_n_folds, "p": p, "prune_method": prune_method, "epochs": epochs,
-            "use_prior": use_prior, "batch_size": batch_size, "psx_calculation_method": psx_calculation_method,
+            "cv_n_folds": cv_n_folds, "p": p, "prune_method": prune_method, "epochs": epochs,
+            "use_prior": use_prior, "psx_calculation_method": psx_calculation_method,
             "accuracy": exp_results_acc,
             "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
             "precision": exp_results_prec,

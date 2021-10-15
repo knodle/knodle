@@ -10,7 +10,8 @@ from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
+from scipy.stats import sem
 
 from examples.trainer.preprocessing import get_tfidf_features, convert_text_to_transformer_input
 from examples.utils import read_train_dev_test
@@ -29,13 +30,10 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
 
     parameters = dict(
         # seed=None,
-        lr=[0.0001],
         cv_n_folds=[3, 5, 8],
         p=[0.1, 0.3, 0.5, 0.7, 0.9],
         iterations=[50],
         prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
-        epochs=[2],
-        batch_size=[32],
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
         psx_epochs=[20],
         psx_lr=[0.8]
@@ -62,13 +60,11 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
     results = []
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        lr, cv_n_folds, p, iterations, prune_method, epochs, batch_size, psx_calculation_method,psx_epochs, psx_lr = params
+        cv_n_folds, p, iterations, prune_method, psx_calculation_method, psx_epochs, psx_lr = params
 
         logger.info("======================================")
-        params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
-                 f'prior = False batch_size = {batch_size} psx_calculation_method = {psx_calculation_method} ' \
-                 f'psx_epochs = {psx_epochs} psx_lr = {psx_lr} '
-        logger.info(f"Parameters: {params}")
+        logger.info(f"Parameters: seed = None cv_n_folds = {cv_n_folds} prune_method = {prune_method} prior = False "
+                    f"psx_calculation_method = {psx_calculation_method} psx_epochs = {psx_epochs} psx_lr = {psx_lr} ")
         logger.info("======================================")
 
         exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
@@ -88,16 +84,17 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
                 use_prior=False,
                 p=p,
                 output_classes=num_classes,
-                optimizer=Adam,
+                optimizer=AdamW,
                 criterion=CrossEntropyLoss,
                 use_probabilistic_labels=False,
-                lr=lr,
-                epochs=epochs,
-                batch_size=batch_size,
+                lr=0.0001,
+                epochs=2,
+                batch_size=32,
                 grad_clipping=5,
 
                 psx_epochs=psx_epochs,
                 psx_lr=psx_lr,
+                psx_optimizer=Adam,
             )
 
             trainer = CleanLabTrainer(
@@ -129,17 +126,33 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
             "batch_size": batch_size, "psx_calculation_method": psx_calculation_method,
             "accuracy": exp_results_acc,
             "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
+            "sem_accuracy": sem(exp_results_acc),
             "precision": exp_results_prec,
             "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
+            "sem_precision": sem(exp_results_prec),
             "recall": exp_results_recall,
             "mean_recall": statistics.mean(exp_results_recall), "std_recall": statistics.stdev(exp_results_recall),
+            "sem_recall": sem(exp_results_recall),
             "f1-score": exp_results_f1,
             "mean_f1": statistics.mean(exp_results_f1), "std_f1": statistics.stdev(exp_results_f1),
+            "sem_f1": sem(exp_results_f1),
         }
         results.append(result)
 
         logger.info("======================================")
-        logger.info(f"Result: {result}")
+        logger.info(f"Params: cv_n_folds = {result['cv_n_folds']}, "
+                    f"prior = {custom_cleanlab_config['use_prior']}, "
+                    f"p = {result['p']}")
+        logger.info(
+            f"Experiments: {num_experiments} \n"
+            f"Average accuracy: {result['mean_accuracy']}, std: {result['std_accuracy']}, "
+            f"sem: {result['sem_accuracy']} \n"
+            f"Average prec: {result['mean_precision']}, std: {result['std_precision']}, "
+            f"sem: {result['sem_precision']} \n"
+            f"Average recall: {result['mean_recall']}, std: {result['std_recall']}, "
+            f"sem: {result['sem_recall']} \n"
+            f"Average F1: {result['std_f1']}, std: {result['std_f1']}, "
+            f"sem: {result['sem_f1']}")
         logger.info("======================================")
 
     with open(os.path.join(path_to_data, output_file), 'w') as file:

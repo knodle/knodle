@@ -3,12 +3,12 @@ import os
 import statistics
 import sys
 import json
-from itertools import product
 
 from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
+from scipy.stats import sem
 
 from examples.trainer.preprocessing import get_tfidf_features
 from examples.utils import read_train_dev_test
@@ -17,20 +17,10 @@ from knodle.trainer.cleanlab.cleanlab_with_pytorch import CleanLabPyTorchTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 
 
-def train_cleanlab(path_to_data: str) -> None:
+def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 30
-
-    parameters = dict(
-        # seed=None,
-        lr=[0.1],
-        cv_n_folds=[5],
-        prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
-        epochs=[100],
-        batch_size=[128]
-    )
-    parameter_values = [v for v in parameters.values()]
 
     df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
         path_to_data, if_dev_data=False)
@@ -50,82 +40,78 @@ def train_cleanlab(path_to_data: str) -> None:
 
     num_classes = max(test_labels) + 1
 
-    results = []
-    for run_id, (lr, cv_n_folds, prune_method, epochs, batch_size) in enumerate(product(*parameter_values)):
+    results, exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], [], []
+    for exp in range(0, num_experiments):
 
-        print("======================================")
-        params = f'seed = None lr = {lr} cv_n_folds = {cv_n_folds} prune_method = {prune_method} epochs = {epochs} ' \
-                 f'batch_size = {batch_size} '
-        print(f"Parameters: {params}")
-        print("======================================")
+        model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
 
-        exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
-        for exp in range(0, num_experiments):
+        custom_cleanlab_config = CleanLabConfig(
+            # seed=seed,
+            cv_n_folds=5,
+            prune_method='prune_by_noise_rate',
+            use_prior=False,
+            output_classes=num_classes,
+            optimizer=Adam,
+            criterion=CrossEntropyLoss,
+            use_probabilistic_labels=False,
+            lr=0.1,
+            epochs=100,
+            batch_size=128,
+            device="cpu",
+            grad_clipping=5,
+            early_stopping=True
+        )
+        trainer = CleanLabPyTorchTrainer(
+            model=model,
+            mapping_rules_labels_t=mapping_rules_labels_t,
+            model_input_x=train_features_dataset,
+            rule_matches_z=train_rule_matches_z,
+            trainer_config=custom_cleanlab_config,
+            # dev_model_input_x=dev_features_dataset,
+            # dev_gold_labels_y=dev_labels_dataset
+        )
 
-            model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
+        trainer.train()
+        clf_report = trainer.test(test_features_dataset, test_labels_dataset)
+        print(clf_report)
 
-            custom_cleanlab_config = CleanLabConfig(
-                # seed=seed,
-                cv_n_folds=cv_n_folds,
-                prune_method=prune_method,
-                use_prior=False,
-                output_classes=num_classes,
-                optimizer=Adam,
-                criterion=CrossEntropyLoss,
-                use_probabilistic_labels=False,
-                lr=lr,
-                epochs=epochs,
-                batch_size=batch_size,
-                device="cpu",
-                grad_clipping=5
-            )
-            trainer = CleanLabPyTorchTrainer(
-                model=model,
-                mapping_rules_labels_t=mapping_rules_labels_t,
-                model_input_x=train_features_dataset,
-                rule_matches_z=train_rule_matches_z,
-                trainer_config=custom_cleanlab_config,
-                # dev_model_input_x=dev_features_dataset,
-                # dev_gold_labels_y=dev_labels_dataset
-            )
+        exp_results_acc.append(clf_report['accuracy'])
+        exp_results_prec.append(clf_report['macro avg']['precision'])
+        exp_results_recall.append(clf_report['macro avg']['recall'])
+        exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
-            trainer.train()
-            clf_report = trainer.test(test_features_dataset, test_labels_dataset)
-            print(f"Accuracy is: {clf_report['accuracy']}")
-            print(f"Precision is: {clf_report['macro avg']['precision']}")
-            print(f"Recall is: {clf_report['macro avg']['recall']}")
-            print(f"F1 is: {clf_report['macro avg']['f1-score']}")
-            print(clf_report)
+    result = {
+        "accuracy": exp_results_acc,
+        "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
+        "sem_accuracy": sem(exp_results_acc),
+        "precision": exp_results_prec,
+        "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
+        "sem_precision": sem(exp_results_prec),
+        "recall": exp_results_recall,
+        "mean_recall": statistics.mean(exp_results_recall), "std_recall": statistics.stdev(exp_results_recall),
+        "sem_recall": sem(exp_results_recall),
+        "f1-score": exp_results_f1,
+        "mean_f1": statistics.mean(exp_results_f1), "std_f1": statistics.stdev(exp_results_f1),
+        "sem_f1": sem(exp_results_f1),
+    }
 
-            exp_results_acc.append(clf_report['accuracy'])
-            exp_results_prec.append(clf_report['macro avg']['precision'])
-            exp_results_recall.append(clf_report['macro avg']['recall'])
-            exp_results_f1.append(clf_report['macro avg']['f1-score'])
+    print("======================================")
+    print(
+        f"Experiments: {num_experiments} \n"
+        f"Average accuracy: {result['mean_accuracy']}, std: {result['std_accuracy']}, sem: {result['sem_accuracy']} \n"
+        f"Average prec: {result['mean_precision']}, std: {result['std_precision']}, sem: {result['sem_precision']} \n"
+        f"Average recall: {result['mean_recall']}, std: {result['std_recall']}, sem: {result['sem_recall']} \n"
+        f"Average F1: {result['std_f1']}, std: {result['std_f1']}, sem: {result['sem_f1']}")
+    print("======================================")
 
-        result = {
-            "lr": lr, "cv_n_folds": cv_n_folds, "prune_method": prune_method, "epochs": epochs,
-            "batch_size": batch_size, "accuracy": exp_results_acc,
-            "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
-            "precision": exp_results_prec,
-            "mean_precision": statistics.mean(exp_results_prec), "std_precision": statistics.stdev(exp_results_prec),
-            "recall": exp_results_recall,
-            "mean_recall": statistics.mean(exp_results_recall), "std_recall": statistics.stdev(exp_results_recall),
-            "f1-score": exp_results_f1,
-            "mean_f1": statistics.mean(exp_results_f1), "std_f1": statistics.stdev(exp_results_f1),
-        }
-        results.append(result)
-
-        print("======================================")
-        print(f"Result: {result}")
-        print("======================================")
-
-    with open(os.path.join(path_to_data, 'results/spouse/baselines/cl_results_spouse_baseline_pytorch_30exp.json'), 'w') as file:
+    with open(os.path.join(path_to_data, output_file), 'w') as file:
         json.dump(results, file)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="")
+    parser.add_argument("--output_file", help="")
 
     args = parser.parse_args()
-    train_cleanlab(args.path_to_data)
+    train_cleanlab(args.path_to_data, args.output_file)
