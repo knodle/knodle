@@ -34,7 +34,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     os.makedirs(processed_data_dir, exist_ok=True)
 
     # Download data
-    client = Minio("knodle.dm.univie.ac.at", secure=False)
+    client = Minio("knodle.cc", secure=False)
     files = [
         "df_train.csv", "df_dev.csv", "df_test.csv",
         "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
@@ -43,7 +43,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     for file in tqdm(files):
         client.fget_object(
             bucket_name="knodle",
-            object_name=os.path.join("datasets/imdb/processed", file),
+            object_name=os.path.join("datasets/imdb/processed/", file),
             file_path=os.path.join(processed_data_dir, file),
         )
 
@@ -141,6 +141,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
     parser.add_argument("--num_classes", help="Number of classes")
+
     args = parser.parse_args()
 
     train_wscrossweigh(args.path_to_data, args.num_classes)

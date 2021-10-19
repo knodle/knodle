@@ -28,7 +28,7 @@ def train_simple_ds_model():
     init_logger()
     if not not os.path.exists('data/imdb/mapping_rules_labels_t.lib'):
         minio_connect = MinioConnector()
-        minio_connect.download_dir("datasets/imdb/processed", TARGET_PATH)
+        minio_connect.download_dir("datasets/imdb/processed/", TARGET_PATH)
 
     train_df, dev_df, test_df, train_rule_matches_z, dev_rule_matches_z, test_rule_matches_z, imdb_dataset, \
     mapping_rules_labels_t = \
