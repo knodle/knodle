@@ -65,6 +65,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
         for i in range(self.trainer_config.iterations):
 
             logger.info(f"Iteration: {i}")
+            logger.info(f"Device: {self.trainer_config.device}")
 
             # update the t matrix and recalculate the labels
             t_matrix_updated = self.denoise_t_matrix(noisy_y_train)
@@ -104,7 +105,6 @@ class CleanLabTrainer(MajorityVoteTrainer):
             clf=self.model,
             seed=self.trainer_config.seed,
             cv_n_folds=self.trainer_config.cv_n_folds,
-            prune_method=self.trainer_config.prune_method,
             converge_latent_estimates=self.trainer_config.converge_latent_estimates,
             pulearning=self.trainer_config.pulearning,
             n_jobs=self.trainer_config.n_jobs
@@ -134,7 +134,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
             # 2nd method: normalized((t matrix * prior) + confident_joint)
             t_matrix_updated = update_t_matrix_with_prior(rp.confident_joint, self.mapping_rules_labels_t)
         else:
-            # 1st method: p * (normalized confident_joint) + p * (t matrix)
+            # 1st method: p * (normalized confident_joint) + (1 - p) * (t matrix)
             t_matrix_updated = update_t_matrix(rp.confident_joint, self.mapping_rules_labels_t, p=self.trainer_config.p)
 
         logger.info(t_matrix_updated)

@@ -32,11 +32,9 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
         # seed=None,
         cv_n_folds=[3, 5, 8],
         p=[0.1, 0.3, 0.5, 0.7, 0.9],
+        use_prior=[False],
         iterations=[50],
-        prune_method=['prune_by_noise_rate'],               # , 'prune_by_class', 'both'
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
-        psx_epochs=[20],
-        psx_lr=[0.8]
     )
     parameter_values = [v for v in parameters.values()]
 
@@ -66,11 +64,11 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
     results = []
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        cv_n_folds, p, iterations, prune_method, psx_calculation_method, psx_epochs, psx_lr = params
+        cv_n_folds, p, use_prior, iterations, psx_calculation_method = params
 
         logger.info("======================================")
-        logger.info(f"Parameters: seed = None cv_n_folds = {cv_n_folds} prune_method = {prune_method} prior = True "
-                    f"psx_calculation_method = {psx_calculation_method} psx_epochs = {psx_epochs} psx_lr = {psx_lr}")
+        logger.info(f"Parameters: cv_n_folds = {cv_n_folds} psx_calculation_method = {psx_calculation_method}"
+                    f"p = {p} use_prior = {use_prior}")
         logger.info("======================================")
 
         exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
@@ -78,6 +76,7 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
         for exp in range(0, num_experiments):
 
             model_logreg = LogisticRegressionModel(train_input_x.shape[1], num_classes)
+
             model_bert = DistilBertForSequenceClassification.from_pretrained(
                 'distilbert-base-uncased', num_labels=num_classes
             )
@@ -85,23 +84,23 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
             custom_cleanlab_config = CleanLabConfig(
                 cv_n_folds=cv_n_folds,
                 psx_calculation_method=psx_calculation_method,
-                prune_method=prune_method,
                 iterations=iterations,
-                use_prior=False,
+                use_prior=use_prior,
                 p=p,
                 output_classes=num_classes,
-                optimizer=AdamW,
                 criterion=CrossEntropyLoss,
                 use_probabilistic_labels=False,
-                lr=0.0001,
                 epochs=2,
-                batch_size=32,
                 grad_clipping=5,
+                save_model_name=output_file,
+                optimizer=AdamW,
+                lr=0.0001,
+                batch_size=32,
                 early_stopping=True,
 
-                psx_epochs=psx_epochs,
-                psx_lr=psx_lr,
-                psx_optimizer=Adam,
+                psx_epochs=20,
+                psx_lr=0.8,
+                psx_optimizer=Adam
             )
 
             trainer = CleanLabTrainer(
@@ -111,15 +110,16 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                dev_model_input_x=X_dev_bert,
-                dev_gold_labels_y=dev_labels_dataset,
-
                 psx_model=model_logreg,
-                psx_model_input_x=X_train_tfidf
+                psx_model_input_x=X_train_tfidf,
+
+                dev_model_input_x=X_dev_bert,
+                dev_gold_labels_y=dev_labels_dataset
             )
 
             trainer.train()
             clf_report = trainer.test(X_test_bert, test_labels_dataset)
+
             logger.info(f"Accuracy is: {clf_report['accuracy']}")
             logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
             logger.info(f"Recall is: {clf_report['macro avg']['recall']}")
@@ -134,8 +134,7 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
         result = {
             "cv_n_folds": cv_n_folds,
             "p": p,
-            "use_prior": False,
-            "prune_method": prune_method,
+            "use_prior": use_prior,
             "psx_calculation_method": psx_calculation_method,
             "accuracy": exp_results_acc,
             "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
@@ -153,10 +152,21 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
         results.append(result)
 
         logger.info("======================================")
-        logger.info(f"Result: {result}")
+        logger.info(f"Params: cv_n_folds = {result['cv_n_folds']}, prior = {custom_cleanlab_config.use_prior}, "
+                    f"p = {result['p']}")
+        logger.info(
+            f"Experiments: {num_experiments} \n"
+            f"Average accuracy: {result['mean_accuracy']}, std: {result['std_accuracy']}, "
+            f"sem: {result['sem_accuracy']} \n"
+            f"Average prec: {result['mean_precision']}, std: {result['std_precision']}, "
+            f"sem: {result['sem_precision']} \n"
+            f"Average recall: {result['mean_recall']}, std: {result['std_recall']}, "
+            f"sem: {result['sem_recall']} \n"
+            f"Average F1: {result['mean_f1']}, std: {result['std_f1']}, "
+            f"sem: {result['sem_f1']}")
         logger.info("======================================")
 
-    with open(os.path.join(path_to_data, output_file), 'w') as file:
+    with open(os.path.join(path_to_data, output_file + ".json"), 'w') as file:
         json.dump(results, file)
 
 

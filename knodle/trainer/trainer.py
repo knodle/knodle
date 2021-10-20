@@ -222,6 +222,9 @@ class BaseTrainer(Trainer):
                         logger.info("The model performance on validation training does not change -> early stopping.")
                         break
 
+            self.model.train()
+            self.model.to(self.trainer_config.device)
+
         logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
         logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
 

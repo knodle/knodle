@@ -10,10 +10,9 @@ from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 from scipy.stats import sem
 
-from examples.trainer.preprocessing import get_tfidf_features, convert_text_to_transformer_input
+from examples.trainer.preprocessing import get_tfidf_features
 from examples.utils import read_train_dev_test
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
@@ -23,27 +22,44 @@ from knodle.trainer.cleanlab.config import CleanLabConfig
 logger = logging.getLogger(__name__)
 
 
-def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
-    """ This is an example of launching cleanlab trainer with BERT model """
+def train_cleanlab(path_to_data: str, output_file: str) -> None:
+    """ This is an example of launching cleanlab trainer """
 
-    num_experiments = 30
+    num_experiments = 50
 
     parameters = dict(
         # seed=None,
-        cv_n_folds=[3, 5, 8],
-        p=[0.1],         #, 0.3, 0.5, 0.7, 0.9],
-        use_prior=[True],
+        cv_n_folds=[3],     #, 5, 8],
+        p=[0.9],            # 0.3, 0.5, 0.7, 0.9],
+        use_prior=[False],
         iterations=[50],
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed
     )
     parameter_values = [v for v in parameters.values()]
 
-    df_train, _, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(path_to_data)
+    # for trec dataset
+    # import pandas as pd
+    # from joblib import load
+    # df_train = pd.read_csv(os.path.join(path_to_data, 'df_train.csv'))
+    # df_test = pd.read_csv(os.path.join(path_to_data, 'df_test.csv'))
+    # train_rule_matches_z = load(os.path.join(path_to_data, 'train_rule_matches_z.lib'))
+    # mapping_rules_labels_t = load(os.path.join(path_to_data, 'mapping_rules_labels_t.lib'))
+    # df_dev = pd.read_csv(os.path.join(path_to_data, 'df_dev.csv'))
 
-    # the psx matrix is calculated with logistic regression model (with TF-IDF features)
-    train_input_x, test_input_x, _ = get_tfidf_features(df_train["sample"], test_data=df_test["sample"])
+    df_train, df_dev, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
+        path_to_data, if_dev_data=True)
 
-    X_train_tfidf = TensorDataset(Tensor(train_input_x.toarray()))
+    train_input_x, test_input_x, dev_input_x = get_tfidf_features(
+        df_train["sample"], test_data=df_test["sample"], dev_data=df_dev["sample"]
+    )
+
+    train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
+    dev_features_dataset = TensorDataset(Tensor(dev_input_x.toarray()))
+    test_features_dataset = TensorDataset(Tensor(test_input_x.toarray()))
+
+    # create dev labels dataset
+    dev_labels = df_dev["label"].tolist()
+    dev_labels_dataset = TensorDataset(LongTensor(dev_labels))
 
     # create test labels dataset
     test_labels = df_test["label"].tolist()
@@ -51,18 +67,13 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
 
     num_classes = max(test_labels) + 1
 
-    # the classifier training is realized with BERT model (with BERT encoded features - input indices & attention mask)
-    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    X_train_bert = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
-    X_test_bert = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
-
     results = []
     for run_id, (params) in enumerate(product(*parameter_values)):
 
         cv_n_folds, p, use_prior, iterations, psx_calculation_method = params
 
         logger.info("======================================")
-        logger.info(f"Parameters: cv_n_folds = {cv_n_folds} psx_calculation_method = {psx_calculation_method} "
+        logger.info(f"Parameters: cv_n_folds = {cv_n_folds} psx_calculation_method = {psx_calculation_method}"
                     f"p = {p} use_prior = {use_prior}")
         logger.info("======================================")
 
@@ -70,13 +81,10 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
 
         for exp in range(0, num_experiments):
 
-            model_logreg = LogisticRegressionModel(train_input_x.shape[1], num_classes)
-
-            model_bert = DistilBertForSequenceClassification.from_pretrained(
-                'distilbert-base-uncased', num_labels=num_classes
-            )
+            model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
 
             custom_cleanlab_config = CleanLabConfig(
+                # seed=seed,
                 cv_n_folds=cv_n_folds,
                 psx_calculation_method=psx_calculation_method,
                 iterations=iterations,
@@ -85,33 +93,27 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
                 output_classes=num_classes,
                 criterion=CrossEntropyLoss,
                 use_probabilistic_labels=False,
-                epochs=2,
+                epochs=100,
                 grad_clipping=5,
                 save_model_name=output_file,
-                optimizer=AdamW,
-                lr=0.0001,
-                batch_size=32,
-                early_stopping=True,
-
-                psx_epochs=20,
-                psx_lr=0.8,
-                psx_optimizer=Adam
+                optimizer=Adam,
+                lr=0.1,
+                batch_size=128,
+                early_stopping=True
             )
-
             trainer = CleanLabTrainer(
-                model=model_bert,
+                model=model,
                 mapping_rules_labels_t=mapping_rules_labels_t,
-                model_input_x=X_train_bert,
+                model_input_x=train_features_dataset,
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                psx_model=model_logreg,
-                psx_model_input_x=X_train_tfidf
+                dev_model_input_x=dev_features_dataset,
+                dev_gold_labels_y=dev_labels_dataset
             )
 
             trainer.train()
-            clf_report = trainer.test(X_test_bert, test_labels_dataset)
-
+            clf_report = trainer.test(test_features_dataset, test_labels_dataset)
             logger.info(f"Accuracy is: {clf_report['accuracy']}")
             logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
             logger.info(f"Recall is: {clf_report['macro avg']['recall']}")
@@ -124,10 +126,7 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
             exp_results_f1.append(clf_report['macro avg']['f1-score'])
 
         result = {
-            "cv_n_folds": cv_n_folds,
-            "p": p,
-            "use_prior": use_prior,
-            "psx_calculation_method": psx_calculation_method,
+            "cv_n_folds": cv_n_folds, "p": p, "psx_calculation_method": psx_calculation_method,
             "accuracy": exp_results_acc,
             "mean_accuracy": statistics.mean(exp_results_acc), "std_accuracy": statistics.stdev(exp_results_acc),
             "sem_accuracy": sem(exp_results_acc),
@@ -154,7 +153,7 @@ def train_cleanlab_bert(path_to_data: str, output_file: str) -> None:
             f"sem: {result['sem_precision']} \n"
             f"Average recall: {result['mean_recall']}, std: {result['std_recall']}, "
             f"sem: {result['sem_recall']} \n"
-            f"Average F1: {result['mean_f1']}, std: {result['std_f1']}, "
+            f"Average F1: {result['std_f1']}, std: {result['std_f1']}, "
             f"sem: {result['sem_f1']}")
         logger.info("======================================")
 
@@ -168,4 +167,4 @@ if __name__ == '__main__':
     parser.add_argument("--output_file", help="")
 
     args = parser.parse_args()
-    train_cleanlab_bert(args.path_to_data, args.output_file)
+    train_cleanlab(args.path_to_data, args.output_file)

@@ -1,35 +1,22 @@
 import logging
-from typing import Union, Tuple
 
-import torch
 import numpy as np
-import scipy.sparse as sp
-from cleanlab.latent_estimation import estimate_py_noise_matrices_and_cv_pred_proba
 from cleanlab.pruning import get_noise_indices
 from cleanlab.util import value_counts
-
 from torch.utils.data import TensorDataset
-from torch.utils.data.dataset import Subset
 
 from knodle.trainer import MajorityVoteTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.cleanlab.classification import LearningWithNoisyLabelsTorch
 from knodle.trainer.cleanlab.config import CleanLabConfig
-from knodle.trainer.cleanlab.pruning import update_t_matrix, update_t_matrix_with_prior
-from knodle.trainer.cleanlab.psx_estimation import calculate_psx, estimate_py_noise_matrices_and_cv_pred_proba_baseline
-from knodle.trainer.cleanlab.noisy_matrix_estimation import calculate_noise_matrix
-from knodle.trainer.cleanlab.utils import calculate_threshold, calculate_labels
-from knodle.trainer.wscrossweigh.data_splitting_by_rules import get_dataset_by_sample_ids
-from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
-from knodle.transformation.majority import probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, \
-    input_to_majority_vote_input
+from knodle.trainer.cleanlab.psx_estimation import estimate_py_noise_matrices_and_cv_pred_proba_baseline
+from knodle.trainer.cleanlab.utils import calculate_labels
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
 
 @AutoTrainer.register('cleanlab')
-class CleanLabPyTorchTrainer(MajorityVoteTrainer):
+class CleanlabBasePyTorchTrainer(MajorityVoteTrainer):
 
     def __init__(
             self,
@@ -45,8 +32,10 @@ class CleanLabPyTorchTrainer(MajorityVoteTrainer):
         super().__init__(**kwargs)
 
         if self.trainer_config.use_probabilistic_labels:
-            logger.warning("WSCleanlab denoising method is not compatible with probabilistic labels. The labels for "
-                           "each sample will be chosen with majority voting instead")
+            logger.warning(
+                "WSCleanlab denoising method is not compatible with probabilistic labels. The labels for "
+                "each sample will be chosen with majority voting instead"
+            )
             self.trainer_config.use_probabilistic_labels = False
 
         self.K = None
@@ -123,9 +112,6 @@ class CleanLabPyTorchTrainer(MajorityVoteTrainer):
 
         s_pruned = noisy_y_train[x_mask]
         x_pruned = TensorDataset(*[inp[x_mask] for inp in self.model_input_x.tensors])
-
-        # x_pruned = self.model_input_x[x_mask]
-        # s_pruned = noisy_y_train[x_mask]
 
         # Re-weight examples in the loss function for the final fitting
         # s.t. the "apparent" original number of examples in each class

@@ -65,5 +65,5 @@ class EarlyStopping:
             )
 
         os.makedirs(self.save_model_path, exist_ok=True)
-        torch.save(model.cpu().state_dict(), os.path.join(self.save_model_path, self.save_model_name))
+        torch.save(model.state_dict(), os.path.join(self.save_model_path, self.save_model_name))
         self.val_loss_min = val_loss

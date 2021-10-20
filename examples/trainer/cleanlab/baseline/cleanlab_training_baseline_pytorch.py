@@ -1,4 +1,3 @@
-import logging
 import argparse
 import os
 import statistics
@@ -9,16 +8,13 @@ from torch import Tensor, LongTensor
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 from torch.utils.data import TensorDataset
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
 from scipy.stats import sem
 
-from examples.trainer.preprocessing import convert_text_to_transformer_input
+from examples.trainer.preprocessing import get_tfidf_features
 from examples.utils import read_train_dev_test
-from knodle.trainer.cleanlab.cleanlab_with_pytorch import CleanLabPyTorchTrainer
+from knodle.model.logistic_regression_model import LogisticRegressionModel
+from knodle.trainer.cleanlab.cleanlab_base_with_pytorch import CleanlabBasePyTorchTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
-
-
-logger = logging.getLogger(__name__)
 
 
 def train_cleanlab(path_to_data: str, output_file: str) -> None:
@@ -29,59 +25,56 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     df_train, df_dev, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
         path_to_data, if_dev_data=True)
 
-    # create test labels dataset
-    test_labels = df_test["label"].tolist()
+    train_input_x, test_input_x, dev_input_x = get_tfidf_features(
+        df_train["sample"], test_data=df_test["sample"], dev_data=df_dev["sample"],
+    )
+
+    train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
+    dev_features_dataset = TensorDataset(Tensor(dev_input_x.toarray()))
+    test_features_dataset = TensorDataset(Tensor(test_input_x.toarray()))
+
     dev_labels = df_dev["label"].tolist()
-    y_test = TensorDataset(LongTensor(test_labels))
-    y_dev = TensorDataset(LongTensor(dev_labels))
+    test_labels = df_test["label"].tolist()
+    dev_labels_dataset = TensorDataset(LongTensor(dev_labels))
+    test_labels_dataset = TensorDataset(LongTensor(test_labels))
 
     num_classes = max(test_labels) + 1
 
-    # the classifier training is realized with BERT model (with BERT encoded features - input indices & attention mask)
-    tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-    X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
-    X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
-    X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
-
-    results, exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], [], []
-
+    exp_results_acc, exp_results_prec, exp_results_recall, exp_results_f1 = [], [], [], []
     for exp in range(0, num_experiments):
 
-        model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=num_classes)
+        model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
+
         custom_cleanlab_config = CleanLabConfig(
             # seed=seed,
             cv_n_folds=5,
             prune_method='prune_by_noise_rate',
             use_prior=False,
             output_classes=num_classes,
-            optimizer=AdamW,
+            optimizer=Adam,
             criterion=CrossEntropyLoss,
             use_probabilistic_labels=False,
-            lr=0.0001,
-            epochs=2,
-            batch_size=32,
+            lr=0.1,
+            epochs=100,
+            batch_size=128,
+            device="cpu",
             grad_clipping=5,
-            early_stopping=True
+            early_stopping=True,
+            save_model_name=output_file
         )
-        trainer = CleanLabPyTorchTrainer(
+        trainer = CleanlabBasePyTorchTrainer(
             model=model,
             mapping_rules_labels_t=mapping_rules_labels_t,
-            model_input_x=X_train,
+            model_input_x=train_features_dataset,
             rule_matches_z=train_rule_matches_z,
             trainer_config=custom_cleanlab_config,
-
-            dev_model_input_x=X_dev,
-            dev_gold_labels_y=y_dev
+            dev_model_input_x=dev_features_dataset,
+            dev_gold_labels_y=dev_labels_dataset
         )
 
         trainer.train()
-        clf_report = trainer.test(X_test, y_test)
-
-        logger.info(f"Accuracy is: {clf_report['accuracy']}")
-        logger.info(f"Precision is: {clf_report['macro avg']['precision']}")
-        logger.info(f"Recall is: {clf_report['macro avg']['recall']}")
-        logger.info(f"F1 is: {clf_report['macro avg']['f1-score']}")
-        logger.info(clf_report)
+        clf_report = trainer.test(test_features_dataset, test_labels_dataset)
+        print(clf_report)
 
         exp_results_acc.append(clf_report['accuracy'])
         exp_results_prec.append(clf_report['macro avg']['precision'])
@@ -112,8 +105,8 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
         f"Average F1: {result['std_f1']}, std: {result['std_f1']}, sem: {result['sem_f1']}")
     print("======================================")
 
-    with open(os.path.join(path_to_data, output_file), 'w') as file:
-        json.dump(results, file)
+    with open(os.path.join(path_to_data, output_file + ".json"), 'w') as file:
+        json.dump(result, file)
 
 
 if __name__ == '__main__':
