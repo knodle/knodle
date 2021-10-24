@@ -162,7 +162,7 @@ Licensed under the [Apache 2.0 License](LICENSE).
 
 ## Contact
 
-If you notices a problem in the code, you can report it by [submitting an issue](<https://github.com/knodle/kndole/issues/new>).
+If you notices a problem in the code, you can report it by [submitting an issue](<https://github.com/knodle/knodle/issues/new>).
 
 If you want to share your feedback with us or take part in the project, contact us via 
 <knodle@cs.univie.ac.at>. 
