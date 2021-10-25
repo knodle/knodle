@@ -35,7 +35,7 @@ There are four mandatory inputs for knodle:
 3. `rule_matches_z`: This matrix shows all applied rules on your dataset. Shape: (n_instances x n_rules)
 4. `model`: A PyTorch model which can take your provided `model_input_x` as input. Examples are in the [model folder](https://github.com/knodle/knodle/tree/develop/knodle/model/).
 
-If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle/tree/style_guide#denoising-methods)).
+If you know which denoising method you want to use, you can directly call the corresponding module (the list of currently supported methods is provided [below](https://github.com/knodle/knodle#denoising-methods)).
 
 Example for training the baseline classifier:
 
@@ -114,8 +114,8 @@ We also aimed at providing the users with basic tutorials that would explain how
     - ... on the example of a well-known ImdB dataset. A weakly supervised dataset is created by incorporating keywords as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/imdb_dataset)).
     - ... on the example of a TAC-based dataset in .conll format. A relation extraction dataset is created using entity pairs from Freebase as weak sources ([link](https://github.com/knodle/knodle/tree/develop/examples/data_preprocessing/tac_based_dataset)).
 - tutorials how to work with Knodle Framework...
-    - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/autotrainer)).
-    - ... on the example of WSCrossWeighTrainer. With this trainer a weak classifier with WSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/WSCrossWeigh)).
+    - ... on the example of AutoTrainer. This trainer is to be called when user wants to train a weak classifier, but has no intention to use any specific denoising method, but rather try all currently provided in Knodle ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/simple_auto_trainer)).
+    - ... on the example of WSCrossWeighTrainer. With this trainer a weak classifier with WSCrossWeigh denoising method will be trained ([link](https://github.com/knodle/knodle/tree/develop/examples/trainer/wscrossweigh)).
 
 ## Compatibility
 
@@ -162,7 +162,7 @@ Licensed under the [Apache 2.0 License](LICENSE).
 
 ## Contact
 
-If you notices a problem in the code, you can report it by [submitting an issue](<https://github.com/knodle/kndole/issues/new>).
+If you notices a problem in the code, you can report it by [submitting an issue](<https://github.com/knodle/knodle/issues/new>).
 
 If you want to share your feedback with us or take part in the project, contact us via 
 <knodle@cs.univie.ac.at>. 
