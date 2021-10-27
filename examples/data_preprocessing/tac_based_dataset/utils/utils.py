@@ -226,7 +226,7 @@ def retrieve_patterns_in_sample(
 
 def count_file_lines(file_name: str) -> int:
     """ Count the number of line in a file """
-    with open(file_name) as f:
+    with open(file_name, encoding='utf-8') as f:
         return len(f.readlines())
 
 
