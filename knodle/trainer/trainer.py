@@ -1,5 +1,7 @@
+import copy
 import os
 import logging
+import statistics
 from typing import Dict, Tuple
 
 from torch.nn.modules.loss import _Loss
@@ -13,8 +15,8 @@ import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.utils.data import TensorDataset, DataLoader
-import torch.nn.functional as F
 
+from knodle.trainer.utils.validation_with_cv import get_val_cv_dataset
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.model.EarlyStopping import EarlyStopping
 from knodle.transformation.torch_input import input_labels_to_tensordataset
@@ -368,3 +370,48 @@ class BaseTrainer(Trainer):
             return criterion(logits, gold_labels)
         else:
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
+
+    def _validate_with_cv(self, features, noisy_labels, folds: int = 10) -> Tuple[float, float, float, float, float]:
+
+        trained_model = copy.deepcopy(self.model)
+
+        arr_train_datasets, arr_test_features, arr_test_labels = \
+            get_val_cv_dataset(
+                features, self.rule_matches_z, noisy_labels, folds=folds, seed=self.trainer_config.seed
+            )
+
+        dev_acc, dev_prec, dev_rec, dev_f1, dev_losses = [], [], [], [], []
+
+        i = 1
+        for (train_data, test_features, test_labels) in zip(arr_train_datasets, arr_test_features, arr_test_labels):
+            logger.info(f"Validation run {i}")
+            self.model = copy.deepcopy(trained_model)
+            train_features = self._make_dataloader(train_data)
+
+            self._train_loop(train_features)
+            clf_report, dev_loss = self.test_with_loss(test_features, test_labels)
+
+            dev_acc.append(clf_report['accuracy'])
+            dev_prec.append(clf_report['precision'])
+            dev_rec.append(clf_report['recall'])
+            dev_f1.append(clf_report['f1'])
+            dev_losses.append(dev_loss)
+
+            logger.info(f"Clf_report: {clf_report}, Loss: {dev_loss}")
+            i += 1
+
+        avg_acc = statistics.mean(dev_acc)
+        avg_prec = statistics.mean(dev_prec)
+        avg_rec = statistics.mean(dev_rec)
+        avg_f1 = statistics.mean(dev_f1)
+        avg_loss = statistics.mean(dev_losses)
+
+        logger.info(f"Average dev accuracy: {avg_acc}")
+        logger.info(f"Average dev precision: {avg_prec}")
+        logger.info(f"Average dev recall: {avg_rec}")
+        logger.info(f"Average dev f1: {avg_f1}")
+        logger.info(f"Average dev loss: {avg_loss}")
+
+        self.model = trained_model
+
+        return avg_acc, avg_prec, avg_rec, avg_f1, avg_loss

@@ -9,8 +9,7 @@ from torch.utils.data import TensorDataset
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
-from knodle.trainer.wscrossweigh.data_splitting_by_rules import k_folds_splitting_by_rules, get_rules_sample_ids, \
-    get_train_test_datasets_by_rule_indices
+from knodle.trainer.utils.split import k_folds_splitting_by_rules, get_train_test_datasets_by_rule_indices
 from knodle.transformation.majority import input_to_majority_vote_input
 
 

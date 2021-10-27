@@ -8,7 +8,7 @@ from joblib import dump
 
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.utils import log_section
-from knodle.trainer.wscrossweigh.data_splitting_by_rules import k_folds_splitting_by_rules
+from knodle.trainer.utils.split import k_folds_splitting_by_rules
 from knodle.transformation.majority import input_to_majority_vote_input
 
 logger = logging.getLogger(__name__)

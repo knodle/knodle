@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import numpy as np
@@ -9,6 +10,8 @@ from sklearn.preprocessing import normalize
 # pruning, regardless if noise estimates are larger.
 MIN_NUM_PER_CLASS = 5         # 100
 
+
+logger = logging.getLogger(__name__)
 
 # def get_noise_indices(
 #         noisy_labels,
@@ -74,7 +77,9 @@ def update_t_matrix_with_prior(prune_count_matrix, t_matrix) -> np.ndarray:
     :return:
     """
     prior = np.mean(prune_count_matrix)
-    print(f"Prior: {prior}")
+    logger.info(f"Prior: {prior}, for current experiment with IMDB is temporally increased twice")
+    prior *= 2
+    logger.info(f"New prior is: {prior}")
     t_matrix_with_prior = t_matrix * prior
     updated_t_matrix = normalize(t_matrix_with_prior + prune_count_matrix, axis=1, norm='l1')
     return updated_t_matrix

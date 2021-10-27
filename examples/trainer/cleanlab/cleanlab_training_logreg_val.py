@@ -29,8 +29,8 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
 
     parameters = dict(
         # seed=None,
-        cv_n_folds=[3],     #, 5, 8],
-        p=[0.9],            # 0.3, 0.5, 0.7, 0.9],
+        cv_n_folds=[3, 5, 8],
+        p=[0.1, 0.3, 0.5, 0.7, 0.9],
         use_prior=[False],
         iterations=[50],
         psx_calculation_method=['signatures'],      # how the splitting into folds will be performed

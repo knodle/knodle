@@ -82,6 +82,9 @@ class CleanLabTrainer(MajorityVoteTrainer):
             self._train_loop(train_loader, verbose=False)
 
             if not self.dev_model_input_x:
+
+                # dev_acc, dev_prec, dev_rec, dev_f1, dev_loss = self._validate_with_cv(self.model_input_x, noisy_y_train_upd)
+
                 if labels_updated == 0:
                     logger.info("No more iterations since the labels do not change anymore.")
                     break

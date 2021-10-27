@@ -14,7 +14,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
 from knodle.trainer import MajorityConfig
-from knodle.trainer.wscrossweigh.data_splitting_by_rules import (
+from knodle.trainer.utils.split import (
     k_folds_splitting_by_rules, k_folds_splitting_by_signatures, k_folds_splitting_random, get_dataset_by_sample_ids
 )
 
