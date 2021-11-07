@@ -43,7 +43,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     for file in tqdm(files):
         client.fget_object(
             bucket_name="knodle",
-            object_name=os.path.join("datasets/imdb/processed", file),
+            object_name=os.path.join("datasets/spam/processed", file),
             file_path=os.path.join(processed_data_dir, file),
         )
 
