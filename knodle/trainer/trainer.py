@@ -2,7 +2,7 @@ import copy
 import os
 import logging
 import statistics
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 from torch.nn.modules.loss import _Loss
 from tqdm.auto import tqdm
@@ -96,7 +96,7 @@ class BaseTrainer(Trainer):
             kwargs["trainer_config"] = BaseTrainerConfig()
         super().__init__(model, mapping_rules_labels_t, model_input_x, rule_matches_z, **kwargs)
 
-        check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
+        # check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
 
     def _load_train_params(
             self,
@@ -137,18 +137,10 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False,
-            verbose: bool = True
+            self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False
     ):
         log_section("Training starts", logger)
-
-        if self.trainer_config.early_stopping and self.dev_model_input_x is not None:
-            es = EarlyStopping(
-                save_model_path=self.trainer_config.save_model_path,
-                save_model_name=self.trainer_config.save_model_name
-            )
-        elif self.trainer_config.early_stopping and self.dev_model_input_x is None:
-            logger.info("Early stopping won't be performed since there is no dev set provided.")
+        es = self.check_early_stopping()
 
         self.model.to(self.trainer_config.device)
         self.model.train()
@@ -158,8 +150,7 @@ class BaseTrainer(Trainer):
             dev_losses, dev_acc = [], []
 
         for current_epoch in range(self.trainer_config.epochs):
-
-            if verbose:
+            if self.trainer_config.verbose:
                 logger.info("Epoch: {}".format(current_epoch))
 
             epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
@@ -196,7 +187,7 @@ class BaseTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                if verbose:
+                if self.trainer_config.verbose:
                     try:
                         if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
                             logger.info(f"Train loss: {epoch_loss/steps:.3f}, Train accuracy: {epoch_acc/steps:.3f}")
@@ -208,7 +199,7 @@ class BaseTrainer(Trainer):
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            if verbose:
+            if self.trainer_config.verbose:
                 logger.info("Epoch train loss: {}".format(avg_loss))
                 logger.info("Epoch train accuracy: {}".format(avg_acc))
 
@@ -218,18 +209,16 @@ class BaseTrainer(Trainer):
                 dev_acc.append(dev_clf_report["accuracy"])
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
-                if self.trainer_config.early_stopping:
+                if es:
                     es(dev_loss, self.model)
                     if es.early_stop:
                         logger.info("The model performance on validation training does not change -> early stopping.")
                         break
 
-            self.model.train()
-            self.model.to(self.trainer_config.device)
+                self.model.train()
 
         logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
         logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
-
         log_section("Training done", logger)
 
         if draw_plot:
@@ -362,13 +351,13 @@ class BaseTrainer(Trainer):
 
     def calculate_loss(self, logits: Tensor, gold_labels: Tensor) -> float:
         if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
-            criterion = self.trainer_config.criterion(
-                weight=self.trainer_config.class_weights
-            ).cuda() if self.trainer_config.device == torch.device("cuda") else self.trainer_config.criterion(
-                weight=self.trainer_config.class_weights
-            )
+            criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights).cuda() \
+                if self.trainer_config.device == torch.device("cuda") \
+                else self.trainer_config.criterion(weight=self.trainer_config.class_weights)
             return criterion(logits, gold_labels)
         else:
+            if len(gold_labels.shape) == 1:
+                gold_labels = torch.nn.functional.one_hot(gold_labels.to(torch.int64))
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
 
     def _validate_with_cv(self, features, noisy_labels, folds: int = 10) -> Tuple[float, float, float, float, float]:
@@ -415,3 +404,15 @@ class BaseTrainer(Trainer):
         self.model = trained_model
 
         return avg_acc, avg_prec, avg_rec, avg_f1, avg_loss
+
+    def check_early_stopping(self) -> Union[EarlyStopping, None]:
+        if self.trainer_config.early_stopping and self.dev_model_input_x:
+            return EarlyStopping(
+                save_model_path=self.trainer_config.save_model_path,
+                save_model_name=self.trainer_config.save_model_name
+            )
+        elif self.trainer_config.early_stopping and not self.dev_model_input_x:
+            logger.info("Early stopping won't be performed since there is no dev set provided.")
+            self.trainer_config.early_stopping = False
+            return None
+

@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 
 from torch import Tensor
@@ -7,17 +8,19 @@ from knodle.trainer.baseline.config import MajorityConfig
 from knodle.trainer.auto_config import AutoConfig
 
 
+logger = logging.getLogger(__name__)
+
+
 @AutoConfig.register("cleanlab")
 class CleanLabConfig(MajorityConfig):
     def __init__(
             self,
             cv_n_folds=5,
             iterations=1,
-            use_prior: bool = False,
-            p: float = 0.5,         # multiplier of the newly learned t matrix (see update_t_matrix function)
             prune_method: str = 'prune_by_noise_rate',
             converge_latent_estimates=False,
-            pulearning=None,
+            pulearning: int = None,
+            py_method: str = 'cnt',
             n_jobs: int = None,
             psx_calculation_method: str = 'random',
             noise_matrix: str = 'rule2class',
@@ -27,8 +30,6 @@ class CleanLabConfig(MajorityConfig):
             psx_lr: float = None,
             psx_criterion: Callable[[Tensor, Tensor], float] = None,
             **kwargs
-
-            # todo: add params for training while psx matrix calculation (optimizer etc)
     ):
         """
         All CleanLab specific parameters (except for psx_calculation_method parameter) are inherited from the original
@@ -76,14 +77,11 @@ class CleanLabConfig(MajorityConfig):
         super().__init__(**kwargs)
         self.cv_n_folds = cv_n_folds
         self.iterations = iterations
-        self.use_prior = use_prior
-
-        if not self.use_prior:
-            self.p = p
 
         self.prune_method = prune_method
         self.converge_latent_estimates = converge_latent_estimates
         self.pulearning = pulearning
+        self.py_method = py_method
         self.n_jobs = n_jobs
         self.psx_calculation_method = psx_calculation_method
         self.noise_matrix = noise_matrix
@@ -108,3 +106,10 @@ class CleanLabConfig(MajorityConfig):
             self.psx_lr = psx_lr
         else:
             self.psx_lr = self.lr
+
+        if self.use_probabilistic_labels:
+            logger.warning(
+                "WSCleanlab denoising method is not compatible with probabilistic labels. "
+                "The labels for each sample will be chosen with majority voting instead."
+            )
+            self.use_probabilistic_labels = False

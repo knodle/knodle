@@ -85,9 +85,7 @@ def compute_confident_joint_rule2class(
     # calculate the number of each rule matched in samples in each class
     if isinstance(rule_matches_z, sp.csr_matrix):
         rule_matches_per_class = [
-            np.squeeze(
-                np.nansum(rule_matches_z[sample_idx, :], axis=0)
-            ) for sample_idx in sample_indices_per_class
+            np.squeeze(np.nansum(rule_matches_z[sample_idx, :], axis=0)) for sample_idx in sample_indices_per_class
         ]
     else:
         rule_matches_per_class = [

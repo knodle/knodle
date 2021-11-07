@@ -1,7 +1,9 @@
 import numpy as np
 import scipy.sparse as sp
+from torch.utils.data import TensorDataset
 
-from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
+from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold, \
+    filter_empty_probabilities_two_datasets, filter_probability_threshold_two_datasets
 from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs, probabilities_to_majority_vote
 
 
@@ -39,54 +41,10 @@ def calculate_threshold(psx, noisy_y_train, output_classes=None):
     )
 
 
-def calculate_labels(model_input_x, psx_model_input_x, rule_matches_z, mapping_rules_labels_t, config):
-    # todo: mb merge all checks to a separate function (in majority.py as well)?
-    if config.filter_non_labelled and config.probability_threshold is not None:
-        raise ValueError(
-            "You can either filter all non labeled samples or those with probabilities below threshold.")
-    if config.other_class_id is not None and config.filter_non_labelled:
-        raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
-
-    # calculate labels based on t and z; perform additional filtering if applicable
-    labels_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
-
-    #  filter out samples where no pattern matched
-    if config.filter_non_labelled:
-        model_input_x, labels_probs_filtered_, rule_matches_z_filtered_ = filter_empty_probabilities(
-            model_input_x, labels_probs, rule_matches_z
-        )
-        psx_model_input_x, labels_probs_filtered, rule_matches_z_filtered = filter_empty_probabilities(
-            psx_model_input_x, labels_probs, rule_matches_z
-        )
-
-        assert np.array_equal(labels_probs_filtered, labels_probs_filtered_)
-
-        if isinstance(rule_matches_z_filtered, sp.csr_matrix):
-            assert np.sum(rule_matches_z_filtered != rule_matches_z_filtered) == 0
-        else:
-            assert np.array_equal(rule_matches_z_filtered, rule_matches_z_filtered_)
-
-        labels_probs = labels_probs_filtered
-        rule_matches_z = rule_matches_z_filtered
-
-    #  filter out samples where that have probabilities below the threshold
-    elif config.probability_threshold is not None:
-        model_input_x, labels_probs_filtered_ = filter_probability_threshold(
-            model_input_x, labels_probs, probability_threshold=config.probability_threshold
-        )
-        psx_model_input_x, labels_probs_filtered = filter_probability_threshold(
-            psx_model_input_x, labels_probs, probability_threshold=config.probability_threshold
-        )
-        assert np.array_equal(labels_probs_filtered, labels_probs_filtered_)
-        labels_probs = labels_probs_filtered
-
-    kwargs = {
-        "choose_random_label": config.choose_random_label,
-        "other_class_id": config.other_class_id
-    }
-    labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=labels_probs, **kwargs)
-
-    return model_input_x, psx_model_input_x, rule_matches_z, labels
+def load_batch(batch, device):
+    features = [inp.to(device) for inp in batch[0: -1]]
+    labels = batch[-1].to(device)
+    return features, labels
 
 
 """

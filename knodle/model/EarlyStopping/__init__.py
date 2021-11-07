@@ -1,14 +1,17 @@
 import os
+import logging
 
 import numpy as np
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
     def __init__(
-            self, patience=7, verbose: bool = False, delta: int = 0, save_model_path: str = None,
+            self, patience=3, verbose: bool = False, delta: int = 0, save_model_path: str = None,
             save_model_name: str = None
     ):
         """
@@ -39,30 +42,21 @@ class EarlyStopping:
 
     def __call__(self, val_loss, model):
 
-        score = -val_loss
-
-        if self.best_score is None:
-            self.best_score = score
-            self.save_checkpoint(val_loss, model)
-        elif score < self.best_score + self.delta:
-            self.counter += 1
-
-            if self.verbose:
-                print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
-
-            if self.counter >= self.patience:
+        if self.best_score is not None and val_loss >= self.best_score + self.delta:
+            if self.counter < self.patience:
+                logger.info(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+                self.counter += 1
+            else:
                 self.early_stop = True
+
         else:
-            self.best_score = score
+            self.best_score = val_loss
             self.save_checkpoint(val_loss, model)
             self.counter = 0
 
     def save_checkpoint(self, val_loss, model):
         """Saves model when validation loss decrease."""
-        if self.verbose:
-            print(
-                f"Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ..."
-            )
+        logger.info(f"Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...")
 
         os.makedirs(self.save_model_path, exist_ok=True)
         torch.save(model.state_dict(), os.path.join(self.save_model_path, self.save_model_name))

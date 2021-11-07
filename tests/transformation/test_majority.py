@@ -9,6 +9,29 @@ from knodle.transformation.majority import (
 )
 
 
+def test_probabilies_to_majority_vote_errors():
+    with pytest.raises(ValueError) as execinfo_1:
+        input_to_majority_vote_input(np.array([0.0]), np.array([0.0]), model_input_x=None, filter_non_labelled=True)
+    assert str(execinfo_1.value) == "In order to filter non labeled samples, please provide X matrix."
+
+    with pytest.raises(ValueError) as execinfo_2:
+        input_to_majority_vote_input(
+            np.array([0.0]), np.array([0.0]), model_input_x=None, probability_threshold=True, filter_non_labelled=False
+        )
+    assert str(execinfo_2.value) == "In order to filter non labeled samples, please provide X matrix."
+
+    with pytest.raises(ValueError) as execinfo_3:
+        input_to_majority_vote_input(
+            np.array([0.0]), np.array([0.0]), filter_non_labelled=True, probability_threshold=True
+        )
+    assert str(execinfo_3.value) == \
+           "You can either filter all non labeled samples or those with probabilities below threshold."
+
+    with pytest.raises(ValueError) as execinfo_4:
+        input_to_majority_vote_input(np.array([0.0]), np.array([0.0]), other_class_id=0, filter_non_labelled=True)
+    assert str(execinfo_4.value) == "You can either filter samples with no weak labels or add them to the other class."
+
+
 def test_probabilities_to_majority_vote_fixed():
     # format: (probabilities, gold_result, settings)
     probs_gold_result_settings = [
@@ -44,15 +67,6 @@ def test_probabilies_to_majority_vote_random():
 
         assert isinstance(result, int)
         assert result in gold_label
-
-
-def test_probabilies_to_majority_vote_errors():
-    probs, gold_label, settings = (
-        np.array([0.0, 0.0, 0.0]), [], {"choose_random_label": False, "other_class_id": None}
-    )
-
-    with pytest.raises(ValueError):
-        result = probabilities_to_majority_vote(probs, **settings)
 
 
 @pytest.fixture

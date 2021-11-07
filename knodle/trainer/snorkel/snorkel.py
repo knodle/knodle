@@ -101,10 +101,13 @@ class SnorkelTrainer(MajorityVoteTrainer):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
         self._apply_rule_reduction()
 
+        self.dev_model_input_x = None
+        self.dev_gold_labels_y = None
+
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
         # Standard training
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs, probs=True)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
@@ -125,6 +128,7 @@ class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
+
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
         self._apply_rule_reduction()
 
@@ -133,7 +137,7 @@ class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
 
         # Standard training
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs, probs=True)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)

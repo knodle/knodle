@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import TensorDataset
 
 from knodle.model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.cleanlab.cleanlab import CleanLabTrainer
+from knodle.trainer.ulf.ulf import UlfTrainer
 from knodle.trainer.cleanlab.config import CleanLabConfig
 from knodle.trainer.utils.split import k_folds_splitting_by_rules, get_train_test_datasets_by_rule_indices
 from knodle.transformation.majority import input_to_majority_vote_input
@@ -39,7 +39,7 @@ def prob_values():
     config = CleanLabConfig(cv_n_folds=3, psx_calculation_method="rules", seed=123)
     x_dataset, y, z = input_to_majority_vote_input(z, t, x_dataset, use_probabilistic_labels=False)
 
-    trainer = CleanLabTrainer(
+    trainer = UlfTrainer(
         model=model,
         mapping_rules_labels_t=t,
         model_input_x=x_dataset,
@@ -72,7 +72,7 @@ def prob_values():
 #     return
 
 
-def test_get_train_test_datasets_by_rule_indices(prob_values):
+def test_get_train_test_datasets_by_rule_indices(prob_values, verbose: bool = True):
     trainer, noisy_y_train, gold_train_dataset, gold_test_dataset = prob_values
 
     random.seed(trainer.trainer_config.seed)
@@ -83,7 +83,8 @@ def test_get_train_test_datasets_by_rule_indices(prob_values):
         rule2samples={0: [0, 1], 1: [1, 2], 2: [0, 1], 3: [1]},
         labels=noisy_y_train,
         fold_id=0,
-        num_folds=trainer.trainer_config.cv_n_folds
+        num_folds=trainer.trainer_config.cv_n_folds,
+        verbose=verbose
     )
 
     assert torch.all(train_dataset.tensors[0].eq(gold_train_dataset.tensors[0]))

@@ -72,9 +72,8 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             )
 
         for iter, (train_dataset, test_dataset) in enumerate(zip(train_datasets, test_datasets)):
-            log_section(
-                f"WSCrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:",
-                logger
+            logger.info(
+                f"WSCrossWeigh Iteration {iter + 1}/{self.trainer_config.partitions * self.trainer_config.folds}:"
             )
 
             # for each fold the model is trained from scratch
@@ -83,8 +82,6 @@ class WSCrossWeighWeightsCalculator(MajorityVoteTrainer):
             train_loader = self._make_dataloader(train_dataset)
             self._train_loop(train_loader)
             self.cw_test(test_loader)
-
-            log_section(f"WSCrossWeigh Partition {iter + 1} is done", logger)
 
         dump(self.sample_weights, os.path.join(
             self.trainer_config.caching_folder, f"sample_weights_{self.trainer_config.caching_suffix}.lib"))

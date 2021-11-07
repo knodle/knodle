@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
@@ -6,10 +6,18 @@ import warnings
 
 from torch.utils.data import TensorDataset
 
-from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
+from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold, \
+    filter_empty_probabilities_two_datasets, filter_probability_threshold_two_datasets
 
 
 # todo: all functions here need refactoring...
+
+
+def z_t_matrices_to_labels(rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray):
+    """ This function calculate the labels from z and t without any filtering """
+    new_noisy_y_train_prob = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
+    return np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=new_noisy_y_train_prob)
+
 
 def z_t_matrices_to_majority_vote_probs(
         rule_matches_z: np.ndarray,
@@ -26,8 +34,6 @@ def z_t_matrices_to_majority_vote_probs(
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         other_class_id: Class which is chosen, if no function is hitting.
-        use_probabilistic_labels:
-        choose_random_label:
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
 
@@ -65,17 +71,19 @@ def input_to_majority_vote_input(
         rule_matches_z: np.ndarray,
         mapping_rules_labels_t: np.ndarray,
         model_input_x: TensorDataset = None,
+        add_model_input_x: TensorDataset = None,
         use_probabilistic_labels: bool = True,
         filter_non_labelled: bool = True,
         probability_threshold: int = None,
         other_class_id: int = None,
         choose_random_label: bool = True
-) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
+) -> Union[Tuple[TensorDataset, TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray, np.ndarray]]:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
     :param rule_matches_z: binary encoded array of which rules matched. Shape: instances x rules
     :param mapping_rules_labels_t: mapping of rules to labels, binary encoded. Shape: rules x classes
     :param model_input_x:
+    :param add_model_input_x:
     :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
     or single values.
     :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
@@ -90,29 +98,36 @@ def input_to_majority_vote_input(
     if filter_non_labelled and probability_threshold is not None:
         raise ValueError("You can either filter all non labeled samples or those with probabilities below threshold.")
 
+    if (filter_non_labelled and model_input_x is None) or (probability_threshold and model_input_x is None):
+        raise ValueError("In order to filter non labeled samples, please provide X matrix.")
+
     if other_class_id:
         choose_random_label = False     # todo: more reflection & ev. refactoring needed
 
     noisy_y_train = z_t_matrices_to_majority_vote_probs(
-        rule_matches_z,
-        mapping_rules_labels_t,
-        other_class_id=other_class_id
+        rule_matches_z, mapping_rules_labels_t, other_class_id=other_class_id
     )
 
     #  filter out samples where no pattern matched
     if filter_non_labelled:
-        if not model_input_x:
-            raise ValueError("In order to filter non labeled samples, please provide X matrix as well.")
-        model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities(
-            model_input_x, noisy_y_train, rule_matches_z
-        )
+        if add_model_input_x:
+            model_input_x, add_model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities_two_datasets(
+                model_input_x, add_model_input_x, noisy_y_train, rule_matches_z
+            )
+        else:
+            model_input_x, noisy_y_train, rule_matches_z = filter_empty_probabilities(
+                model_input_x, noisy_y_train, rule_matches_z
+            )
 
     #  filter out samples where that have probabilities below the threshold
     elif probability_threshold is not None:
-        if not model_input_x:
-            raise ValueError("In order to filter non labeled samples, please provide X matrix as well.")
-        model_input_x, noisy_y_train = filter_probability_threshold(
-            model_input_x, noisy_y_train, probability_threshold=probability_threshold
+        if add_model_input_x:
+            model_input_x, add_model_input_x, noisy_y_train = filter_probability_threshold_two_datasets(
+                model_input_x, add_model_input_x, noisy_y_train, probability_threshold=probability_threshold
+            )
+        else:
+            model_input_x, noisy_y_train = filter_probability_threshold(
+                model_input_x, noisy_y_train, probability_threshold=probability_threshold
             )
 
     if not use_probabilistic_labels:
@@ -120,7 +135,10 @@ def input_to_majority_vote_input(
         kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
         noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
-    return model_input_x, noisy_y_train, rule_matches_z
+    if add_model_input_x:
+        return model_input_x, add_model_input_x, noisy_y_train, rule_matches_z
+    else:
+        return model_input_x, noisy_y_train, rule_matches_z
 
 
 def probabilities_to_majority_vote(

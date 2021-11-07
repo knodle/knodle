@@ -3,15 +3,18 @@ import torch
 from torch.utils.data import TensorDataset
 
 
-def input_labels_to_tensordataset(model_input_x: TensorDataset, labels: np.ndarray) -> TensorDataset:
+def input_labels_to_tensordataset(
+        model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False
+) -> TensorDataset:
     """
     This function takes Dataset with data features (num_samples x features dimension x features) and
     labels (num_samples x labels dimension) and turns it into one Dataset
     """
     model_tensors = model_input_x.tensors
-    input_label_dataset = TensorDataset(*model_tensors, torch.from_numpy(labels).long())
-
-    return input_label_dataset
+    if probs:
+        return TensorDataset(*model_tensors, torch.from_numpy(labels).float())
+    else:
+        return TensorDataset(*model_tensors, torch.from_numpy(labels).long())
 
 
 def input_info_labels_to_tensordataset(

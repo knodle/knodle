@@ -6,9 +6,8 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.cleanlab.noisy_matrix_estimation import calibrate_confident_joint_rule2class
+from knodle.trainer.ulf.noisy_matrix_estimation import calibrate_confident_joint_rule2class
 from knodle.trainer.cleanlab.psx_estimation import compute_psx_matrix
-from tests.trainer.generic import std_trainer_input_2
 
 from knodle.trainer.cleanlab.config import CleanLabConfig
 from knodle.trainer.cleanlab.utils import calculate_threshold
