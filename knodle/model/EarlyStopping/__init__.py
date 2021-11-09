@@ -11,7 +11,7 @@ class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
 
     def __init__(
-            self, patience=3, verbose: bool = False, delta: int = 0, save_model_path: str = None,
+            self, patience=7, verbose: bool = False, delta: int = 0, save_model_path: str = None,
             save_model_name: str = None
     ):
         """

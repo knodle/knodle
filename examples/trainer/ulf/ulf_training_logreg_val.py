@@ -29,10 +29,10 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
 
     parameters = dict(
         # seed=None,
-        use_prior=[True, False],
-        p=[0.1, 0.3, 0.5, 0.7, 0.9],
-        lr=[0.01, 0.001],
-        cv_n_folds=[3, 5, 8],
+        use_prior=[False],          # True,
+        p=[0.7, 0.9],     # 0.1, 0.3,
+        lr=[0.01, 0.001],          # 0.1, 0.0001],
+        cv_n_folds=[3, 5, 8, 10, 15],
         iterations=[50],
         psx_calculation_method=['signatures', 'rules', 'random'],      # how the splitting into folds will be performed
     )
@@ -72,7 +72,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
         use_prior, p, lr, folds, iterations, psx_method = params
         p = None if use_prior else p
         params_dict = {
-            'prior': use_prior, 'epochs': 40, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations, 'psx': psx_method
+            'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations, 'psx': psx_method
         }
         params_signature = str(params_dict)
         log_section(params_signature, logger)
@@ -96,12 +96,12 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 p=p,
                 output_classes=num_classes,
                 criterion=CrossEntropyLoss,
-                epochs=40,
+                epochs=20,
                 grad_clipping=5,
                 save_model_name=output_file,
                 optimizer=Adam,
                 lr=lr,
-                batch_size=128,
+                batch_size=256,
                 early_stopping=True
             )
             logger.info(custom_cleanlab_config)

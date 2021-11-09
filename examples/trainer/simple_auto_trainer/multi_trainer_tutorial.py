@@ -1,6 +1,7 @@
 import json
 import os
 import statistics
+from sys import path
 
 from scipy.stats import sem
 from snorkel.classification import cross_entropy_with_probs
@@ -106,16 +107,16 @@ for i in range(num_experiments):
 
     configs = [
         MajorityConfig(
-            output_classes=num_classes, optimizer=AdamW, use_probabilistic_labels=False, criterion=CrossEntropyLoss,
-            lr=0.5, batch_size=16, epochs=20, seed=seed
+            output_classes=num_classes, optimizer=Adam, use_probabilistic_labels=False, criterion=CrossEntropyLoss,
+            lr=0.1, batch_size=256, epochs=15, seed=seed
         ),
         SnorkelConfig(
-            seed=seed, optimizer=AdamW, filter_non_labelled=True, lr=0.5, epochs=20, choose_random_label=False,
-            output_classes=num_classes
+            seed=seed, optimizer=Adam, lr=0.001, epochs=15, batch_size=256, output_classes=num_classes,
+            filter_non_labelled=True
             # verbose=False
         ),
         WSCrossWeighConfig(
-            optimizer=AdamW, folds=2, partitions=25, weight_reducing_rate=0.3, output_classes=num_classes,
+            optimizer=Adam, folds=2, partitions=25, weight_reducing_rate=0.3, output_classes=num_classes,
             criterion=CrossEntropyLoss, filter_non_labelled=False, lr=0.05, epochs=20, batch_size=128, grad_clipping=5,
             early_stopping=True, use_probabilistic_labels=False, verbose=False, seed=seed
         ),
@@ -160,7 +161,8 @@ for i in range(num_experiments):
         else:
             raise ValueError("Unknown Trainer!")
 
-    shutil.rmtree('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/simple_auto_trainer/cache')
+    if os.path.isdir('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/simple_auto_trainer/cache'):
+        shutil.rmtree('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/simple_auto_trainer/cache')
 
 majority_mean = statistics.mean(res_majority)
 majority_stdev = statistics.stdev(res_majority)
@@ -208,12 +210,12 @@ print(res_snorkel)
 # print(res_crossweigh)
 
 
-with open(os.path.join(processed_data_dir, "snorkel_res_2.json"), 'w') as file:
+with open(os.path.join(processed_data_dir, "snorkel_res_3.json"), 'w') as file:
     json.dump(res_snorkel, file)
 
 # with open(os.path.join(processed_data_dir, "crossweigh_res.json"), 'w') as file:
 #     json.dump(res_crossweigh, file)
 
-with open(os.path.join(processed_data_dir, "majority_res_2.json"), 'w') as file:
+with open(os.path.join(processed_data_dir, "majority_res_3.json"), 'w') as file:
     json.dump(res_majority, file)
 
