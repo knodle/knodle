@@ -40,8 +40,8 @@ def postprocess_json(input_file: str, required_metrics: List, output_file: str) 
 
 
 if __name__ == "__main__":
-    input_file = "/Users/asedova/PycharmProjects/01_knodle/data_from_minio/sms/processed/sms_ulf_logreg_10exp_2.json"
+    input_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/sms/ulf_rules.json"
     required_metrics = ["f1_avg"]
-    output_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/sms/sms_ulf_logreg_10exp_2.csv"
+    output_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/sms/sms_ulf_rules.csv"
 
     postprocess_json(input_file, required_metrics, output_file)

@@ -103,6 +103,11 @@ class UlfTrainer(MajorityVoteTrainer):
             # train the model
             self._train_loop(train_loader)
 
+            if self.trainer_config.early_stopping:
+                self.load_model(f"{self.trainer_config.save_model_name}", self.trainer_config.save_model_path)
+                logger.info("The best model on dev set will be used for evaluation. ")
+                logger.info(f"model loaded from {self.trainer_config.save_model_name}")
+
             # early stopping: either the labels do not change anymore or the dev loss does not improve
             if not self.dev_model_input_x:
                 if num_labels_upd == 0:
@@ -118,8 +123,9 @@ class UlfTrainer(MajorityVoteTrainer):
                     logger.info(f"Dev loss: {dev_loss}, denoising continues.")
                     os.makedirs(self.trainer_config.save_model_path, exist_ok=True)
                     torch.save(self.model.state_dict(), os.path.join(
-                        self.trainer_config.save_model_path, f"{self.trainer_config.save_model_name}_fin.pt"
+                        self.trainer_config.save_model_path, f"{self.trainer_config.save_model_name}_fin_best.pt"
                     ))
+                    logger.info(f"model saved to {self.trainer_config.save_model_name}_fin")
                 else:
                     patience += 1
                     if patience == max_patience:
@@ -136,8 +142,9 @@ class UlfTrainer(MajorityVoteTrainer):
         )
 
         if self.trainer_config.early_stopping:
-            self.load_model(f"{self.trainer_config.save_model_name}_fin.pt", self.trainer_config.save_model_path)
+            self.load_model(f"{self.trainer_config.save_model_name}_fin", self.trainer_config.save_model_path)
             logger.info("The best model on dev set will be used for evaluation. ")
+            logger.info(f"model loaded from {self.trainer_config.save_model_name}_fin")
 
     def denoise_t_matrix(self, noisy_y_train: np.ndarray, samples_without_matches) -> np.ndarray:
         """

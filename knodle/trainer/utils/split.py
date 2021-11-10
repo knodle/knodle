@@ -192,7 +192,11 @@ def compose_train_n_test_datasets(
 
     # make a list of rule ids to shuffle them later
     rule_ids = list(rule2samples.keys())
-    rule_ids.remove("")
+
+    try:
+        rule_ids.remove("")
+    except ValueError:
+        pass
 
     train_datasets, test_datasets = [], []
     for partition in range(partitions):
@@ -306,7 +310,9 @@ def get_samples_labels_idx_by_rule_id(
 
     if other_sample_ids is not None:
         # todo: ulf specific: num of samples to be added to test set
-        num_other_sample = int(len(other_sample_ids) - 0.7 * (len(data_features) - len(other_sample_ids) - len(sample_ids)))
+        num_other_sample = int(len(other_sample_ids) - 0.5 * (len(data_features) - len(other_sample_ids) - len(sample_ids)))
+        if num_other_sample < 0:
+            num_other_sample = len(other_sample_ids)
         sample_ids_for_test = random.sample(other_sample_ids, num_other_sample)
 
         sample_ids = list(set(sample_ids).union(set(sample_ids_for_test)))

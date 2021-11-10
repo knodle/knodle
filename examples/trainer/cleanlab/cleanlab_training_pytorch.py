@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
-    num_experiments = 20
+    num_experiments = 10
 
     train_rule_matches_z = load(os.path.join(path_to_data, 'train_rule_matches_z.lib'))
     mapping_rules_labels_t = load(os.path.join(path_to_data, 'mapping_rules_labels_t.lib'))
@@ -53,8 +53,8 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     num_classes = max(df_test["label"].tolist()) + 1
 
     results = []
-    for curr_psx_method in ["random", "signatures", "rules"]:
-        for curr_lr in [0.001, 0.01, 0.1, 0.5, 0.9]:
+    for curr_psx_method in ["random"]:
+        for curr_lr in [0.01]:
             params_dict = {'psx': curr_psx_method, 'lr': curr_lr}
             log_section(str(params_dict), logger)
 

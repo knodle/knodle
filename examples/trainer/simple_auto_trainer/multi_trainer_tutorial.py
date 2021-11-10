@@ -53,18 +53,18 @@ def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
 processed_data_dir = "/Users/asedova/PycharmProjects/01_knodle/data_from_minio/trec/processed"
 
 # Download data
-# client = Minio("knodle.dm.univie.ac.at", secure=False)
-# files = [
-#     "df_train.csv", "df_test.csv",
-#     "train_rule_matches_z.lib", "test_rule_matches_z.lib",
-#     "mapping_rules_labels_t.lib"
-# ]
-# for file in tqdm(files):
-#     client.fget_object(
-#         bucket_name="knodle",
-#         object_name=os.path.join("datasets/spam/processed", file),
-#         file_path=os.path.join(processed_data_dir, file),
-#     )
+client = Minio("knodle.cc", secure=False)
+files = [
+    "df_train.csv", "df_test.csv", "df_dev.csv",
+    "train_rule_matches_z.lib", "test_rule_matches_z.lib",
+    "mapping_rules_labels_t.lib"
+]
+for file in tqdm(files):
+    client.fget_object(
+        bucket_name="knodle",
+        object_name=os.path.join("datasets/trec/processed", file),
+        file_path=os.path.join(processed_data_dir, file),
+    )
 
 # Load data into memory
 df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
@@ -106,13 +106,14 @@ for i in range(num_experiments):
     logreg_model = LogisticRegressionModel(X_train_tfidf.shape[1], num_classes)
 
     configs = [
-        MajorityConfig(
-            output_classes=num_classes, optimizer=Adam, use_probabilistic_labels=False, criterion=CrossEntropyLoss,
-            lr=0.1, batch_size=256, epochs=15, seed=seed
-        ),
+        # MajorityConfig(
+        #     output_classes=num_classes, optimizer=Adam, use_probabilistic_labels=False, criterion=CrossEntropyLoss,
+        #     lr=0.1, batch_size=256, epochs=15, seed=seed
+        # ),
         SnorkelConfig(
             seed=seed, optimizer=Adam, lr=0.001, epochs=15, batch_size=256, output_classes=num_classes,
-            filter_non_labelled=True
+            use_probabilistic_labels=False, criterion=CrossEntropyLoss
+            # filter_non_labelled=True
             # verbose=False
         ),
         WSCrossWeighConfig(
@@ -123,11 +124,11 @@ for i in range(num_experiments):
         # SnorkelKNNConfig(optimizer=AdamW, radius=0.8),
         # KNNConfig(optimizer=AdamW, k=2, lr=1e-4, batch_size=32, epochs=2),
     ]
-    print([config.__dict__ for config in configs])
+    # print([config.__dict__ for config in configs])
 
     trainer = MultiTrainer(
         # name=["majority", "knn", "snorkel", "snorkel_knn", "wscrossweigh"],
-        name=["majority", "snorkel"],
+        name=["snorkel"],
         model=logreg_model,
         mapping_rules_labels_t=mapping_rules_labels_t,
         model_input_x=X_train_tfidf_dataset,

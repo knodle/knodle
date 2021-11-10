@@ -2,6 +2,7 @@ import logging
 import argparse
 import json
 import os
+import shutil
 import sys
 from itertools import product
 from random import randint
@@ -27,15 +28,14 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 10
-    output_file = f"{output_file}_0_3"
 
     parameters = dict(
         # seed=None,
         use_prior=[False],
-        p=[0.3],      #0.5, 0.3
-        lr=[0.01],       #  0.01,
-        cv_n_folds=[15],        # 3, 5, 8, 10,
-        iterations=[1],
+        p=[0.9],      #0.5, 0.3
+        lr=[0.1],       #  0.01,
+        cv_n_folds=[5],        # 3, 5, 8, 10,
+        iterations=[2],
         psx_calculation_method=['signatures']       #, 'rules', 'random'],      # how the splitting into folds will be performed
     )
     parameter_values = [v for v in parameters.values()]
@@ -104,7 +104,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 epochs=20,
                 grad_clipping=5,
                 save_model_name=output_file,
-                save_model_path="trained_models",
+                save_model_path="trained_models_trec_sgn",
                 optimizer=Adam,
                 lr=lr,
                 batch_size=256,
@@ -138,12 +138,14 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
             exp_results_f1_weighted.append(clf_report['weighted avg']['f1-score'])
 
             # os.remove(
-            #     "/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/"
+            #     f"/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/"
             #     "sms_ulf_logreg_10exp_best.pt"
             # )
             # os.remove(
             #     "/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/sms_ulf_logreg_10exp_fin.pt"
             # )
+            if os.path.isdir('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules'):
+                shutil.rmtree('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules')
 
         exp_signatures.append(params_signature)
 
