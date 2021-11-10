@@ -171,7 +171,7 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 
 ## Authors
 
-- [Anastasiia Sedova](https://github.com/anasedovaa)
+- [Anastasiia Sedova](https://github.com/anasedova)
 - [Andreas Stephan](https://github.com/AndSt)
 - [Marina Speranskaya](https://github.com/marina-sp) 
 - [Alessandro Volpicella](https://github.com/AlessandroVol23)
