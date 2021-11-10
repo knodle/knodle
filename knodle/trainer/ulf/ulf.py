@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
+import torch
 from torch.nn import Module
 from torch.utils.data import TensorDataset
 
@@ -47,14 +48,21 @@ class UlfTrainer(MajorityVoteTrainer):
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ) -> None:
-
+        max_patience = 3
         best_dev_loss = 1000
+        patience = 0
 
         # save the original non-trained model in order to copy it for further trainings
         end_model = copy.deepcopy(self.model).to(self.trainer_config.device)
         opt = copy.deepcopy(self.trainer_config.optimizer)
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
+
+        empty_rules = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=0))
+        self.rule_matches_z = np.delete(self.rule_matches_z, empty_rules, axis=1)
+        self.mapping_rules_labels_t = np.delete(self.mapping_rules_labels_t, empty_rules, axis=0)
+
+        samples_without_matches = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=1)).squeeze().tolist()
 
         self.model_input_x, self.psx_model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
             self.rule_matches_z,
@@ -73,20 +81,20 @@ class UlfTrainer(MajorityVoteTrainer):
             logger.info(f"Iteration: {i + 1}")
 
             # update the t matrix and recalculate the labels
-            t_matrix_updated = self.denoise_t_matrix(noisy_y_train)
-            noisy_y_train_upd, num_labels_upd, idx_upd = self.get_updated_labels(t_matrix_updated, noisy_y_train)
+            t_matrix_updated, labels_to_subst = self.denoise_t_matrix(noisy_y_train, samples_without_matches)
+            noisy_y_train, num_labels_upd, idx_upd = self.get_updated_labels(t_matrix_updated, noisy_y_train, labels_to_subst)
 
-            updated_samples = pd.DataFrame(
-                {
-                    "sample": self.df_train["sample"].iloc[idx_upd],
-                    "old_label": noisy_y_train[idx_upd],
-                    "upd_label": noisy_y_train_upd[idx_upd]
-                }
-            )
-            updated_samples.to_csv(f"{self.output_file}_{i}.csv", index=None)
+            # updated_samples = pd.DataFrame(
+            #     {
+            #         "sample": self.df_train["sample"].iloc[idx_upd],
+            #         "old_label": noisy_y_train[idx_upd],
+            #         "upd_label": noisy_y_train_upd[idx_upd]
+            #     }
+            # )
+            # updated_samples.to_csv(f"{self.output_file}_{i}.csv", index=None)
 
             # create the dataset
-            train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train_upd))
+            train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train))
 
             # initialize the optimizer and the model anew
             self.model = copy.deepcopy(end_model).to(self.trainer_config.device)
@@ -103,17 +111,35 @@ class UlfTrainer(MajorityVoteTrainer):
             else:
                 clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
                 logger.info(f"Clf_report: {clf_report}")
+
                 if dev_loss < best_dev_loss:
+                    patience = 0
                     best_dev_loss = dev_loss
                     logger.info(f"Dev loss: {dev_loss}, denoising continues.")
+                    os.makedirs(self.trainer_config.save_model_path, exist_ok=True)
+                    torch.save(self.model.state_dict(), os.path.join(
+                        self.trainer_config.save_model_path, f"{self.trainer_config.save_model_name}_fin.pt"
+                    ))
                 else:
-                    logger.info(f"The model does not improve on the dev set (previous dev loss: {best_dev_loss}, "
-                                f"new dev loss: {dev_loss}). Denoising stops.")
-                    break
+                    patience += 1
+                    if patience == max_patience:
+                        logger.info(f"The model does not improve on the dev set (previous dev loss: {best_dev_loss}, "
+                                    f"new dev loss: {dev_loss}). Denoising stops.")
+                        break
+                    else:
+                        logger.info(f"The model does not improve on the dev set (previous dev loss: {best_dev_loss}, "
+                                    f"new dev loss: {dev_loss}). Patience now equals {patience}")
 
-        logging.info("All iterations are completed. The trained model will be tested on the test set now...")
+        logging.info(
+            f"All iterations are completed, {i+1} iterations performed. The trained model will be tested on the "
+            f"test set now..."
+        )
 
-    def denoise_t_matrix(self, noisy_y_train: np.ndarray) -> np.ndarray:
+        if self.trainer_config.early_stopping:
+            self.load_model(f"{self.trainer_config.save_model_name}_fin.pt", self.trainer_config.save_model_path)
+            logger.info("The best model on dev set will be used for evaluation. ")
+
+    def denoise_t_matrix(self, noisy_y_train: np.ndarray, samples_without_matches) -> np.ndarray:
         """
         Recalculation of labeling functions to labels matrix
         :param noisy_y_train: original t (labeling functions x labels) matrix
@@ -127,6 +153,9 @@ class UlfTrainer(MajorityVoteTrainer):
             self.psx_model,
             config=self.trainer_config
         )
+        labels_to_subst = {}
+        for idx in samples_without_matches:
+            labels_to_subst[idx] = int(np.argmax(psx[idx, :]))
 
         # calculate threshold values
         thresholds = calculate_threshold(psx, noisy_y_train, self.trainer_config.output_classes)
@@ -143,15 +172,15 @@ class UlfTrainer(MajorityVoteTrainer):
             # normalized((t matrix * prior) + confident_joint)
             return update_t_matrix_with_prior(
                 confident_joint, self.mapping_rules_labels_t, verbose=self.trainer_config.verbose
-            )
+            ), labels_to_subst
         else:
             # p * (normalized confident_joint) + (1 - p) * (t matrix)
             return update_t_matrix(
                 confident_joint, self.mapping_rules_labels_t, self.trainer_config.p, verbose=self.trainer_config.verbose
-            )
+            ), labels_to_subst
 
     def get_updated_labels(
-            self, t_matrix_updated: np.ndarray, noisy_y_train: np.ndarray
+            self, t_matrix_updated: np.ndarray, noisy_y_train: np.ndarray, labels_to_subst
     ) -> Tuple[np.ndarray, int, np.ndarray]:
         """
         This function recalculates the labels based on the updated t matrix.
@@ -161,6 +190,10 @@ class UlfTrainer(MajorityVoteTrainer):
         """
         # todo: check whether any filtering happened (actually shouldn't....)
         new_noisy_y_train = z_t_matrices_to_labels(self.rule_matches_z, t_matrix_updated)
+
+        for id, label in labels_to_subst.items():
+            new_noisy_y_train[id] = label
+
         num_labels_updated = sum(~np.equal(noisy_y_train, new_noisy_y_train))
         updated_samples_idx = np.where(~np.equal(noisy_y_train, new_noisy_y_train))[0]
         logger.info(f"Labels changed: {num_labels_updated} out of {len(noisy_y_train)}")

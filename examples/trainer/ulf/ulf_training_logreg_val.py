@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from itertools import product
+from random import randint
 
 import joblib
 from torch import Tensor, LongTensor
@@ -26,15 +27,16 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 10
+    output_file = f"{output_file}_0_3"
 
     parameters = dict(
         # seed=None,
-        use_prior=[False],          # True,
-        p=[0.7, 0.9],     # 0.1, 0.3,
-        lr=[0.01, 0.001],          # 0.1, 0.0001],
-        cv_n_folds=[3, 5, 8, 10, 15],
-        iterations=[50],
-        psx_calculation_method=['signatures', 'rules', 'random'],      # how the splitting into folds will be performed
+        use_prior=[False],
+        p=[0.3],      #0.5, 0.3
+        lr=[0.01],       #  0.01,
+        cv_n_folds=[15],        # 3, 5, 8, 10,
+        iterations=[1],
+        psx_calculation_method=['signatures']       #, 'rules', 'random'],      # how the splitting into folds will be performed
     )
     parameter_values = [v for v in parameters.values()]
 
@@ -69,7 +71,9 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     results, exp_signatures = [], []
 
     for run_id, (params) in enumerate(product(*parameter_values)):
+
         use_prior, p, lr, folds, iterations, psx_method = params
+
         p = None if use_prior else p
         params_dict = {
             'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations, 'psx': psx_method
@@ -85,6 +89,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
             [], [], [], [], []
 
         for exp in range(0, num_experiments):
+
             model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
             custom_cleanlab_config = UlfConfig(
                 iterations=iterations,
@@ -99,6 +104,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 epochs=20,
                 grad_clipping=5,
                 save_model_name=output_file,
+                save_model_path="trained_models",
                 optimizer=Adam,
                 lr=lr,
                 batch_size=256,
@@ -130,6 +136,14 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
             exp_results_recall.append(clf_report['macro avg']['recall'])
             exp_results_f1_avg.append(clf_report['macro avg']['f1-score'])
             exp_results_f1_weighted.append(clf_report['weighted avg']['f1-score'])
+
+            # os.remove(
+            #     "/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/"
+            #     "sms_ulf_logreg_10exp_best.pt"
+            # )
+            # os.remove(
+            #     "/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/sms_ulf_logreg_10exp_fin.pt"
+            # )
 
         exp_signatures.append(params_signature)
 

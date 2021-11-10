@@ -181,9 +181,18 @@ def compose_train_n_test_datasets(
     """
 
     # calculate ids of all samples that belong to the 'other_class'
-    other_sample_ids = np.where(labels[:, other_class_id] == 1)[0].tolist() if other_class_id else None
+    # other_sample_ids = np.where(labels[:, other_class_id] == 1)[0].tolist() if other_class_id else None
+
+    if other_class_id:
+        other_sample_ids = np.where(labels[:, other_class_id] == 1)[0].tolist()
+    elif "" in rule2samples:
+        other_sample_ids = rule2samples[""]
+    else:
+        other_sample_ids = None
+
     # make a list of rule ids to shuffle them later
     rule_ids = list(rule2samples.keys())
+    rule_ids.remove("")
 
     train_datasets, test_datasets = [], []
     for partition in range(partitions):
@@ -224,17 +233,23 @@ def get_train_test_datasets_by_rule_indices(
     :return: dataloaders for cw training and testing
     """
     train_rules, test_rules = calculate_rules_indices(rules_ids, fold_id, num_folds)
+    all_ids = [item for sublist in list(rule2samples.values()) for item in sublist]
 
     # select train and test samples and labels according to the selected rules idx
-    test_dataset = get_samples_labels_idx_by_rule_id(
+    test_dataset, test_ids = get_samples_labels_idx_by_rule_id(
         data_features, labels, test_rules, rule2samples, check_intersections=None,
-        other_sample_ids=other_sample_ids, save_ids=True
+        other_sample_ids=other_sample_ids, save_ids=True, return_ids=True
     )
 
-    train_dataset = get_samples_labels_idx_by_rule_id(
-        data_features, labels, train_rules, rule2samples, check_intersections=test_dataset.tensors[-2],
-        other_sample_ids=other_sample_ids, save_ids=False
-    )
+    train_sample_ids = return_unique(np.array(all_ids), test_ids)
+
+    train_dataset = get_dataset_by_sample_ids(data_features, labels, train_sample_ids, save_ids=False)
+
+    # train_dataset = get_samples_labels_idx_by_rule_id(
+    #     data_features, labels, train_rules, rule2samples, check_intersections=test_dataset.tensors[-2],
+    #     # other_sample_ids=other_sample_ids,
+    #     save_ids=False
+    # )
 
     if verbose:
         logger.info(
@@ -267,7 +282,8 @@ def calculate_rules_indices(rules_idx: List, fold_id: int, num_folds: int) -> Tu
 
 def get_samples_labels_idx_by_rule_id(
         data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict,
-        check_intersections: np.ndarray = None, other_sample_ids: List = None, save_ids: bool = False
+        check_intersections: np.ndarray = None, other_sample_ids: List = None, save_ids: bool = False,
+        return_ids: bool = False
 ) -> TensorDataset:
     """
     Extracts the samples and labels from the original matrices by indices. If intersection is filled with
@@ -289,12 +305,20 @@ def get_samples_labels_idx_by_rule_id(
     sample_ids = list(set([value for sublist in sample_ids for value in sublist]))
 
     if other_sample_ids is not None:
-        sample_ids = list(set(sample_ids).union(set(other_sample_ids)))
+        # todo: ulf specific: num of samples to be added to test set
+        num_other_sample = int(len(other_sample_ids) - 0.7 * (len(data_features) - len(other_sample_ids) - len(sample_ids)))
+        sample_ids_for_test = random.sample(other_sample_ids, num_other_sample)
+
+        sample_ids = list(set(sample_ids).union(set(sample_ids_for_test)))
+        # sample_ids = list(set(sample_ids).union(set(other_sample_ids)))
 
     if check_intersections is not None:
         sample_ids = return_unique(np.array(sample_ids), check_intersections)
 
-    return get_dataset_by_sample_ids(data_features, labels, sample_ids, save_ids)
+    if return_ids:
+        return get_dataset_by_sample_ids(data_features, labels, sample_ids, save_ids), sample_ids
+    else:
+        return get_dataset_by_sample_ids(data_features, labels, sample_ids, save_ids)
 
 
 def get_dataset_by_sample_ids(

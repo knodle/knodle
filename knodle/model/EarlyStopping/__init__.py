@@ -44,7 +44,10 @@ class EarlyStopping:
 
         if self.best_score is not None and val_loss >= self.best_score + self.delta:
             if self.counter < self.patience:
-                logger.info(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+                logger.info(
+                    f"Curr val loss: {val_loss}, best is: {self.best_score}. EarlyStopping counter: {self.counter} out "
+                    f"of {self.patience}"
+                )
                 self.counter += 1
             else:
                 self.early_stop = True
