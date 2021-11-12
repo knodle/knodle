@@ -8,6 +8,7 @@ class UlfConfig(CleanLabConfig):
             self,
             use_prior: bool = False,
             p: float = 0.5,         # multiplier of the newly learned t matrix (see update_t_matrix function)
+            other_coeff: float = 0.5,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -15,3 +16,5 @@ class UlfConfig(CleanLabConfig):
 
         if not self.use_prior:
             self.p = p
+
+        self.other_coeff = other_coeff

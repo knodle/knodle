@@ -24,20 +24,22 @@ from knodle.trainer.utils import log_section
 logger = logging.getLogger(__name__)
 
 
-def train_cleanlab(path_to_data: str, output_file: str) -> None:
+def train_ulf(path_to_data: str, output_file: str) -> None:
     """ This is an example of launching cleanlab trainer """
 
     num_experiments = 10
 
     parameters = dict(
         # seed=None,
-        use_prior=[False],
-        p=[0.9],      #0.5, 0.3
-        lr=[0.1],       #  0.01,
-        cv_n_folds=[5],        # 3, 5, 8, 10,
-        iterations=[2],
-        psx_calculation_method=['signatures']       #, 'rules', 'random'],      # how the splitting into folds will be performed
+        use_prior=[False, True],
+        psx_calculation_method=['signatures', 'rules', 'random'],  # how the splitting into folds will be performed
+        p=[0.2, 0.5, 0.8],      #0.5, 0.3
+        lr=[0.01],       #  0.01,      spouse: 0.001 is too small
+        cv_n_folds=[3, 5, 8],        # 3, 5, 8, 10,
+        iterations=[1, 2],
+        other_coeff=[0.5, 1, 2, 3],
     )
+    save_model_path = "trained_models_spouse_7"
     parameter_values = [v for v in parameters.values()]
 
     df_train = pd.read_csv(os.path.join(path_to_data, "df_train.csv"))
@@ -72,11 +74,13 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
 
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        use_prior, p, lr, folds, iterations, psx_method = params
+        use_prior, psx_method, p, lr, folds, iterations, other_coeff = params
 
         p = None if use_prior else p
         params_dict = {
-            'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations, 'psx': psx_method
+            'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations,
+            'other_coeff': other_coeff,
+            'psx': psx_method,
         }
         params_signature = str(params_dict)
         log_section(params_signature, logger)
@@ -101,14 +105,15 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 p=p,
                 output_classes=num_classes,
                 criterion=CrossEntropyLoss,
-                epochs=20,
+                epochs=15,
                 grad_clipping=5,
                 save_model_name=output_file,
-                save_model_path="trained_models_trec_sgn",
+                save_model_path=save_model_path,
                 optimizer=Adam,
                 lr=lr,
-                batch_size=256,
-                early_stopping=True
+                batch_size=4,
+                early_stopping=True,
+                other_coeff=other_coeff
             )
             logger.info(custom_cleanlab_config)
             trainer = UlfTrainer(
@@ -173,4 +178,4 @@ if __name__ == '__main__':
     parser.add_argument("--output_file", help="")
 
     args = parser.parse_args()
-    train_cleanlab(args.path_to_data, args.output_file)
+    train_ulf(args.path_to_data, args.output_file)

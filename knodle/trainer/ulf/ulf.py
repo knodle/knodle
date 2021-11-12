@@ -81,8 +81,12 @@ class UlfTrainer(MajorityVoteTrainer):
             logger.info(f"Iteration: {i + 1}")
 
             # update the t matrix and recalculate the labels
-            t_matrix_updated, labels_to_subst = self.denoise_t_matrix(noisy_y_train, samples_without_matches)
-            noisy_y_train, num_labels_upd, idx_upd = self.get_updated_labels(t_matrix_updated, noisy_y_train, labels_to_subst)
+            t_matrix_updated, labels_to_subst = self.denoise_t_matrix(
+                noisy_y_train, samples_without_matches
+            )
+            noisy_y_train, num_labels_upd, idx_upd = self.get_updated_labels(
+                t_matrix_updated, noisy_y_train, labels_to_subst
+            )
 
             # updated_samples = pd.DataFrame(
             #     {
@@ -161,11 +165,20 @@ class UlfTrainer(MajorityVoteTrainer):
             config=self.trainer_config
         )
         labels_to_subst = {}
-        for idx in samples_without_matches:
-            labels_to_subst[idx] = int(np.argmax(psx[idx, :]))
 
         # calculate threshold values
         thresholds = calculate_threshold(psx, noisy_y_train, self.trainer_config.output_classes)
+
+        new_samples_without_matches = []
+        for idx in samples_without_matches:
+            new_class = int(np.argmax(psx[idx, :]))
+            if psx[idx, new_class] > thresholds[new_class]:
+                labels_to_subst[idx] = int(np.argmax(psx[idx, :]))
+            else:
+                new_samples_without_matches.append(idx)
+        logger.info(
+            f"Number of other samples that changed labels: {len(labels_to_subst)} out of {len(samples_without_matches)}"
+        )
 
         # calculate a noise matrix in advance if applicable
         noise_matrix, inv_noise_matrix, confident_joint = calculate_noise_matrix(
@@ -179,12 +192,12 @@ class UlfTrainer(MajorityVoteTrainer):
             # normalized((t matrix * prior) + confident_joint)
             return update_t_matrix_with_prior(
                 confident_joint, self.mapping_rules_labels_t, verbose=self.trainer_config.verbose
-            ), labels_to_subst
+            ), labels_to_subst          # , new_samples_without_matches
         else:
             # p * (normalized confident_joint) + (1 - p) * (t matrix)
             return update_t_matrix(
                 confident_joint, self.mapping_rules_labels_t, self.trainer_config.p, verbose=self.trainer_config.verbose
-            ), labels_to_subst
+            ), labels_to_subst          # , new_samples_without_matches
 
     def get_updated_labels(
             self, t_matrix_updated: np.ndarray, noisy_y_train: np.ndarray, labels_to_subst

@@ -31,6 +31,7 @@ def calculate_psx(
 ) -> Union[np.ndarray, None]:
 
     num_samples = len(model_input_x)
+    # logger.info(config.other_class_id)
 
     # calculate psx in advance with splitting by rules
     if config.psx_calculation_method == "rules":
@@ -42,6 +43,7 @@ def calculate_psx(
             num_folds=config.cv_n_folds,
             seed=config.seed,
             other_class_id=config.other_class_id,
+            other_coeff=config.other_coeff,
             verbose=config.verbose
         )
         return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, num_samples, config)
@@ -56,6 +58,7 @@ def calculate_psx(
             num_folds=config.cv_n_folds,
             seed=config.seed,
             other_class_id=config.other_class_id,
+            other_coeff=config.other_coeff,
             verbose=config.verbose
         )
         return compute_psx_matrix(model, cv_train_datasets, cv_holdout_datasets, num_samples, config)

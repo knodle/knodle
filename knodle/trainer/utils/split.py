@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def k_folds_splitting_by_rules(
         data_features: TensorDataset, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
-        seed: int = None, other_class_id: int = None, verbose: bool = True
+        seed: int = None, other_class_id: int = None, other_coeff: float = None, verbose: bool = True
 ) -> Tuple[List, List]:
     """
     This function allows to perform the splitting of data instances into k folds according to the rules matched
@@ -51,13 +51,14 @@ def k_folds_splitting_by_rules(
     rule_id2samples_ids = get_rules_sample_ids(rule_matches_z)
 
     return compose_train_n_test_datasets(
-        data_features, rule_id2samples_ids, labels, num_folds, partitions, other_class_id, verbose=verbose
+        data_features, rule_id2samples_ids, labels, num_folds, partitions, other_class_id, other_coeff=other_coeff,
+        verbose=verbose
     )
 
 
 def k_folds_splitting_by_signatures(
         data_features: TensorDataset, labels: np.ndarray, rule_matches_z: np.ndarray, partitions: int, num_folds: int,
-        seed: int = None, other_class_id: int = None, verbose: bool = True
+        seed: int = None, other_class_id: int = None, other_coeff: float = None, verbose: bool = True
 ) -> Tuple[List, List]:
     """
     This function allows to perform the splitting of data instances into k folds according to the signatures.
@@ -90,7 +91,8 @@ def k_folds_splitting_by_signatures(
     signature2samples = get_signature_sample_ids(rule_matches_z)
 
     return compose_train_n_test_datasets(
-        data_features, signature2samples, labels, num_folds, partitions, other_class_id, verbose=verbose
+        data_features, signature2samples, labels, num_folds, partitions, other_class_id, other_coeff=other_coeff,
+        verbose=verbose
     )
 
 
@@ -163,7 +165,7 @@ def get_signature_sample_ids(rule_matches_z: np.ndarray) -> Dict:
 
 def compose_train_n_test_datasets(
         data_features: TensorDataset, rule2samples: Dict, labels: np.ndarray, num_folds: int,
-        partitions: int, other_class_id: int = None, verbose: bool = True
+        partitions: int, other_class_id: int = None, other_coeff: float = None, verbose: bool = True
 ) -> Tuple[List, List]:
     """
     This function creates train and test datasets for k-folds cross-validation.
@@ -207,7 +209,8 @@ def compose_train_n_test_datasets(
         random.shuffle(rule_ids)  # shuffle anew for each splitting
         for fold_id in range(num_folds):
             train_dataset, test_dataset = get_train_test_datasets_by_rule_indices(
-                data_features, rule_ids, rule2samples, labels, fold_id, num_folds, other_sample_ids, verbose=verbose
+                data_features, rule_ids, rule2samples, labels, fold_id, num_folds, other_sample_ids,
+                other_coeff=other_coeff, verbose=verbose
             )
             train_datasets.append(train_dataset)
             test_datasets.append(test_dataset)
@@ -217,7 +220,7 @@ def compose_train_n_test_datasets(
 
 def get_train_test_datasets_by_rule_indices(
         data_features: TensorDataset, rules_ids: List[int], rule2samples: Dict, labels: np.ndarray, fold_id: int,
-        num_folds: int, other_sample_ids: List[int] = None, verbose: bool = True
+        num_folds: int, other_sample_ids: List[int] = None, other_coeff: float = None, verbose: bool = True
 ) -> Tuple[TensorDataset, TensorDataset]:
     """
     This function returns train and test datasets for k-fold cross validation training. Each dataloader comprises
@@ -241,7 +244,7 @@ def get_train_test_datasets_by_rule_indices(
 
     # select train and test samples and labels according to the selected rules idx
     test_dataset, test_ids = get_samples_labels_idx_by_rule_id(
-        data_features, labels, test_rules, rule2samples, check_intersections=None,
+        data_features, labels, test_rules, rule2samples, other_coeff=other_coeff, check_intersections=None,
         other_sample_ids=other_sample_ids, save_ids=True, return_ids=True
     )
 
@@ -285,7 +288,7 @@ def calculate_rules_indices(rules_idx: List, fold_id: int, num_folds: int) -> Tu
 
 
 def get_samples_labels_idx_by_rule_id(
-        data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict,
+        data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict, other_coeff: float = 0.5,
         check_intersections: np.ndarray = None, other_sample_ids: List = None, save_ids: bool = False,
         return_ids: bool = False
 ) -> TensorDataset:
@@ -310,7 +313,9 @@ def get_samples_labels_idx_by_rule_id(
 
     if other_sample_ids is not None:
         # todo: ulf specific: num of samples to be added to test set
-        num_other_sample = int(len(other_sample_ids) - 0.5 * (len(data_features) - len(other_sample_ids) - len(sample_ids)))
+        num_other_sample = int(len(other_sample_ids) -
+                               other_coeff * (len(data_features) - len(other_sample_ids) - len(sample_ids)))
+        logger.info(f"Other samples in train set := {other_coeff} * other samples in test set")
         if num_other_sample < 0:
             num_other_sample = len(other_sample_ids)
         sample_ids_for_test = random.sample(other_sample_ids, num_other_sample)
