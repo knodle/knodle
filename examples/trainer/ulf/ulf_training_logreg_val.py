@@ -34,10 +34,10 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
         use_prior=[False, True],
         psx_calculation_method=['signatures', 'rules', 'random'],  # how the splitting into folds will be performed
         p=[0.2, 0.5, 0.8],      #0.5, 0.3
-        lr=[0.01],       #  0.01,      spouse: 0.001 is too small
-        cv_n_folds=[3, 5, 8],        # 3, 5, 8, 10,
+        lr=[0.01, 0.1],       #  0.01,      spouse: 0.001 is too small
+        cv_n_folds=[2, 5, 8],        # 3, 5, 8, 10,
         iterations=[1, 2],
-        other_coeff=[0.5, 1, 2, 3],
+        # other_coeff=[0.5, 1, 2, 3],
     )
     save_model_path = "trained_models_spouse_7"
     parameter_values = [v for v in parameters.values()]
@@ -74,12 +74,12 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
 
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        use_prior, psx_method, p, lr, folds, iterations, other_coeff = params
+        use_prior, psx_method, p, lr, folds, iterations = params
 
         p = None if use_prior else p
         params_dict = {
             'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations,
-            'other_coeff': other_coeff,
+            # 'other_coeff': other_coeff,
             'psx': psx_method,
         }
         params_signature = str(params_dict)
@@ -113,7 +113,7 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
                 lr=lr,
                 batch_size=4,
                 early_stopping=True,
-                other_coeff=other_coeff
+                # other_coeff=other_coeff
             )
             logger.info(custom_cleanlab_config)
             trainer = UlfTrainer(
