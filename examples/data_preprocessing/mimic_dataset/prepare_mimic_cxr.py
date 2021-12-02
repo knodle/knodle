@@ -15,18 +15,18 @@ from the radiology reports using CheXpert labler.
 import os
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from PIL import Image
 import random
 import copy
 import torch.optim as optim
 import csv
-from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 import torch
 import torch.nn as nn
 import torchvision.models as models
 import itertools
+from tqdm import tqdm
+from PIL import Image
+from torch.utils.data import DataLoader, Dataset
 from typing import Dict
 from joblib import dump, load
 
