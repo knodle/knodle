@@ -53,8 +53,8 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
     num_classes = max(df_test["label"].tolist()) + 1
 
     results = []
-    for curr_psx_method in ["signatures"]:
-        for curr_lr in [0.01]:
+    for curr_psx_method in ["random"]:
+        for curr_lr in [0.5]:
             params_dict = {'psx': curr_psx_method, 'lr': curr_lr}
             log_section(str(params_dict), logger)
 
@@ -65,10 +65,10 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 logger.info(f"Experiment {exp} out of {num_experiments}")
                 model = LogisticRegressionModel(train_input_x.shape[1], num_classes)
                 custom_cleanlab_config = CleanLabConfig(
-                    cv_n_folds=3,
+                    cv_n_folds=8,
                     psx_calculation_method=curr_psx_method,
                     output_classes=num_classes,
-                    filter_non_labelled=False,
+                    filter_non_labelled=True,
                     choose_random_label=True,
                     optimizer=Adam,
                     criterion=CrossEntropyLoss,
@@ -106,7 +106,7 @@ def train_cleanlab(path_to_data: str, output_file: str) -> None:
                 )
             )
 
-    with open(os.path.join(path_to_data, output_file + ".json"), 'w') as file:
+    with open(os.path.join(path_to_data, output_file + ".json"), 'a+') as file:
         json.dump(results, file)
 
 

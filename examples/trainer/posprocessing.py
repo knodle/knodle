@@ -10,7 +10,7 @@ def postprocess_json(input_file: str, required_metrics: List, output_file: str) 
         results = json.load(file)
 
     # header = ['psx', 'prior', 'p', 'lr', 'folds', 'iterations']
-    header = ['psx', 'lr', 'folds', 'p']
+    header = ['psx', 'lr', 'folds', 'p', 'iterations', 'other_coeff']
     rows = []
 
     for metric in required_metrics:
@@ -21,7 +21,7 @@ def postprocess_json(input_file: str, required_metrics: List, output_file: str) 
 
     for result in results:
         # curr_row = [result['psx'], result['prior'], result['p'], result['lr'], result['folds'], result['iter']]
-        curr_row = [result['psx'], result['lr'], result['folds'], result['p']]
+        curr_row = [result['psx'], result['lr'], result['folds'], result['p'], result['iter'], result['other_coeff']]
         for metric in required_metrics:
             curr_row.append(float(round(result[f"mean_{metric}"], 3)))
             curr_row.append(float(round(max(result[metric]), 3)))
@@ -40,8 +40,8 @@ def postprocess_json(input_file: str, required_metrics: List, output_file: str) 
 
 
 if __name__ == "__main__":
-    input_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/sms/ulf_rules.json"
+    input_file = "/Users/asedova/PycharmProjects/01_knodle/data_from_minio/spouse/processed/spouse_ulf_new.json"
     required_metrics = ["f1_avg"]
-    output_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/sms/sms_ulf_rules.csv"
+    output_file = "/Users/asedova/PycharmProjects/01_knodle/acl_results/spouse/ulf_spouse_sgn_new.csv"
 
     postprocess_json(input_file, required_metrics, output_file)

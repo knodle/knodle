@@ -58,11 +58,9 @@ class UlfTrainer(MajorityVoteTrainer):
 
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
 
-        empty_rules = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=0))
-        self.rule_matches_z = np.delete(self.rule_matches_z, empty_rules, axis=1)
-        self.mapping_rules_labels_t = np.delete(self.mapping_rules_labels_t, empty_rules, axis=0)
-
-        samples_without_matches = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=1)).squeeze().tolist()
+        # empty_rules = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=0))
+        # self.rule_matches_z = np.delete(self.rule_matches_z, empty_rules, axis=1)
+        # self.mapping_rules_labels_t = np.delete(self.mapping_rules_labels_t, empty_rules, axis=0)
 
         self.model_input_x, self.psx_model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
             self.rule_matches_z,
@@ -76,6 +74,8 @@ class UlfTrainer(MajorityVoteTrainer):
             choose_random_label=self.trainer_config.choose_random_label
         )
 
+        samples_without_matches = np.argwhere(np.all(self.rule_matches_z[..., :] == 0, axis=1)).squeeze().tolist()
+
         for i in range(self.trainer_config.iterations):
 
             logger.info(f"Iteration: {i + 1}")
@@ -84,18 +84,24 @@ class UlfTrainer(MajorityVoteTrainer):
             t_matrix_updated, labels_to_subst = self.denoise_t_matrix(
                 noisy_y_train, samples_without_matches
             )
-            noisy_y_train, num_labels_upd, idx_upd = self.get_updated_labels(
+            noisy_y_train_upd, num_labels_upd, idx_upd = self.get_updated_labels(
                 t_matrix_updated, noisy_y_train, labels_to_subst
             )
 
+            # aa = []
+            # for idx in idx_upd:
+            #     aa.append([np.where(self.rule_matches_z[idx] == 1)])
             # updated_samples = pd.DataFrame(
             #     {
             #         "sample": self.df_train["sample"].iloc[idx_upd],
+            #         "matched_lfs": aa,
             #         "old_label": noisy_y_train[idx_upd],
             #         "upd_label": noisy_y_train_upd[idx_upd]
             #     }
             # )
             # updated_samples.to_csv(f"{self.output_file}_{i}.csv", index=None)
+
+            noisy_y_train = noisy_y_train_upd
 
             # create the dataset
             train_loader = self._make_dataloader(input_labels_to_tensordataset(self.model_input_x, noisy_y_train))

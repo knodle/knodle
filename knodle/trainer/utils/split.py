@@ -288,7 +288,7 @@ def calculate_rules_indices(rules_idx: List, fold_id: int, num_folds: int) -> Tu
 
 
 def get_samples_labels_idx_by_rule_id(
-        data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict, other_coeff: float = 1,
+        data_features: TensorDataset, labels: np.ndarray, indices: List, rule2samples: Dict, other_coeff: float = 1.0,
         check_intersections: np.ndarray = None, other_sample_ids: List = None, save_ids: bool = False,
         return_ids: bool = False
 ) -> TensorDataset:

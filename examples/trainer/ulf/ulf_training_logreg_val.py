@@ -31,20 +31,20 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
 
     parameters = dict(
         # seed=None,
-        use_prior=[False, True],
-        psx_calculation_method=['signatures', 'rules', 'random'],  # how the splitting into folds will be performed
-        p=[0.2, 0.5, 0.8],      #0.5, 0.3
-        lr=[0.01, 0.1],       #  0.01,      spouse: 0.001 is too small
-        cv_n_folds=[2, 5, 8],        # 3, 5, 8, 10,
-        iterations=[1, 2],
-        # other_coeff=[0.5, 1, 2, 3],
+        use_prior=[False],
+        psx_calculation_method=['random'],  # how the splitting into folds will be performed
+        p=[0.5],      #0.5, 0.3
+        lr=[0.01],       #  0.01,      spouse: 0.001 is too small
+        cv_n_folds=[8],        # 3, 5, 8, 10,
+        iterations=[10],
+        other_coeff=[3],
     )
-    save_model_path = "trained_models_spouse_7"
+    save_model_path = "trained_models_spouse_10"
     parameter_values = [v for v in parameters.values()]
 
     df_train = pd.read_csv(os.path.join(path_to_data, "df_train.csv"))
     df_test = pd.read_csv(os.path.join(path_to_data, "df_test.csv"))
-    df_dev = pd.read_csv(os.path.join(path_to_data, "df_dev.csv"))
+    # df_dev = pd.read_csv(os.path.join(path_to_data, "df_dev.csv"))
 
     mapping_rules_labels_t = joblib.load(os.path.join(path_to_data, "mapping_rules_labels_t.lib"))
 
@@ -53,17 +53,17 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
     # df_train, df_dev, df_test, train_rule_matches_z, _, mapping_rules_labels_t = read_train_dev_test(
     #     path_to_data, if_dev_data=True)
 
-    train_input_x, test_input_x, dev_input_x = get_tfidf_features(
-        df_train["sample"], test_data=df_test["sample"], dev_data=df_dev["sample"]
+    train_input_x, test_input_x, _ = get_tfidf_features(
+        df_train["sample"], test_data=df_test["sample"]     # , dev_data=df_dev["sample"]
     )
 
     train_features_dataset = TensorDataset(Tensor(train_input_x.toarray()))
-    dev_features_dataset = TensorDataset(Tensor(dev_input_x.toarray()))
+    # dev_features_dataset = TensorDataset(Tensor(dev_input_x.toarray()))
     test_features_dataset = TensorDataset(Tensor(test_input_x.toarray()))
 
     # create dev labels dataset
-    dev_labels = df_dev["label"].tolist()
-    dev_labels_dataset = TensorDataset(LongTensor(dev_labels))
+    # dev_labels = df_dev["label"].tolist()
+    # dev_labels_dataset = TensorDataset(LongTensor(dev_labels))
 
     # create test labels dataset
     test_labels = df_test["label"].tolist()
@@ -74,12 +74,12 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
 
     for run_id, (params) in enumerate(product(*parameter_values)):
 
-        use_prior, psx_method, p, lr, folds, iterations = params
+        use_prior, psx_method, p, lr, folds, iterations, other_coeff = params
 
         p = None if use_prior else p
         params_dict = {
             'prior': use_prior, 'epochs': 20, 'p': p, 'lr': lr, 'folds': folds, 'iter': iterations,
-            # 'other_coeff': other_coeff,
+            'other_coeff': other_coeff,
             'psx': psx_method,
         }
         params_signature = str(params_dict)
@@ -105,15 +105,15 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
                 p=p,
                 output_classes=num_classes,
                 criterion=CrossEntropyLoss,
-                epochs=15,
+                epochs=20,
                 grad_clipping=5,
                 save_model_name=output_file,
                 save_model_path=save_model_path,
                 optimizer=Adam,
                 lr=lr,
-                batch_size=4,
+                batch_size=8,
                 early_stopping=True,
-                # other_coeff=other_coeff
+                other_coeff=other_coeff
             )
             logger.info(custom_cleanlab_config)
             trainer = UlfTrainer(
@@ -123,8 +123,8 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
                 rule_matches_z=train_rule_matches_z,
                 trainer_config=custom_cleanlab_config,
 
-                dev_model_input_x=dev_features_dataset,
-                dev_gold_labels_y=dev_labels_dataset,
+                # dev_model_input_x=dev_features_dataset,
+                # dev_gold_labels_y=dev_labels_dataset,
 
                 df_train=df_train,
                 output_file=os.path.join(
@@ -149,8 +149,8 @@ def train_ulf(path_to_data: str, output_file: str) -> None:
             # os.remove(
             #     "/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models/sms_ulf_logreg_10exp_fin.pt"
             # )
-            if os.path.isdir('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules'):
-                shutil.rmtree('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules')
+            # if os.path.isdir('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules'):
+            #     shutil.rmtree('/Users/asedova/PycharmProjects/01_knodle/examples/trainer/ulf/trained_models_rules')
 
         exp_signatures.append(params_signature)
 
