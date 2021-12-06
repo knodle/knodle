@@ -240,7 +240,7 @@ class CheXpertDatasetProcessor(Dataset):
         
         image_labels = self.data.iloc[index, -13:-1]
         
-        if return_image == False: # only labels are returned, not the images
+        if return_image is False: # only labels are returned, not the images
             return torch.tensor(image_labels)
         
         else:
