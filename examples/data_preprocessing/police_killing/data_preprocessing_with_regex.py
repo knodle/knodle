@@ -426,12 +426,12 @@ matched_instances = test_data["enc_rules"].str.len() != 0
 
 for row in tqdm(range(test_data.shape[0])):
     if test_data.loc[row]["enc_labels"] == 1: #the true label is 1
-        if matched_instances[row] == True: #the predicted label is 1
+        if matched_instances[row]: #the predicted label is 1
             true_positive += 1
         else: #the predicted label is 0
             false_negative += 1
     else: #the true label is 0
-        if matched_instances[row] == True: #the predicted label is 1
+        if matched_instances[row]: #the predicted label is 1
             false_positive += 1
         else: #the predicted label is 0
             true_negative += 1
