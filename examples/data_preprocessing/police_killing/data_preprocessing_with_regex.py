@@ -444,20 +444,3 @@ true_negative_percent = (100 / negative_samples) * true_negative
 print(f"Out of {test_data.shape[0]} samples in the test_data, {positive_samples} samples are positive and {negative_samples} are negative.\n")
 print(f"By using only the rules to obtain weak labels, {true_positive_percent}% of all positive samples are matched by a rule and therefore labeled as positive. {true_negative_percent}% of all negative samples are correctly classified as negative. (Which means that {100 - true_negative_percent}% of all negative instances are covered by a rule\n")
 print(f"True positives: {true_positive} \nTrue negatives: {true_negative} \nFalse positives: {false_positive} \nFalse negatives: {false_negative}")
-
-
-
-"""
-The false negatives can be saved in a separate CSV in order to look at them and and get an 
-impression why they were not matched by any rule...
-"""
-
-
-false_negative_list = []
-for row in tqdm(range(test_data.shape[0])):
-    if test_data.loc[row]["enc_labels"] == 1: #the true label is 1
-        if matched_instances[row] == False: #the predicted label is 1
-             false_negative_list.append(row)
-                
-false_negative_df = test_data.iloc[false_negative_list]
-false_negative_df[["samples"]].to_csv(os.path.join(data_path, "false_negatives.csv"), header=True)
