@@ -43,15 +43,6 @@ In the data preprocessing we build the three input matrices knodle requires:
 
 """
 
-# set directory
-# os.chdir("")
-
-# set n between 1 and 377110
-n = 1000
-# PhysioNet
-USERNAME = "marlenesteiner"
-PASSWORD = "statsisgr8"
-
 import os
 from tqdm import tqdm
 
@@ -71,6 +62,15 @@ from torch.utils.data import DataLoader, Dataset
 from typing import Dict
 from joblib import dump, load
 from PIL import Image
+
+# set directory
+# os.chdir("")
+
+# set n between 1 and 377110
+n = 1000
+# PhysioNet
+USERNAME = "your_username_her"
+PASSWORD = "your_pw_here"
 
 
 # downloads from mimic-cxr
