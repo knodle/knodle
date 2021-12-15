@@ -49,8 +49,8 @@ In the data preprocessing we build the three input matrices knodle requires:
 # set n between 1 and 377110
 n = 1000
 # PhysioNet
-USERNAME = "marlenesteiner"
-PASSWORD = "statsisgr8"
+USERNAME = "your_username_her"
+PASSWORD = "your_pw_here"
 
 import os
 from tqdm import tqdm
