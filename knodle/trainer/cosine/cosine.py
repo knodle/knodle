@@ -35,6 +35,10 @@ from knodle.trainer.utils.denoise import activate_neighbors
 
 logger = logging.getLogger(__name__)
 
+
+# This code (cosine trainer class) is adapted from the
+# official code of the COSINE framework (https://github.com/yueyu1030/COSINE)
+
 class MajorityVoting:
     def __init__(self, **kwargs):
         super().__init__()
@@ -128,7 +132,7 @@ class CosineTrainer(BaseTrainer):
     def get_batch(self, d_loader, d_iter):
         try:
             d_batch = next(d_iter)
-        except:
+        except StopIteration:
             d_iter = iter(d_loader)
             d_batch = next(d_iter)
 
@@ -196,23 +200,25 @@ class CosineTrainer(BaseTrainer):
 
         if conf == 'max':
             weight = torch.max(target, dim=1).values
-            w = torch.FloatTensor([1 if x == True else 0 for x in weight > thresh]).to(device)
+            # w = torch.FloatTensor([1 if x == True else 0 for x in weight > thresh]).to(device)
+            w = torch.tensor(weight > thresh, dtype=torch.float)
         elif conf == 'entropy':
             weight = torch.sum(-torch.log(target + 1e-6) * target, dim=1)  # Entropy
             weight = 1 - weight / np.log(weight.size(-1))
-            w = torch.FloatTensor([1 if x == True else 0 for x in weight > thresh]).to(device)
+            # w = torch.FloatTensor([1 if x == True else 0 for x in weight > thresh]).to(device)
+            w = torch.tensor(weight > thresh, dtype=torch.float)
         else:
             raise ValueError(f'conf={conf} is unsupported')
         target = self.soft_frequency(target, probs=True, soft=soft)
 
         loss_batch = loss(input, target)
 
-        l = torch.sum(loss_batch * w.unsqueeze(1) * weight.unsqueeze(1))
+        lc = torch.sum(loss_batch * w.unsqueeze(1) * weight.unsqueeze(1))  # l_c loss in the paper
 
         n_classes_ = input.shape[-1]
         # Note this is l-=, i.e l = l - (...)
-        l -= confreg * (torch.sum(input * w.unsqueeze(1)) + np.log(n_classes_) * n_classes_)
-        return l  # which is L_c + \lambda * R_2 in the paper
+        lc -= confreg * (torch.sum(input * w.unsqueeze(1)) + np.log(n_classes_) * n_classes_)  # l_c + \lambda * R2 loss in the paper
+        return lc  # which is L_c + \lambda * R_2 in the paper
 
     def contrastive_loss(self, input, feat, target, device, conf='none', thresh=0.1, distmetric='l2'):
         softmax = nn.Softmax(dim=1)
@@ -235,7 +241,8 @@ class CosineTrainer(BaseTrainer):
         feat_y = feat_x[index, :]
         argmax_x = torch.argmax(input_x, dim=1)
         argmax_y = torch.argmax(input_y, dim=1)
-        agreement = torch.FloatTensor([1 if x == True else 0 for x in argmax_x == argmax_y]).to(device)
+        # agreement = torch.FloatTensor([1 if x == True else 0 for x in argmax_x == argmax_y]).to(device)
+        agreement = torch.tensor(argmax_x == argmax_y, dtype=torch.float)
 
         criterion = ContrastiveLoss(margin=1.0, metric=distmetric)
         loss, dist_sq, dist = criterion(feat_x, feat_y, agreement)
