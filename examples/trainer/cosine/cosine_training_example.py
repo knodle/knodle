@@ -3,34 +3,13 @@ import argparse
 import random
 from pathlib import Path
 import pandas as pd
-import numpy as np
-import torch
 import os
 import joblib
-
-from torch import Tensor
-from torch.optim import SGD
-from torch.utils.data import TensorDataset
-
-import knodle.trainer.cosine.cosine
-
-from knodle.trainer.cosine.config import CosineConfig
 from knodle.trainer.auto_config import AutoConfig
 from knodle.trainer.auto_trainer import AutoTrainer
 from transformers import AdamW, AutoTokenizer
-
 from examples.trainer.preprocessing import *
 
-# from knodle.data.download import MinioConnector
-# from knodle.model.logistic_regression_model import (
-#     LogisticRegressionModel,
-# )
-
-# from examples.ImdbDataset.utils import init_logger
-from examples.utils import read_train_dev_test
-from examples.trainer.preprocessing import get_tfidf_features
-from knodle.trainer import TrainerConfig
-from knodle.trainer.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +45,6 @@ def main():
     parser.add_argument('--fast_eval', action='store_true',
                         help='use 10% of the test set for evaluation, to speed up the evaluation path')
 
-
     # cosine
     parser.add_argument('--T1', type=int, default=10)
     parser.add_argument('--T2', type=int, default=10)
@@ -80,11 +58,6 @@ def main():
     parser.add_argument('--self_training_contrastive_weight', type=float, default=1, help='contrastive learning weight')
     parser.add_argument('--distmetric', type=str, default="l2", choices=['cos', 'l2'],
                         help='distance type. Choices = [cos, l2]')
-
-
-
-    # parser.add_argument('--l2r_meta_lr', type=float, default=1e-3)
-    # parser.add_argument('--num_mc_dropout', type=int, default=1)
 
     # optimizer
     parser.add_argument('--lr', type=float, default=2e-5)
@@ -131,7 +104,6 @@ def main():
     print(f"Train Z dimension: {train_rule_matches_z.shape}")
     print(f"Train avg. matches per sample: {train_rule_matches_z.sum() / train_rule_matches_z.shape[0]}")
 
-    model_name = "distilbert-base-uncased"
     tokenizer = AutoTokenizer.from_pretrained(args.bert_backbone)
 
     X_train = convert_text_to_transformer_input(tokenizer, df_train["sample"].tolist(), args.max_sen_len)
@@ -161,9 +133,6 @@ def main():
 
     trainer.train()
     trainer.test(X_test, y_test)
-
-
-
 
 
 if __name__ == "__main__":
