@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='trec', choices=['trec'])
-    parser.add_argument('--data_home', type=str, default='/local/dzhu/data/knodle')
+    parser.add_argument('--data_home', type=str, default='')
     parser.add_argument('--bert_backbone', type=str, default='roberta-base',
                         choices=['bert-base-multilingual-cased', 'roberta-base'])
 
