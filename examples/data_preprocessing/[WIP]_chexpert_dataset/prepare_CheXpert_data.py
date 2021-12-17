@@ -326,7 +326,7 @@ The code for each option is commented out, in case you do not wish to store the 
 ### Store data as .npz files
 
 """
-If you prefer storing the images and labels in .npz files, please run the follwoing code.
+If you prefer storing the images and labels in .npz files, please run the following code.
 """
 
 # =============================================================================
