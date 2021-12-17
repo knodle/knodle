@@ -15,7 +15,7 @@ matching rules for each instance.
 The labels are "nigeria", "africa", "world", "politics", "sport", "entertainment", "health"
 See the paper and the code below for more details.
 
-@author: Michael A. Hedderich
+@author: Michael A. Hedderich based on the original code by Jesujoba Alabi
 @version: 1.0
 """
 
@@ -32,9 +32,15 @@ from nltk.util import ngrams
 import joblib
 
 DATA_TRAIN_URL = "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/train_clean.tsv"
-DATA_DEV_URL = "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/dev.tsv"
-DATA_TEST_URL = "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/test.tsv"
-KEYWORD_LISTS_DIR_URL = "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/lexicon/"
+DATA_DEV_URL = (
+    "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/dev.tsv"
+)
+DATA_TEST_URL = (
+    "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/test.tsv"
+)
+KEYWORD_LISTS_DIR_URL = (
+    "https://raw.githubusercontent.com/uds-lsv/transfer-distant-transformer-african/master/data/yoruba_newsclass/lexicon/"
+)
 DATA_CSV_SEPARATOR = "\t"
 DATA_PATH = "./"
 
@@ -61,25 +67,27 @@ def load_remote_keyword_lists(label_names):
 
 
 def extract_ngrams(text, length):
-    """ Converting a text string into n-grams of the given length.
-        Implementation taken from the original authors.
+    """Converting a text string into n-grams of the given length.
+    Implementation taken from the original authors.
     """
     n_grams = ngrams(nltk.word_tokenize(text), length)
-    return [' '.join(grams) for grams in n_grams]
+    return [" ".join(grams) for grams in n_grams]
 
 
 def create_keyword_match_rule(keyword_list):
-    """ Return a function that returns true if there is an overlap between
-        the keyword_list and a given text
+    """Return a function that returns true if there is an overlap between
+    the keyword_list and a given text
     """
+
     def matches(text):
         return len(text.intersection(keyword_list)) > 0
+
     return matches
 
 
 def create_rule_matches_matrix(data, rules):
-    """ Connection between instance (data) and label (rules)
-        Creates the z-matrix: #instances x #rules
+    """Connection between instance (data) and label (rules)
+    Creates the z-matrix: #instances x #rules
     """
     matrix = np.zeros((len(data), len(rules)))
 
@@ -124,8 +132,10 @@ def save(train, dev, test, train_rule_matrix, dev_rule_matrix, test_rule_matrix,
 
     joblib.dump(rule_label_matrix, os.path.join(data_path, "mapping_rules_labels_t.lib"))
 
-    info = {"creation time": datetime.now().strftime("%Y/%m/%d, %H:%M"),
-            "creation tool": "prepare_weak_yoruba_topic_data.py - Knodle example script - version 1.0"}
+    info = {
+        "creation time": datetime.now().strftime("%Y/%m/%d, %H:%M"),
+        "creation tool": "prepare_weak_yoruba_topic_data.py - Knodle example script - version 1.0",
+    }
     json.dump(info, open(os.path.join(data_path, "data_info.json"), "w"))
 
 
@@ -154,8 +164,16 @@ def main():
     show_examples(df_test, test_rule_matches_matrix)
 
     # store everything
-    save(df_train, df_dev, df_test, train_rule_matches_matrix, dev_rule_matches_matrix,
-         test_rule_matches_matrix, rule_label_matrix, DATA_PATH)
+    save(
+        df_train,
+        df_dev,
+        df_test,
+        train_rule_matches_matrix,
+        dev_rule_matches_matrix,
+        test_rule_matches_matrix,
+        rule_label_matrix,
+        DATA_PATH,
+    )
 
 
 if __name__ == "__main__":
