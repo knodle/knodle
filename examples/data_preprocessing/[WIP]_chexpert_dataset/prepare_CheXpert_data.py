@@ -1,5 +1,5 @@
 """
-This notebook shows how to download and preprocess the CheXpert dataset for making weakly supervised experiments.
+This file shows how to download and preprocess the CheXpert dataset for making weakly supervised experiments.
 
 The original CheXpert paper, "CheXpert: A large chest radiograph dataset with uncertainty labels and expert comparison" by Irvin et al. (2019), can be found here: https://arxiv.org/pdf/1901.07031.pdf.
 
@@ -367,14 +367,14 @@ If you want to store the resized images as .jpg files and the labels in joblib f
 Please note that due to the negative values that result from the normalization, the images are saved without the normalization.
 """
 
-# define transformations (without normalization)
-
-transform_list_resize = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    ])
-
 # =============================================================================
+# # define transformations (without normalization)
+# 
+# transform_list_resize = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     ])
+# 
 # # store the training images
 # chexpert_train_resize = CheXpertDatasetProcessor(path = path, subset = "train", image_paths = image_paths_train, number_of_images = training_set.shape[0], transform_sequence = transform_list_resize)
 # chexpert_train_resize.process_chexpert_dataset()
