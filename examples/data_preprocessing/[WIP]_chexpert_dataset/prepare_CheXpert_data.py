@@ -381,7 +381,7 @@ Please note that due to the negative values that result from the normalization, 
 # 
 # for i in tqdm(range(0, training_set.shape[0])):
 #     ex = chexpert_train_resize.__getitem__(i)[0]
-#     save_image(ex[0], os.path.join(storing_location, "train_images", "image_" + str(i) + ".jpg"))
+#     save_image(ex, os.path.join(storing_location, "train_images", "image_" + str(i) + ".jpg"))
 #     
 # # store the training labels
 # joblib_file = open(joblib_labels_train, 'wb')
@@ -399,7 +399,7 @@ Please note that due to the negative values that result from the normalization, 
 # 
 # for i in tqdm(range(0, validation_set.shape[0])):
 #     ex = chexpert_valid_resize.__getitem__(i)[0]
-#     save_image(ex[0], os.path.join(storing_location, "valid_images", "image_" + str(i) + ".jpg"))
+#     save_image(ex, os.path.join(storing_location, "valid_images", "image_" + str(i) + ".jpg"))
 #     
 # # store the validation labels
 # 
