@@ -4,7 +4,7 @@ This file shows how to download and preprocess the CheXpert dataset for making w
 The original CheXpert paper, "CheXpert: A large chest radiograph dataset with uncertainty labels and expert comparison" by Irvin et al. (2019), can be found here: https://arxiv.org/pdf/1901.07031.pdf.
 
 The CheXpert training set is composed of chest radiographs, which were annotated on the basis of reports using the rule-based CheXpert labeler. 
-Each image is labeled with respect 12 pathologies as well as the observations "No Finding" and "Support Devices". 
+Each image is labeled with respect to 12 pathologies as well as the observations "No Finding" and "Support Devices". 
 For each of these categories, except "No Finding", the assigned weak label is either: (Irvin et al. (2019))
 
 positive (1.0)
@@ -52,7 +52,7 @@ You will be presented two options of storing the preprocessed data:
 - storing each preprocessed image tensor and its corresponding labels in a separate .npz file (~ 35 GB in total)
 - storing each preprocessed image as a .jpg file and saving all of the labels in a joblib file (~ 2 GB in total)
 
-Plese note that in both approaches, the training and validation set will be stored separately. 
+Please note that in both approaches, the training and the validation set will be stored separately. 
 If you wish to store the data, please create two folders, named "train_images" and "valid_images" respectively, in your specified location.
 """
 
@@ -111,14 +111,14 @@ number of non-NaN labels in the training set
 """
 
 training_labels = training_set.iloc[:, -13:-1]
-labels_per_row = training_labels.count(axis = 1) # number of non-NaN labels per row in the training set
+labels_per_row = training_labels.count(axis=1) # number of non-NaN labels per row in the training set
 
 vals = pd.DataFrame(labels_per_row.value_counts())
 
 # make a table
 val_list = [(i, vals[0][i]) for i in vals.index]
     
-print(tabulate(val_list, headers = ["Number of non-NaN labels", "Number of datapoints"]))
+print(tabulate(val_list, headers=["Number of non-NaN labels", "Number of datapoints"]))
 
 """
 label distribution in the training set
@@ -126,11 +126,11 @@ label distribution in the training set
 
 val_list = []
 for cond in training_labels.columns:
-    vals = np.array(pd.Categorical(training_labels[cond], categories = [-1.0, 0.0, 1.0]).value_counts().sort_index(ascending = True))
+    vals = np.array(pd.Categorical(training_labels[cond], categories=[-1.0, 0.0, 1.0]).value_counts().sort_index(ascending=True))
     val_list.append([cond, vals[0], vals[1], vals[2]])
 
 print("Label distribution in the training set:", "\n")
-print(tabulate(val_list, headers = ["Pathology", "-1.0", "0.0", "1.0"]))
+print(tabulate(val_list, headers=["Pathology", "-1.0", "0.0", "1.0"]))
 
 """
 label distribution in the validation set
@@ -140,11 +140,11 @@ validation_labels = validation_set.iloc[:, -13:-1]
 
 val_list = []
 for cond in validation_labels.columns:
-    vals = np.array(pd.Categorical(validation_labels[cond], categories = [0.0, 1.0]).value_counts().sort_index(ascending=True))
+    vals = np.array(pd.Categorical(validation_labels[cond], categories=[0.0, 1.0]).value_counts().sort_index(ascending=True))
     val_list.append([cond, vals[0], vals[1]])
         
 print("Label distribution in the validation set:", "\n")
-print(tabulate(val_list, headers = ["Pathology", "0.0", "1.0"]))
+print(tabulate(val_list, headers=["Pathology", "0.0", "1.0"]))
 
 ## Image preprocessing
 
@@ -188,12 +188,12 @@ class CheXpertDatasetProcessor():
         """
         Args:
             path: path to the folder where train.csv and valid.csv are stored
-            subset: either "train" to load the train.csv or "valid" to load valid.csv
+            subset: "train": load train.csv, "valid": load valid.csv
             image_paths: paths to the images
             number_of_images: number of images in the dataset
             transform_sequence: sequence used to transform the images
-            to_ones: list of pathologies for which uncertainty labels should be replaced by 1
-            to_zeros: list of pathologies for which uncertainty labels should be replaced by 0
+            to_ones: list of pathologies for which uncertainty labels should be replaced by 1.0
+            to_zeros: list of pathologies for which uncertainty labels should be replaced by 0.0
             to_ignore: list of pathologies for which uncertainty labels should be ignored (label will be turned to nan)
             return_image: True: image tensor and labels are returned, False: only labels are returned
         Returns: 
@@ -212,7 +212,7 @@ class CheXpertDatasetProcessor():
         
     def process_chexpert_dataset(self):
         
-        # read dataset
+        # read in dataset
         if self.subset == "train":
             data = pd.read_csv("train.csv")
             
@@ -283,13 +283,13 @@ class CheXpertDatasetProcessor():
         return self.number_of_images
     
 # prepare training data
-chexpert_train = CheXpertDatasetProcessor(path = path, subset = "train", image_paths = image_paths_train,
-                                          number_of_images = training_set.shape[0], transform_sequence = transform_list)
+chexpert_train = CheXpertDatasetProcessor(path=path, subset="train", image_paths=image_paths_train,
+                                          number_of_images=training_set.shape[0], transform_sequence=transform_list)
 chexpert_train.process_chexpert_dataset()
 
 # prepare validation data
-chexpert_valid = CheXpertDatasetProcessor(path = path, subset = "valid", image_paths = image_paths_valid,
-                                          number_of_images = validation_set.shape[0], transform_sequence = transform_list)
+chexpert_valid = CheXpertDatasetProcessor(path=path, subset="valid", image_paths=image_paths_valid,
+                                          number_of_images=validation_set.shape[0], transform_sequence=transform_list)
 chexpert_valid.process_chexpert_dataset()
 
 # example output for first training sample
@@ -303,12 +303,14 @@ print("Shape of label tensor:", shape_of_label_tensor)
 
 # example using to_ones, to_zeros and to_ignore
 all_pathologies = training_set.iloc[:, -13:-1].columns
-chexpert_train_alt = CheXpertDatasetProcessor(path = path, subset = "train", image_paths = image_paths_train,
-                                          number_of_images = training_set.shape[0], transform_sequence = transform_list,
-                                          to_ones = all_pathologies[0:2],
-                                          to_zeros = all_pathologies[2:4],
-                                          to_ignore = all_pathologies[4:6],
-                                          return_image = False)
+
+chexpert_train_alt = CheXpertDatasetProcessor(path=path, subset="train",image_paths=image_paths_train,
+                                          number_of_images=training_set.shape[0], transform_sequence=transform_list,
+                                          to_ones=all_pathologies[0:2],
+                                          to_zeros=all_pathologies[2:4],
+                                          to_ignore=all_pathologies[4:6],
+                                          return_image=False)
+
 chexpert_train_alt.process_chexpert_dataset()
 chexpert_train_alt.__getitem__(0)
 
@@ -334,13 +336,13 @@ If you prefer storing the images and labels in .npz files, please run the follow
 # for i in tqdm(range(0, training_set.shape[0])):
 #     x = chexpert_train.__getitem__(i)
 #     np.savez_compressed(os.path.join(storing_location, "train_images", "image_" + str(i) + ".npz"), 
-#                         image = x[0], label = x[1])
+#                         image=x[0], label=x[1])
 #     
 # # store the validation set
 # for i in tqdm(range(0, validation_set.shape[0])):
 #     x = chexpert_valid.__getitem__(i)
 #     np.savez_compressed(os.path.join(storing_location, "valid_images", "image_" + str(i) + ".npz"), 
-#                         image = x[0], label = x[1])
+#                         image=x[0], label=x[1])
 # =============================================================================
     
 """
@@ -364,7 +366,8 @@ Here is a quick example how to do this:
 
 """
 If you want to store the resized images as .jpg files and the labels in joblib files, you can run the code below.
-Please note that due to the negative values that result from the normalization, the images are saved without the normalization.
+Please note that the normalization that we applied earlier results in negative values in the image tensors, which are not compatible with the `save_image` function that we use to store the images.
+The images are therefore saved without the normalization.
 """
 
 # =============================================================================
@@ -376,7 +379,7 @@ Please note that due to the negative values that result from the normalization, 
 #     ])
 # 
 # # store the training images
-# chexpert_train_resize = CheXpertDatasetProcessor(path = path, subset = "train", image_paths = image_paths_train, number_of_images = training_set.shape[0], transform_sequence = transform_list_resize)
+# chexpert_train_resize = CheXpertDatasetProcessor(path=path, subset="train", image_paths=image_paths_train, number_of_images=training_set.shape[0], transform_sequence=transform_list_resize)
 # chexpert_train_resize.process_chexpert_dataset()
 # 
 # for i in tqdm(range(0, training_set.shape[0])):
@@ -386,15 +389,15 @@ Please note that due to the negative values that result from the normalization, 
 # # store the training labels
 # joblib_file = open(joblib_labels_train, 'wb')
 # 
-# chexpert_train_labels = CheXpertDatasetProcessor(path = path, subset = "train", image_paths = image_paths_train, number_of_images = training_set.shape[0], return_image = False)
+# chexpert_train_labels = CheXpertDatasetProcessor(path=path, subset="train", image_paths=image_paths_train, number_of_images=training_set.shape[0], return_image=False)
 # chexpert_train_labels.process_chexpert_dataset()
-# train_label_loader = DataLoader(chexpert_train_labels, batch_size = training_set.shape[0])
+# train_label_loader = DataLoader(chexpert_train_labels, batch_size=training_set.shape[0])
 # dataiter = iter(train_label_loader)
 # train_labels = dataiter.next()
-# joblib.dump(train_labels, joblib_file, compress = 2)
+# joblib.dump(train_labels, joblib_file, compress=2)
 # 
 # # store the validation images
-# chexpert_valid_resize = CheXpertDatasetProcessor(path = path, subset = "valid", image_paths = image_paths_valid, number_of_images = validation_set.shape[0], transform_sequence = transform_list_resize)
+# chexpert_valid_resize = CheXpertDatasetProcessor(path=path, subset="valid", image_paths=image_paths_valid, number_of_images=validation_set.shape[0], transform_sequence=transform_list_resize)
 # chexpert_valid_resize.process_chexpert_dataset()
 # 
 # for i in tqdm(range(0, validation_set.shape[0])):
@@ -405,12 +408,12 @@ Please note that due to the negative values that result from the normalization, 
 # 
 # joblib_file = open(joblib_labels_valid, 'wb')
 # 
-# chexpert_valid_labels = CheXpertDatasetProcessor(path = path, subset = "valid", image_paths = image_paths_valid, number_of_images = validation_set.shape[0], return_image = False)
+# chexpert_valid_labels = CheXpertDatasetProcessor(path=path, subset="valid", image_paths=image_paths_valid, number_of_images=validation_set.shape[0], return_image=False)
 # chexpert_valid_labels.process_chexpert_dataset()
-# valid_label_loader = DataLoader(chexpert_valid_labels, batch_size = validation_set.shape[0])
+# valid_label_loader = DataLoader(chexpert_valid_labels, batch_size=validation_set.shape[0])
 # dataiter = iter(valid_label_loader)
 # valid_labels = dataiter.next()
-# joblib.dump(valid_labels, joblib_file, compress = 2)
+# joblib.dump(valid_labels, joblib_file, compress=2)
 # =============================================================================
 
 ## Finish
