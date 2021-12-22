@@ -37,14 +37,6 @@ from knodle.trainer.multi_trainer import MultiTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 
 
-def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
-    if isinstance(x, sp.csr_matrix):
-        x = x.toarray()
-    x = torch.from_numpy(x)
-    x = TensorDataset(x)
-    return x
-
-
 # Define constants
 # imdb_data_dir = os.path.join(os.getcwd(), "datasets", "spam")
 # processed_data_dir = os.path.join(imdb_data_dir, "processed")
@@ -62,7 +54,11 @@ files = [
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
+<<<<<<< HEAD
         object_name=os.path.join("datasets/trec/processed", file),
+=======
+        object_name=os.path.join("datasets/spam/processed/", file),
+>>>>>>> develop
         file_path=os.path.join(processed_data_dir, file),
     )
 
@@ -70,6 +66,15 @@ for file in tqdm(files):
 df_train = pd.read_csv(os.path.join(processed_data_dir, "df_train.csv"))
 df_test = pd.read_csv(os.path.join(processed_data_dir, "df_test.csv"))
 df_dev = pd.read_csv(os.path.join(processed_data_dir, "df_dev.csv"))
+
+
+def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
+    if isinstance(x, sp.csr_matrix):
+        x = x.toarray()
+    x = torch.from_numpy(x)
+    x = TensorDataset(x)
+    return x
+
 
 mapping_rules_labels_t = joblib.load(os.path.join(processed_data_dir, "mapping_rules_labels_t.lib"))
 
@@ -220,3 +225,10 @@ with open(os.path.join(processed_data_dir, "snorkel_res_3.json"), 'w') as file:
 with open(os.path.join(processed_data_dir, "majority_res_3.json"), 'w') as file:
     json.dump(res_majority, file)
 
+<<<<<<< HEAD
+=======
+# Run evaluation
+metrics = trainer.test(X_test_tfidf_dataset, y_test)
+for trainer, metric in metrics.items():
+    print(f"Trainer: {trainer}, accuracy: {metric[0].get('accuracy')}")
+>>>>>>> develop

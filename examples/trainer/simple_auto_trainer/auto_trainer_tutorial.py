@@ -43,7 +43,7 @@ processed_data_dir = os.path.join(imdb_data_dir, "processed")
 os.makedirs(processed_data_dir, exist_ok=True)
 
 # Download data
-client = Minio("knodle.dm.univie.ac.at", secure=False)
+client = Minio("knodle.cc", secure=False)
 files = [
     "df_train.csv", "df_dev.csv", "df_test.csv",
     "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
@@ -52,7 +52,7 @@ files = [
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/spouse/processed", file),
+        object_name=os.path.join("datasets/spouse/processed/", file),
         file_path=os.path.join(processed_data_dir, file),
     )
 
