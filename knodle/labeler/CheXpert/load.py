@@ -4,6 +4,7 @@ import bioc
 import pandas as pd
 from negbio.pipeline import text2bioc, ssplit
 from t_matrix import t_matrix
+import os
 
 from constants import *
 
