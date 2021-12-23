@@ -1,6 +1,5 @@
 """Define mention classifier class."""
 import logging
-from pathlib import Path
 from negbio.pipeline import parse, ptb2ud, negdetect
 from negbio.neg import semgraph, propagator, neg_detector
 from negbio import ngrex
@@ -14,12 +13,10 @@ class ModifiedDetector(neg_detector.Detector):
 
     Overrides parent methods __init__, detect, and match_uncertainty.
     """
-    def __init__(self, pre_negation_uncertainty_path,
-                 negation_path, post_negation_uncertainty_path):
-        self.neg_patterns = ngrex.load(negation_path)
-        self.uncertain_patterns = ngrex.load(post_negation_uncertainty_path)
-        self.preneg_uncertain_patterns\
-            = ngrex.load(pre_negation_uncertainty_path)
+    def __init__(self):
+        self.neg_patterns = ngrex.load(NEG_PATH)
+        self.uncertain_patterns = ngrex.load(POST_NEG_UNC_PATH)
+        self.preneg_uncertain_patterns = ngrex.load(PRE_NEG_UNC_PATH)
 
     def detect(self, sentence, locs):
         """Detect rules in report sentences.
@@ -76,17 +73,14 @@ class ModifiedDetector(neg_detector.Detector):
 
 class Classifier(object):
     """Classify mentions of observations from radiology reports."""
-    def __init__(self, pre_negation_uncertainty_path, negation_path,
-                 post_negation_uncertainty_path, verbose=False):
+    def __init__(self, verbose=False):
         self.parser = parse.NegBioParser(model_dir=PARSING_MODEL_DIR)
         lemmatizer = ptb2ud.Lemmatizer()
         self.ptb2dep = ptb2ud.NegBioPtb2DepConverter(lemmatizer, universal=True)
 
         self.verbose = verbose
 
-        self.detector = ModifiedDetector(pre_negation_uncertainty_path,
-                                         negation_path,
-                                         post_negation_uncertainty_path)
+        self.detector = ModifiedDetector()
 
     def classify(self, collection):
         """Classify each mention into one of

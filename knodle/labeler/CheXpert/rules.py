@@ -3,20 +3,17 @@ import re
 import itertools
 from collections import defaultdict
 from tqdm import tqdm
-from constants import *
-
+from z_matrix import z_matrix
 import bioc
 
+from constants import *
 
 class Extractor(object):
-    """Extract observations from impression sections of reports."""
-    def __init__(self, mention_phrases_dir, unmention_phrases_dir,
-                 verbose=False):
+    """Extract observations from reports."""
+    def __init__(self, verbose=False):
         self.verbose = verbose
-        self.observation2mention_phrases\
-            = self.load_phrases(mention_phrases_dir, "mention")
-        self.observation2unmention_phrases\
-            = self.load_phrases(unmention_phrases_dir, "unmention")
+        self.observation2mention_phrases = self.load_phrases(MENTION_DATA_DIR, "mention")
+        self.observation2unmention_phrases = self.load_phrases(UNMENTION_DATA_DIR, "unmention")
         self.add_unmention_phrases()
 
     def load_phrases(self, phrases_dir, phrases_type):
@@ -28,7 +25,7 @@ class Extractor(object):
                     phrase = line.strip().replace("_", " ")
                     observation = phrases_path.stem.replace("_", " ").title()
                     if line:
-                        observation2phrases[observation].append(phrase)
+                        observation2phrases[observation].append(phrase)  # exchange observation & phrase?
 
         if self.verbose:
             print(f"Loading {phrases_type} phrases for "
@@ -37,20 +34,23 @@ class Extractor(object):
         return observation2phrases
 
     def add_unmention_phrases(self):
+        """This function is specifically designed for the CheXpert rules."""
         cardiomegaly_mentions\
             = self.observation2mention_phrases[CARDIOMEGALY]
         enlarged_cardiom_mentions\
             = self.observation2mention_phrases[ENLARGED_CARDIOMEDIASTINUM]
         positional_phrases = (["over the", "overly the", "in the"],
                               ["", " superior", " left", " right"])
-        positional_unmentions = [e1 + e2
-                                 for e1 in positional_phrases[0]
-                                 for e2 in positional_phrases[1]]
-        cardiomegaly_unmentions = [e1 + " " + e2.replace("the ", "")
-                                   for e1 in positional_unmentions
-                                   for e2 in cardiomegaly_mentions
-                                   if e2 not in ["cardiomegaly",
-                                                 "cardiac enlargement"]]
+        positional_unmentions\
+            = [e1 + e2
+               for e1 in positional_phrases[0]
+               for e2 in positional_phrases[1]]
+        cardiomegaly_unmentions\
+            = [e1 + " " + e2.replace("the ", "")
+               for e1 in positional_unmentions
+               for e2 in cardiomegaly_mentions
+               if e2 not in ["cardiomegaly",
+                             "cardiac enlargement"]]
         enlarged_cardiomediastinum_unmentions\
             = [e1 + " " + e2
                for e1 in positional_unmentions
@@ -78,9 +78,9 @@ class Extractor(object):
 
         return unmention_overlap
 
-    def add_match(self, impression, sentence, ann_index, phrase,
+    def add_match(self, section, sentence, ann_index, phrase,
                   observation, start, end):
-        """Add the match data and metadata to the impression object
+        """Add the match data and metadata to the report object
         in place."""
         annotation = bioc.BioCAnnotation()
         annotation.id = ann_index
@@ -94,35 +94,36 @@ class Extractor(object):
                                                   length))
         annotation.text = sentence.text[start:start+length]
 
-        impression.annotations.append(annotation)
+        section.annotations.append(annotation)
 
     def extract(self, collection):
         """Extract the observations in each report.
 
         Args:
-            collection (BioCCollection): Impression passages of each report.
+            collection (BioCCollection): Passages of each report.
 
         Return:
             extracted_mentions
         """
+        self.Z_matrix = z_matrix()
 
         # The BioCCollection consists of a series of documents.
-        # Each document is a report (just the Impression section
-        # of the report.)
+        # Each document is a report
         documents = collection.documents
         if self.verbose:
             print("Extracting mentions...")
             documents = tqdm(documents)
-        for document in documents:
-            # Get the Impression section.
-            impression = document.passages[0]
-            annotation_index = itertools.count(len(impression.annotations))
+        for i, document in enumerate(documents):  # added enumerate
+            # Get the first section.
+            section = document.passages[0]
+            annotation_index = itertools.count(len(section.annotations))
 
-            for sentence in impression.sentences:
+            for sentence in section.sentences:
                 obs_phrases = self.observation2mention_phrases.items()
                 for observation, phrases in obs_phrases:
-                    for phrase in phrases:
+                    for j, phrase in enumerate(phrases):
                         matches = re.finditer(phrase, sentence.text)
+
                         for match in matches:
                             start, end = match.span(0)
 
@@ -132,10 +133,12 @@ class Extractor(object):
                                                             end):
                                 continue
 
-                            self.add_match(impression,
+                            self.add_match(section,
                                            sentence,
                                            str(next(annotation_index)),
                                            phrase,
                                            observation,
                                            start,
                                            end)
+
+                            self.Z_matrix[i, j] = 1
