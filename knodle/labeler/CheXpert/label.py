@@ -2,7 +2,7 @@
 import pandas as pd
 
 from args import ArgParser
-from stages import Loader, Extractor, Classifier, Aggregator
+from stages import Loader, Extractor, Classifier, Aggregator, transform
 from knodle.labeler.CheXpert.stages.constants import *
 
 
@@ -18,8 +18,14 @@ def write(reports, labels, output_path, verbose=False):
                                                    index=False)
 
 
-def label(args):
+def label(args, transform_patterns=False):
     """Label the provided report(s)."""
+
+    # If neg/unc patterns are not in negbio format
+    if transform_patterns:
+        transform(args.pre_negation_uncertainty_path)
+        transform(args.negation_path)
+        transform(args.post_negation_uncertainty_path)
 
     loader = Loader(args.reports_path, args.extract_impression)
 
