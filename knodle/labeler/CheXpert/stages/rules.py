@@ -5,7 +5,6 @@ from collections import defaultdict
 from tqdm import tqdm
 from z_matrix import z_matrix
 import bioc
-import os
 
 from constants import *
 

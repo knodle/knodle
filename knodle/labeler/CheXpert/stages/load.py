@@ -4,7 +4,6 @@ import bioc
 import pandas as pd
 from negbio.pipeline import text2bioc, ssplit
 from t_matrix import t_matrix
-import os
 
 from constants import *
 
@@ -60,6 +59,6 @@ class Loader:
         # Convert any multi white spaces to single white spaces.
         clean_report = ' '.join(clean_report.split())
         # Remove empty sentences
-        clean_report = re.sub(r'\.\s+\.', '.', clean_report)
+        clean_report = re.sub(r'\.\s+\.', '..', clean_report)
 
         return clean_report

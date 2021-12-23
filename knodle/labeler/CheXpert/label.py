@@ -2,8 +2,8 @@
 import pandas as pd
 
 from args import ArgParser
-from loader import Loader, Extractor, Classifier, Aggregator
-from constants import *
+from stages import Loader, Extractor, Classifier, Aggregator
+from knodle.labeler.CheXpert.stages.constants import *
 
 
 def write(reports, labels, output_path, verbose=False):
