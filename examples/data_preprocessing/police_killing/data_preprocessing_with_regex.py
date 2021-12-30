@@ -5,7 +5,17 @@
 
 Data Preprocessing using RegEx as rules
 
-The aim of this project is to find names of people killed by the police in a corpus of news paper articles. The corpus was created by Katherine A. Keith et al. (2017) for a similar task using distant supervision. This dataset contains mentions of people (based on keywords related to “killing” or “police”) who might have been killed by the police. The dataset (the HTML documents scraped in 2016 themselves as well as the already sentence-segmented data) are available on the [project’s website](http://slanglab.cs.umass.edu/PoliceKillingsExtraction/) and on [MinIO]( https://knodle.dm.univie.ac.at/minio/knodle/datasets/police_killing/). 
+This tutorial shows how to find names of people killed by the police in a corpus of newspaper articles. 
+The corpus was created by Katherine A. Keith et al. (2017) for a similar task using distant supervision. 
+This dataset contains mentions of people (based on keywords related to “killing” or “police”) who might 
+have been killed by the police. The dataset (the HTML documents scraped in 2016 themselves as well as the 
+already sentence-segmented data) are available on the project’s website 
+(http://slanglab.cs.umass.edu/PoliceKillingsExtraction/) and on MinIO
+( https://knodle.dm.univie.ac.at/minio/knodle/datasets/police_killing/). 
+
+
+Data Description: 
+
 There is a train and a test dataset, both of them containing dictionaries with the following keys:
 
 -  docid: unique identifiers of every mention of a person possible killed by the police
@@ -18,27 +28,28 @@ There is a train and a test dataset, both of them containing dictionaries with t
 -  sent_org: the original mention
 
 
-The preprocessing in this tutorial is done in a similiar way as in the [Data Preprocessing with Keywords Tutorial](https://github.com/knodle/knodle/blob/feature/%23299_police_killing_dataset/examples/data_preprocessing/police_killing/data_preprocessing_with_keywords.ipynb). However, the rules used in this notebook are slightly more complicated RegEx than the word pairs for the simple rules. The RegEx used as rules should cover all possible ways a sentence can express that a person "TARGET" was killed by the police (using different words for killing and police as well as active and passive constructions).
+This tutorial uses RegEx as rules. 
 
 
-Reference: Keith, Kathrine A. et al. (2017): Identifying civilians killed by police with distantly supervised entity-event extraction. In: Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing. doi: [10.18653/v1/D17-1163](https://aclanthology.org/D17-1163/)
+Reference: Keith, Kathrine A. et al. (2017): Identifying civilians killed by police with distantly 
+supervised entity-event extraction. In: Proceedings of the 2017 Conference on Empirical Methods 
+in Natural Language Processing. doi: [10.18653/v1/D17-1163](https://aclanthology.org/D17-1163/)
 
 """
-#Imports
-import pandas as pd
+# Imports
 import json
 import os
-import sys
-import numpy as np
 import re
-import scipy.sparse as sp
-
-from tqdm import tqdm
+import sys
 from pathlib import Path
-from joblib import dump
-from typing import List, Dict
+from typing import List, Dict, Union
 
+import numpy as np
+import pandas as pd
+import scipy.sparse as sp
+from joblib import dump
 from minio import Minio
+from tqdm import tqdm
 
 sys.path.append('..')
 from data_to_mapping_rules_labels_t import get_mapping_rules_labels_t
@@ -103,7 +114,7 @@ for file in tqdm(files):
 def get_train_data(data_path: str) -> pd.DataFrame:
     with open(os.path.join(data_path, "train.json"), 'r') as data:
         train_data = [json.loads(line) for line in data] #a list of dicts
-    df_train_sent_alter = pd.DataFrame(train_data, columns = ["sent_alter"]).rename(columns={"sent_alter": "samples"})
+    df_train_sent_alter = pd.DataFrame(train_data, columns = ["sent_alter"]).rename(columns={"sent_alter": "sample"})
     return df_train_sent_alter
 
 df_train = get_train_data(data_path)
@@ -127,7 +138,7 @@ print(f"{used_as_dev}% of the test data will be used for develoment.")
 def get_dev_test_data(data_path: str) -> pd.DataFrame:
     with open(os.path.join(data_path, "test.json"), 'r') as data:
         dev_test_data = [json.loads(line) for line in data]
-    dev_test_sent_alter = pd.DataFrame(dev_test_data, columns = ["sent_alter", "plabel"]).rename(columns={"sent_alter": "samples", "plabel": "label"})
+    dev_test_sent_alter = pd.DataFrame(dev_test_data, columns = ["sent_alter", "plabel"]).rename(columns={"sent_alter": "sample", "plabel": "label"})
     df_dev = dev_test_sent_alter.sample(n = int(round((dev_test_sent_alter.shape[0]/100)*used_as_dev))).reset_index(drop = True)
     df_test = dev_test_sent_alter.drop(df_dev.index).reset_index(drop = True)
     return df_dev, df_test
@@ -145,10 +156,10 @@ print(f"Train data: {df_train.shape[0]}")
 print(f"Development data: {df_dev.shape[0]}")
 print(f"Test data: {df_test.shape[0]}")
 # Positive and negative instances in dev and test data
-positive_dev = df_dev.groupby("label").count()["samples"][1]
-negative_dev = df_dev.groupby("label").count()["samples"][0]
-positive_test = df_test.groupby("label").count()["samples"][1]
-negative_test = df_test.groupby("label").count()["samples"][0]
+positive_dev = df_dev.groupby("label").count()["sample"][1]
+negative_dev = df_dev.groupby("label").count()["sample"][0]
+positive_test = df_test.groupby("label").count()["sample"][1]
+negative_test = df_test.groupby("label").count()["sample"][0]
 print(f"In the develoment data, {positive_dev} ({(100/df_dev.shape[0])*positive_dev}%) instances are positive and {negative_dev} instances ({(100/df_dev.shape[0])*negative_dev}%) are negative.")
 print(f"In the test data, {positive_test} ({(100/df_test.shape[0])*positive_test}%) instances are positive and {negative_test} instances ({(100/df_test.shape[0])*negative_test}%) are negative.")
 
@@ -244,7 +255,7 @@ def create_rules() -> Dict:
                     rule_id += 1 
                     
                         
-    return(rule2rule_id)
+    return rule2rule_id
 
 rule2rule_id = create_rules()
 print(f"There are {len(rule2rule_id)} rules.")
@@ -297,44 +308,23 @@ into a Pandas Dataframe.
 """
 
 
-def get_data_dicts(data: pd.DataFrame, rule2rule_id: Dict) -> List:
-
-    data_dicts_empty = []
-
-    for sample in data["samples"].drop_duplicates():
-        data_dict = {}
-        data_dict["samples"] = sample
-        data_dict["rules"] = []
-        data_dict["enc_rules"] = []
-        
-        data_dicts_empty.append(data_dict)
-        
-    return data_dicts_empty
-
-
-def get_data_for_dicts(data_dicts: List) -> List:
-
+def get_data(data: pd.DataFrame, rule2rule_id: Dict) -> pd.DataFrame:
+    
+    data_dicts = [{"sample": sample, "rules": [], "enc_rules": []} for sample in data["sample"].drop_duplicates()]
+    
     for rule, rule_id in tqdm(rule2rule_id.items()):
         for data_dict in data_dicts:
-            sample = data_dict["samples"]
+            sample = data_dict["sample"]
             if re.search(rule, sample.lower()):
                 data_dict["rules"].append(rule)
                 data_dict["enc_rules"].append(rule_id)
-                
-    return data_dicts
-
-
-def get_df(data: pd.DataFrame, rule2rule_id: Dict) -> pd.DataFrame:
     
-    data_dicts_empty = get_data_dicts(data, rule2rule_id)
-    data_dicts = get_data_for_dicts(data_dicts_empty)
-    df = pd.DataFrame.from_dict(data_dicts)
+    df = pd.DataFrame.from_dict(data_dicts)            
     df = df.reset_index()
        
     return df
 
-
-train_data = get_df(df_train, rule2rule_id)
+train_data = get_data(df_train, rule2rule_id)
 
 
 """
@@ -346,9 +336,9 @@ earlier when reading the test data. We do this by merging the new Dataframe with
 rule, and rule encoding only with the development and test Dataframes that contain the labels.
 """
 
-def get_dev_test_df(rule2rule_id: Dict, data: pd.DataFrame, label_id2label: Dict) -> pd.DataFrame:
+def get_dev_test_df(rule2rule_id: Dict, data: pd.DataFrame, label_id2label: Dict) -> Union[pd.DataFrame, pd.DataFrame]:
 
-    dev_test_data_without_labels = get_df(data, rule2rule_id)
+    dev_test_data_without_labels = get_data(data, rule2rule_id)
     dev_test_data = dev_test_data_without_labels.merge(data, how='inner').rename(columns={"label": "enc_labels"})
     dev_test_data["labels"] = dev_test_data['enc_labels'].map(label_id2label)
     
@@ -397,16 +387,16 @@ Path(os.path.join(data_path, "processed_regex")).mkdir(parents=True, exist_ok=Tr
 
 dump(sp.csr_matrix(mapping_rules_labels_t), os.path.join(data_path, "processed_regex", T_MATRIX_TRAIN))
 
-dump(train_data["samples"], os.path.join(data_path, "processed_regex", TRAIN_SAMPLES_OUTPUT))
-train_data["samples"].to_csv(os.path.join(data_path, "processed_regex", TRAIN_SAMPLES_CSV), header=True)
+dump(train_data["sample"], os.path.join(data_path, "processed_regex", TRAIN_SAMPLES_OUTPUT))
+train_data["sample"].to_csv(os.path.join(data_path, "processed_regex", TRAIN_SAMPLES_CSV), header=True)
 dump(train_rule_matches_z, os.path.join(data_path, "processed_regex", Z_MATRIX_TRAIN))
 
-dump(dev_data[["samples", "labels", "enc_labels"]], os.path.join(data_path, "processed_regex", DEV_SAMPLES_OUTPUT))
-dev_data[["samples", "labels", "enc_labels"]].to_csv(os.path.join(data_path, "processed_regex", DEV_SAMPLES_CSV), header=True)
+dump(dev_data[["sample", "labels", "enc_labels"]], os.path.join(data_path, "processed_regex", DEV_SAMPLES_OUTPUT))
+dev_data[["sample", "labels", "enc_labels"]].to_csv(os.path.join(data_path, "processed_regex", DEV_SAMPLES_CSV), header=True)
 dump(dev_rule_matches_z, os.path.join(data_path, "processed_regex", Z_MATRIX_DEV))
 
-dump(test_data[["samples", "labels", "enc_labels"]], os.path.join(data_path, "processed_regex", TEST_SAMPLES_OUTPUT))
-test_data[["samples", "labels", "enc_labels"]].to_csv(os.path.join(data_path, "processed_regex", TEST_SAMPLES_CSV), header=True)
+dump(test_data[["sample", "labels", "enc_labels"]], os.path.join(data_path, "processed_regex", TEST_SAMPLES_OUTPUT))
+test_data[["sample", "labels", "enc_labels"]].to_csv(os.path.join(data_path, "processed_regex", TEST_SAMPLES_CSV), header=True)
 dump(test_rule_matches_z, os.path.join(data_path, "processed_regex", Z_MATRIX_TEST))
 
 
@@ -425,15 +415,15 @@ false_negative = 0
 matched_instances = test_data["enc_rules"].str.len() != 0
 
 for row in tqdm(range(test_data.shape[0])):
-    if test_data.loc[row]["enc_labels"] == 1: #the true label is 1
-        if matched_instances[row]: #the predicted label is 1
+    if test_data.loc[row]["enc_labels"] == 1: # the true label is 1
+        if matched_instances[row]: # the predicted label is 1
             true_positive += 1
-        else: #the predicted label is 0
+        else: # the predicted label is 0
             false_negative += 1
-    else: #the true label is 0
-        if matched_instances[row]: #the predicted label is 1
+    else: # the true label is 0
+        if matched_instances[row]: # the predicted label is 1
             false_positive += 1
-        else: #the predicted label is 0
+        else: # the predicted label is 0
             true_negative += 1
             
 positive_samples = test_data[test_data.enc_labels == 1].shape[0]
