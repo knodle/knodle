@@ -5,9 +5,13 @@ Data Preprocessing
 """
 
 import os
+
 import numpy as np
 import pandas as pd
+
 from itertools import chain
+from tqdm import tqdm
+from scipy import sparse
 from joblib import dump
 
 ##############################################################################
@@ -106,21 +110,21 @@ T_df = pd.get_dummies(T_df.stack()).sum(level=1).T
 CheXpert_rules = list(T_df.index)
 
 T_matrix = np.matrix(T_df)
-
 dump(T_matrix, "T_matrix.lib")
 
 ##############################################################################
 # Create Z Matrix
 
-for i in CheXpert_classes:
-    mentioned_items = [x for x in mentions[i]]
-    Diagnoses_CheXpert_Text[i] = Diagnoses_CheXpert_Text.apply(lambda row: 1 if (isinstance(row['TEXT'], str) and any([item in row['TEXT'] for item in mentioned_items])) else 0, axis = 1)
+Z_df = Diagnoses_CheXpert_Text.copy()
+
+for i in tqdm(CheXpert_rules):
+    Z_df[i] = Z_df.apply(lambda row: 1 if (isinstance(row['TEXT'], str) and i in row['TEXT'].lower()) else 0, axis = 1)
 
 
-#for i in CheXpert_classes:
-    #print(i, np.sum(Diagnoses_CheXpert_Text[i]))
+Z_df = Z_df[CheXpert_rules]
 
-Z_df = Diagnoses_CheXpert_Text[CheXpert_classes]
 Z_matrix = np.matrix(Z_df)
-
 dump(Z_matrix, "Z_matrix.lib")
+
+Z_matrix_sparse = sparse.csr_matrix(Z_matrix)
+sparse.save_npz("Z_matrix_sparse.npz", Z_matrix_sparse)
