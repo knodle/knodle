@@ -17,8 +17,8 @@ from joblib import dump
 ##############################################################################
 # Define Path
 
-path = "define_path"
-os.chdir(path)
+#path = "define_path"
+#os.chdir(path)
 
 # Load Data
 
