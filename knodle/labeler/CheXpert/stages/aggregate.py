@@ -7,8 +7,8 @@ from constants import *
 
 class Aggregator(object):
     """Aggregate mentions of observations from radiology reports."""
-    def __init__(self, categories, verbose=False):
-        self.categories = categories
+    def __init__(self, rules, verbose=False):
+        self.rules = rules
 
         self.verbose = verbose
 
@@ -25,10 +25,10 @@ class Aggregator(object):
         [np.nan, np.nan, 1, u, np.nan, ..., 0, np.nan]
         """
         vec = []
-        for category in self.categories:
-            # There was a mention of the category.
-            if category in d:
-                label_list = d[category]
+        for rule in self.rules:
+            # There was a mention of the rule.
+            if rule in d:
+                label_list = d[rule]
                 # Only one label, no conflicts.
                 if len(label_list) == 1:
                     vec.append(label_list[0])
@@ -47,24 +47,27 @@ class Aggregator(object):
                     else:
                         vec.append(label_list[0])
 
-            # No mention of the category
+            # No mention of the rule
             else:
                 vec.append(np.nan)
 
         return vec
 
-    def aggregate(self, collection):
+    def aggregate(self, collection, z_matrix):
+        self.Z_matrix = z_matrix
+
         labels = []
         documents = collection.documents
         if self.verbose:
             print("Aggregating mentions...")
             documents = tqdm(documents)
-        for document in documents:
+        for i, document in enumerate(documents):
             label_dict = {}
             impression_passage = document.passages[0]
             no_finding = True
             for annotation in impression_passage.annotations:
                 category = annotation.infons[OBSERVATION]
+                rule = annotation.infons['term']
 
                 if NEGATION in annotation.infons:
                     label = NEGATIVE
@@ -92,16 +95,19 @@ class Aggregator(object):
                     else:
                         label_dict[CARDIOMEGALY].append(UNCERTAIN)
 
-                if category not in label_dict:
-                    label_dict[category] = [label]
+                if rule not in label_dict:
+                    label_dict[rule] = [label]
                 else:
-                    label_dict[category].append(label)
+                    label_dict[rule].append(label)
 
-            if no_finding:
-                label_dict[NO_FINDING] = [POSITIVE]
+            # need to get rid of NO FINDING
+            # if no_finding:
+            #     label_dict[NO_FINDING] = [POSITIVE]
 
             label_vec = self.dict_to_vec(label_dict)
 
             labels.append(label_vec)
 
-        return np.array(labels)
+            self.Z_matrix[i, :] = label_vec
+
+        return self.Z_matrix

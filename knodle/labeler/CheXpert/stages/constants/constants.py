@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import pandas as pd
 
 # Paths
 HOME_DIR = Path.home()
@@ -34,6 +35,7 @@ CATEGORIES = ["No Finding", "Enlarged Cardiomediastinum", "Cardiomegaly",
               "Lung Lesion", "Lung Opacity", "Edema", "Consolidation",
               "Pneumonia", "Atelectasis", "Pneumothorax", "Pleural Effusion",
               "Pleural Other", "Fracture", "Support Devices"]
+RULES = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None) for file in FILES], ignore_index=True).iloc[1:, :]
 
 # Numeric constants
 POSITIVE = 1

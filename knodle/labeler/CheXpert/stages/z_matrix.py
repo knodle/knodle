@@ -16,6 +16,6 @@ def z_matrix():
                           names=[REPORTS])[REPORTS].tolist()
     n_samples = len(reports)
 
-    Z_matrix = np.zeros((n_samples, n_rules), dtype=int)
+    Z_matrix = np.zeros((n_samples, n_rules))  # , dtype=int
 
     return Z_matrix

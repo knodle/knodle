@@ -1,21 +1,7 @@
 """Entry-point script to label radiology reports."""
-import pandas as pd
-
 from args import ArgParser
 from stages import Loader, Extractor, Classifier, Aggregator, transform
 from knodle.labeler.CheXpert.stages.constants import *
-
-
-def write(reports, labels, output_path, verbose=False):
-    """Write labeled reports to specified path."""
-    labeled_reports = pd.DataFrame({REPORTS: reports})
-    for index, category in enumerate(CATEGORIES):
-        labeled_reports[category] = labels[:, index]
-
-    if verbose:
-        print(f"Writing reports and labels to {output_path}.")
-    labeled_reports[[REPORTS] + CATEGORIES].to_csv(output_path,
-                                                   index=False)
 
 
 def label(args, transform_patterns=False):
@@ -45,10 +31,14 @@ def label(args, transform_patterns=False):
     extractor.extract(loader.collection)
     # Classify mentions in place.
     classifier.classify(loader.collection)
-    # Aggregate mentions to obtain one set of labels for each report.
-    labels = aggregator.aggregate(loader.collection)
 
-    write(loader.reports, labels, args.output_path, args.verbose)
+    X_matrix = loader.reports.to_numpy()
+    # Aggregate mentions to obtain one set of labels for each report.
+    Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix)
+
+    return X_matrix, loader.T_matrix, Z_matrix
+
+    #write(loader.reports, labels, args.output_path, args.verbose)
 
 
 if __name__ == "__main__":
