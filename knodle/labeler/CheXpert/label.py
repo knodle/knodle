@@ -1,29 +1,24 @@
 """Entry-point script to label radiology reports."""
+import shutil
 from args import ArgParser
 from stages import Loader, Extractor, Classifier, Aggregator, transform
-from knodle.labeler.CheXpert.stages.constants import *
+from constants import *
 
 
-def label(args, transform_patterns=False):
+def label(args, transform_patterns=False, uncertain=POSITIVE):  # should uncertain matches be POSITIVE or NEGATIVE
     """Label the provided report(s)."""
 
     # If neg/unc patterns are not in negbio format
     if transform_patterns:
-        transform(args.pre_negation_uncertainty_path)
-        transform(args.negation_path)
-        transform(args.post_negation_uncertainty_path)
+        transform(PRE_NEG_UNC_PATH)
+        transform(NEG_PATH)
+        transform(POST_NEG_UNC_PATH)
 
-    loader = Loader(args.reports_path, args.extract_impression)
+    loader = Loader()
 
-    extractor = Extractor(args.mention_phrases_dir,
-                          args.unmention_phrases_dir,
-                          verbose=args.verbose)
-    classifier = Classifier(args.pre_negation_uncertainty_path,
-                            args.negation_path,
-                            args.post_negation_uncertainty_path,
-                            verbose=args.verbose)
-    aggregator = Aggregator(CATEGORIES,
-                            verbose=args.verbose)
+    extractor = Extractor(verbose=args.verbose)
+    classifier = Classifier(verbose=args.verbose)
+    aggregator = Aggregator(verbose=args.verbose)
 
     # Load reports in place.
     loader.load()
@@ -32,15 +27,19 @@ def label(args, transform_patterns=False):
     # Classify mentions in place.
     classifier.classify(loader.collection)
 
-    X_matrix = loader.reports.to_numpy()
+    # X_matrix = np.array(loader.X_matrix)
     # Aggregate mentions to obtain one set of labels for each report.
     Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix)
 
-    return X_matrix, loader.T_matrix, Z_matrix
+    Z_matrix[Z_matrix == UNCERTAIN] = uncertain
 
-    #write(loader.reports, labels, args.output_path, args.verbose)
+    # np.savetxt(os.path.join(OUTPUT_PATH, "X_matrix.csv"), X_matrix, fmt="%s")
+    shutil.copy(REPORTS_PATH, os.path.join(OUTPUT_PATH, "X_matrix.csv"))
+    np.savetxt(os.path.join(OUTPUT_PATH, "T_matrix.csv"), loader.T_matrix, delimiter=",")
+    np.savetxt(os.path.join(OUTPUT_PATH, "Z_matrix.csv"), Z_matrix, delimiter=",")
+    # return X_matrix, loader.T_matrix, Z_matrix
 
 
 if __name__ == "__main__":
     parser = ArgParser()
-    label(parser.parse_args())
+    label(parser.parse_args(), transform_patterns=False, uncertain=POSITIVE)

@@ -3,10 +3,12 @@ import re
 import itertools
 from collections import defaultdict
 from tqdm import tqdm
-from z_matrix import z_matrix
+from . import z_matrix_fct
+from . import get_rule_idx
 import bioc
 
 from constants import *
+
 
 class Extractor(object):
     """Extract observations from reports."""
@@ -19,13 +21,13 @@ class Extractor(object):
     def load_phrases(self, phrases_dir, phrases_type):
         """Read in map from observations to phrases for matching."""
         observation2phrases = defaultdict(list)
-        for phrases_path in phrases_dir.glob("*.txt"):
-            with phrases_path.open() as f:
+        for phrases_path in os.listdir(phrases_dir):
+            with open(os.path.join(phrases_dir, phrases_path)) as f:
                 for line in f:
                     phrase = line.strip().replace("_", " ")
-                    observation = phrases_path.stem.replace("_", " ").title()
+                    observation = phrases_path.replace("_", " ").title()
                     if line:
-                        observation2phrases[observation].append(phrase)  # exchange observation & phrase?
+                        observation2phrases[observation].append(phrase)
 
         if self.verbose:
             print(f"Loading {phrases_type} phrases for "
@@ -105,7 +107,7 @@ class Extractor(object):
         Return:
             extracted_mentions
         """
-        self.Z_matrix = z_matrix()
+        self.Z_matrix = z_matrix_fct()
 
         # The BioCCollection consists of a series of documents.
         # Each document is a report
@@ -121,7 +123,7 @@ class Extractor(object):
             for sentence in section.sentences:
                 obs_phrases = self.observation2mention_phrases.items()
                 for observation, phrases in obs_phrases:
-                    for j, phrase in enumerate(phrases):
+                    for phrase in phrases:
                         matches = re.finditer(phrase, sentence.text)
 
                         for match in matches:
@@ -141,4 +143,4 @@ class Extractor(object):
                                            start,
                                            end)
 
-                            self.Z_matrix[i, j] = 1
+                            self.Z_matrix[i, get_rule_idx(phrase)] = 999  # match, but not clarified if pos/neg/unc

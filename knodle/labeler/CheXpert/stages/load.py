@@ -1,9 +1,8 @@
 """Define report loader class."""
 import re
 import bioc
-import pandas as pd
 from negbio.pipeline import text2bioc, ssplit
-from t_matrix import t_matrix
+from . import t_matrix_fct
 
 from constants import *
 
@@ -23,10 +22,11 @@ class Loader:
         reports = pd.read_csv(self.reports_path,
                               header=None,
                               names=[REPORTS])[REPORTS].tolist()
+        # self.X_matrix = []
 
-        # using enumerate gives two loop variables: i = count of current iteration, report = report at current iteration
         for i, report in enumerate(reports):
             clean_report = self.clean(report)
+            # self.X_matrix.append(clean_report)
             # convert text to BioCDocument instance: id (str) = BioCDocument id, text (str): text
             document = text2bioc.text2document(str(i), clean_report)
 
@@ -37,9 +37,8 @@ class Loader:
 
             collection.add_document(split_document)
 
-        self.reports = reports
         self.collection = collection
-        self.T_matrix = t_matrix()
+        self.T_matrix = t_matrix_fct()
 
     def clean(self, report):
         """Clean the report text."""
@@ -59,6 +58,6 @@ class Loader:
         # Convert any multi white spaces to single white spaces.
         clean_report = ' '.join(clean_report.split())
         # Remove empty sentences
-        clean_report = re.sub(r'\.\s+\.', '..', clean_report)
+        clean_report = re.sub(r'\.\s+\.', '../CheXpert', clean_report)
 
         return clean_report
