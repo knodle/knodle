@@ -1,8 +1,7 @@
 """Define mention aggregator class."""
 from tqdm import tqdm
 from . import get_rule_idx
-
-from constants import *
+from examples.labeler.chexpert.constants.constants import *
 
 
 class Aggregator(object):

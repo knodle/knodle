@@ -3,11 +3,10 @@ import re
 import itertools
 from collections import defaultdict
 from tqdm import tqdm
+import bioc
+from examples.labeler.chexpert.constants.constants import *
 from . import z_matrix_fct
 from . import get_rule_idx
-import bioc
-
-from constants import *
 
 
 class Extractor(object):

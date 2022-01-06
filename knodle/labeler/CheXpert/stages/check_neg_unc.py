@@ -4,8 +4,7 @@ from negbio.pipeline import parse, ptb2ud, negdetect
 from negbio.neg import semgraph, propagator, neg_detector
 from negbio import ngrex
 from tqdm import tqdm
-
-from constants import *
+from examples.labeler.chexpert.constants.constants import *
 
 
 class ModifiedDetector(neg_detector.Detector):

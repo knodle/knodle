@@ -2,7 +2,7 @@
 import shutil
 from args import ArgParser
 from stages import Loader, Extractor, Classifier, Aggregator, transform
-from constants import *
+from examples.labeler.chexpert.constants.constants import *
 
 
 def label(args, transform_patterns=False, uncertain=POSITIVE):  # should uncertain matches be POSITIVE or NEGATIVE

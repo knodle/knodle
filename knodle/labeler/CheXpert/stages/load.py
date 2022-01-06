@@ -2,9 +2,8 @@
 import re
 import bioc
 from negbio.pipeline import text2bioc, ssplit
+from examples.labeler.chexpert.constants.constants import *
 from . import t_matrix_fct
-
-from constants import *
 
 
 class Loader:
