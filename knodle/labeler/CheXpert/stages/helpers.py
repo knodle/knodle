@@ -1,4 +1,4 @@
-from constants import *
+from examples.labeler.chexpert.constants.constants import *
 
 
 def t_matrix_fct():
