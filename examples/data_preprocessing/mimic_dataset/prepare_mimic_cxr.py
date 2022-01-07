@@ -3,9 +3,9 @@
 """
 Preprocessing of MIMIC-CXR dataset
 
-This file illustrates how week supervision can be applied on medical images 
+This file illustrates how weak supervision can be applied on medical images 
 and the corresponding reports. Since there are two sources of data (images and 
-reports) we establish a double layer week supervision. 
+reports) we establish a double layer weak supervision. 
 
 In this example the MIMIC-CXR dataset is used. There are to versions of this 
 dataset: 
@@ -21,10 +21,10 @@ weak labels which are derived from the radiology reports using CheXpert labler
 (Irvin, Rajpurkar et al. 2019) and the images are in JPG format instead of 
 DICOM format. 
 
-Neiter versions of the MIMIC-CXR dataset have gold labels. Since both the 
+Neither versions of the MIMIC-CXR dataset have gold labels. Since both the 
 CheXpert data and the MIMIC-CXR data contain chest X-Rays, the CheXpert labler 
-was used in the MIMIC-CXR-JPG Database to obtain week labels. We will use a 
-small subset of the MIMIC images and their week labels in the data 
+was used in the MIMIC-CXR-JPG Database to obtain weak labels. We will use a 
+small subset of the MIMIC images and their weak labels in the data 
 preprocessing to finetune our image encoder CNN. Apart from that we do not 
 touch any labels until evaluation.
 To evaluate our results in the end, we apply the trained model (Knodle output) 
@@ -38,7 +38,7 @@ In the data preprocessing we build the three input matrices knodle requires:
    and the rules. 
  * The images are encoded with a CNN. We try two different approaches: 
      1) CNN with pretrained weight without finetuning and 
-    2) CNN with pretrained weights and finetuning. Therefore, we need the week 
+     2) CNN with pretrained weights and finetuning. Therefore, we need the weak 
        labels.  
 
 """
@@ -60,7 +60,7 @@ import torchvision.models as models
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from typing import Dict
-from joblib import dump, load
+from joblib import dump
 from PIL import Image
 
 
@@ -72,27 +72,36 @@ n = 1000
 # PhysioNet
 USERNAME = "your_username_her"
 PASSWORD = "your_pw_here"
+download = False
+
+# Files that will be created:
+Z = "rule_matches_z.lib"
+T = "mapping_rules_labels_t.lib"
+X = "train_X.lib"
+X_finetuned = "train_X_finetuned.lib"
 
 
-# downloads from mimic-cxr
-url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
-       " https://physionet.org/files/mimic-cxr/2.0.0/"]
 
-command = "".join(url+["cxr-record-list.csv.gz"]) # paths to images
-os.system(command)
-command = "".join(url+["cxr-study-list.csv.gz"]) # paths to reports
-os.system(command)
-command = "".join(url+["mimic-cxr-reports.zip"]) # folder of all reports
-os.system(command)
+if (download == True):
+    # downloads from mimic-cxr 
+    url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
+           " https://physionet.org/files/mimic-cxr/2.0.0/"]
+    
+    command = "".join(url+["cxr-record-list.csv.gz"]) # paths to images
+    os.system(command)
+    command = "".join(url+["cxr-study-list.csv.gz"]) # paths to reports
+    os.system(command)
+    command = "".join(url+["mimic-cxr-reports.zip"]) # folder of all reports
+    os.system(command)
 
-# downloads from mimic-cxr-jpg
-url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
-       " https://physionet.org/files/mimic-cxr-jpg/2.0.0/"]
-command = "".join(url+["mimic-cxr-2.0.0-chexpert.csv.gz"]) # chexpert output 
-                                                           # for mimic dataset
-os.system(command)
+    # downloads from mimic-cxr-jpg
+    url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
+           " https://physionet.org/files/mimic-cxr-jpg/2.0.0/"]
+    command = "".join(url+["mimic-cxr-2.0.0-chexpert.csv.gz"]) # chexpert output 
+                                                               # for mimic dataset
+    os.system(command)
 
-#NOW UNZIP ALL DOWNLOADED FILES AND THE REPORT FOLDER
+    # NOW UNZIP ALL DOWNLOADED FILES AND THE REPORT FOLDER WITH 7zip
 
 ##############################################################################
 # MIMIC-CXR-JPG images
@@ -100,31 +109,31 @@ os.system(command)
 record_list = pd.read_csv("cxr-record-list.csv").to_numpy()
 study_list = pd.read_csv("cxr-study-list.csv").to_numpy()
 
+if (download == True):
+    # image download
+    for i in tqdm(range(1000,n)):
+        url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
+               " https://physionet.org/files/mimic-cxr-jpg/2.0.0/",record_list[i,3]]
+        command = "".join(url)
+        command = "".join([command.replace(".dcm", ""),".jpg -P ",record_list[i,3]])
+        os.system(command)
+            
+    # load reports and save all in one csv
+    with open('mimic_cxr_text.csv', 'w', newline='', encoding='utf-8') as f:
+        for i in tqdm(range(len(study_list))):
+            with open(''.join(["mimic-cxr-reports/", study_list[i,2]])) as f_path:
+                text = ''.join(f_path.readlines())
+            text = text.replace("\n", "")
+            text = text.replace(",", "")
+            start = text.find("FINDINGS:")
+            end = text.find("IMPRESSION:")
+            findings = text[start:end]
+            impressions = text[end:len(text)]
+            row = [study_list[i,0],study_list[i,1], findings, impressions]
+            csvwriter = csv.writer(f)
+            csvwriter.writerow(row)
 
-# image download - run only once
-for i in tqdm(range(1000,n)):
-    url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
-           " https://physionet.org/files/mimic-cxr-jpg/2.0.0/",record_list[i,3]]
-    command = "".join(url)
-    command = "".join([command.replace(".dcm", ""),".jpg -P ",record_list[i,3]])
-    os.system(command)
-        
-    
-with open('mimic_cxr_text.csv', 'w', newline='', encoding='utf-8') as f:
-    for i in tqdm(range(len(study_list))):
-        with open(''.join(["mimic-cxr-reports/", study_list[i,2]])) as f_path:
-            text = ''.join(f_path.readlines())
-        text = text.replace("\n", "")
-        text = text.replace(",", "")
-        start = text.find("FINDINGS:")
-        end = text.find("IMPRESSION:")
-        findings = text[start:end]
-        impressions = text[end:len(text)]
-        row = [study_list[i,0],study_list[i,1], findings, impressions]
-        csvwriter = csv.writer(f)
-        csvwriter.writerow(row)
-
-# open
+# open report csv
 reports = pd.read_csv("mimic_cxr_text.csv", 
                       names = ["subject_id","study_id", "findings", "impressions"], 
                       na_values='.')
@@ -135,7 +144,7 @@ print("average length findings section:",
 print("average length impression section:", 
       np.mean(reports["impressions"].str.len()))
 
-print("number of NAs in findings and impressions:", 
+print("number of NAs in findings and impressions:\n", 
       pd.isna(reports[['findings', 'impressions']]).sum())
 
 # if impression is missing insert finding
@@ -149,63 +158,30 @@ record_list = pd.read_csv("cxr-record-list.csv")
 record_report_list = pd.merge(record_list, reports_processed, 
                               how = 'left', on= ['study_id','subject_id'])
 
-##############################################################################
-# labels 
-##############################################################################
-labels_chexpert = pd.read_csv("mimic-cxr-2.0.0-chexpert.csv")
-# initialise labels with 0
-labels_chexpert['label'] = 0
-labels_list = labels_chexpert.columns.to_numpy()
-# iterate through labels: 
-# three cases: only one, non, or multiple diagnoses
-for i in tqdm(range(len(labels_chexpert))):
-    # which labels are 1? 
-    label_is1 = labels_chexpert.iloc[i,:] == 1.0
-    if (sum(label_is1)==1):
-       labels_chexpert.iloc[i,16] = labels_list[label_is1]
-    elif sum(label_is1) > 1:
-        labels_chexpert.iloc[i,16] = random.choice(labels_list[label_is1])
-    else: 
-        labels_chexpert.iloc[i,16] = 'No Finding'
-        
-labels = {id: cat for (cat, id) in enumerate(labels_chexpert.columns[2:16])}
-        
-for i in tqdm(range(len(labels_chexpert))):
- labels_chexpert.iloc[i,16] = labels.get(labels_chexpert.iloc[i,16])
-        
-# merge labels with records and reports
-record_report_label_list = pd.merge(record_report_list, 
-                                    labels_chexpert.iloc[:,[0,1,16]], 
-                                    how = 'left', 
-                                    on = ['study_id','subject_id'])
-
-print("classes proportions:", 
-      record_report_label_list.groupby('label').size()/len(record_report_label_list))
-# keep in mind that the dataset is unbalenced
-
-
-input_list_full = record_report_label_list
-# save the whole file
-dump(input_list_full, "input_list.lib")
-# open only first n rows
-input_list_pd = load("input_list.lib").iloc[:n,:]
-# drop nas
-input_list = input_list_pd.dropna().to_numpy()
+# only first n rows, drop nas
+input_list_pd = record_report_list.iloc[:n,:].dropna()
+input_list = input_list_pd.to_numpy()
 # save new n
 n = len(input_list)
+
+
 ##############################################################################
 # make rules from reports and Chexpert-labler
 ##############################################################################
+
+labels_chexpert = pd.read_csv("mimic-cxr-2.0.0-chexpert.csv")
+labels = {id: cat for (cat, id) in enumerate(labels_chexpert.columns[2:16])}
 # lower case & replace whitespace with _
 classes = [string.lower().replace(" ", "_") for string in labels]
 num_classes = len(classes)
 labels2ids = {classes[i]:i for i in range(num_classes)}
-# create folder
-os.makedirs("".join([os.getcwd(),"/chexpert_rules"]))
-# store files in folder
-for i in range(len(classes)):
-    os.system("".join(["curl https://raw.githubusercontent.com/stanfordmlgroup/chexpert-labeler/master/phrases/mention/", 
-                       classes[i], ".txt ", "-o chexpert_rules/", classes[i], ".txt"]))
+if (download == True):
+    # create folder
+    os.makedirs("".join([os.getcwd(),"/chexpert_rules"]))
+    # store files in folder
+    for i in range(len(classes)):
+        os.system("".join(["curl https://raw.githubusercontent.com/stanfordmlgroup/chexpert-labeler/master/phrases/mention/", 
+                           classes[i], ".txt ", "-o chexpert_rules/", classes[i], ".txt"]))
 
 # make T matrix
 lines = {}
@@ -237,6 +213,7 @@ mapping_rules_labels_t = get_mapping_rules_labels_t(rule2label, len(labels2ids))
 mapping_rules_labels_t[0:5,:]
 mapping_rules_labels_t.shape
 
+dump(mapping_rules_labels_t, T)
 
 len(np.unique(rules['rule'])) == len(rules['rule'])
 rules_size = rules.groupby('rule').size() 
@@ -259,17 +236,17 @@ def get_rule_matches_z (data: np.ndarray, num_rules: int) -> np.ndarray:
 
 rule_matches_z = get_rule_matches_z(input_list[:,4], (len(rule2rule_id)+1))
 
-dump(rule_matches_z, "rule_matches_z.lib")
+dump(rule_matches_z, Z)
 ######################################################################
 # image - encoding: 
 # without finetuning
 ######################################################################
 class mimicDataset(Dataset):
     
-    def __init__(self, path):
+    def __init__(self, path, load_labels = False):
         'Initialization'
         self.path = path
-        #self.y = y
+        self.load_labels = load_labels
         
     def __len__(self):
         'Denotes the total number of samples'
@@ -280,9 +257,11 @@ class mimicDataset(Dataset):
         # Select sample
         image = Image.open(self.path[index,3].replace(".dcm", ".jpg")).convert('RGB')
         X = self.transform(image)
-        label = self.path[index,5]
-        
-        return X, torch.tensor(label)
+        if (self.load_labels == True): # for the second approach with finetuning
+            label = self.path[index,5]      
+            return X, torch.tensor(label)
+        else:
+            return X # for the first approach without labels
     
     transform = transforms.Compose([
         transforms.Resize(256),
@@ -290,6 +269,7 @@ class mimicDataset(Dataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
+# model = models.resnet50(pretrained=True) 
 model = models.resnet50(pretrained=True)
 modules = list(model.children())[:-1]
 model=torch.nn.Sequential(*modules)
@@ -300,19 +280,56 @@ model.eval()
 # apply modified resnet50 to data
 dataloaders = DataLoader(mimicDataset(input_list[:n,:]), batch_size=n,num_workers=0)
     
-data, labels = next(iter(dataloaders))
+data = next(iter(dataloaders))
 with torch.no_grad():
     features_var = model(data)
     features = features_var.data 
-    all_X = features.reshape(n,2048).numpy()
+    train_X = features.reshape(n,2048).numpy()
 
 # save feature matrix
-dump(all_X, "all_X.lib")
+dump(train_X, X)
 
 ##############################################################################
 # Finetuning a pretrained CNN and extracting the second last layer as features
 ##############################################################################
 
+# For finetuning the CNN, we use the weak labels from Chexpert
+labels = {id: cat for (cat, id) in enumerate(labels_chexpert.columns[2:16])}
+# initialise labels with 0
+labels_chexpert['label'] = 0
+labels_list = labels_chexpert.columns.to_numpy()
+# iterate through labels: 
+# three cases: only one, non, or multiple diagnoses
+for i in tqdm(range(len(labels_chexpert))):
+    # which labels are 1? 
+    label_is1 = labels_chexpert.iloc[i,:] == 1.0
+    if (sum(label_is1)==1):
+       labels_chexpert.iloc[i,16] = labels_list[label_is1]
+    elif sum(label_is1) > 1:
+        labels_chexpert.iloc[i,16] = random.choice(labels_list[label_is1])
+    else: 
+        labels_chexpert.iloc[i,16] = 'No Finding'
+        
+    
+        
+# merge labels with records and reports
+input_list_labels_pd = pd.merge(input_list_pd, 
+                                    labels_chexpert.iloc[:,[0,1,16]], 
+                                    how = 'left', 
+                                    on = ['study_id','subject_id'])
+
+print("classes proportions:", 
+      input_list_labels_pd.groupby('label').size()/len(input_list_labels_pd))
+# keep in mind that the dataset is unbalenced
+
+# Changing names to indices
+for i in tqdm(range(len(input_list_labels_pd))):
+ input_list_labels_pd.iloc[i,5] = labels.get(input_list_labels_pd.iloc[i,5])
+
+# convert to numpy
+input_list_labels = input_list_labels_pd.to_numpy()
+dump(input_list_labels, "input_list_labels.lib")
+# finetuning
 # m ... number of samples used for finetuning
 m = min(750,n)
 
@@ -320,8 +337,8 @@ m = min(750,n)
 n_train = round(m*0.8)
 indices_train = random.sample(range(750),n_train)
 
-input_train = input_list[:m,:][indices_train,:]
-input_validate = np.delete((input_list[:m,:]),indices_train, axis = 0)
+input_train = input_list_labels[:m,:][indices_train,:]
+input_validate = np.delete((input_list_labels[:m,:]),indices_train, axis = 0)
 
 # Since the dataset is unbalanced, we use a weighted sampler 
 class_counts = np.zeros(num_classes)
@@ -334,8 +351,8 @@ sample_weights = sample_weights.double()
 sampler = torch.utils.data.WeightedRandomSampler(weights=sample_weights, 
                                                  num_samples=len(sample_weights))
 
-dataset = {'train' : mimicDataset(input_train),
-           'val': mimicDataset(input_validate)}
+dataset = {'train' : mimicDataset(input_train, load_labels = True),
+           'val': mimicDataset(input_validate, load_labels = True)}
 
 dataloaders = {'train': DataLoader(dataset['train'] , batch_size=4, num_workers=0, sampler = sampler),
                'val': DataLoader(dataset['val'] , batch_size=4, num_workers=0 )}
@@ -410,15 +427,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
 
 model = models.resnet50(pretrained=True)
-num_ftrs = model.fc.in_features
+
 # set output size to 14 (number of classes)
-model.fc = nn.Linear(num_ftrs, num_classes)
+model.fc = nn.Linear(1000, num_classes)
 model = model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 step_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
-model = train_model(model, criterion, optimizer, step_lr_scheduler, num_epochs=2)
+model = train_model(model, criterion, optimizer, step_lr_scheduler, num_epochs=3)
 
+# delete last layer of the network
 modules = list(model.children())[:-1]
 model=torch.nn.Sequential(*modules)
 for p in model.parameters():
@@ -426,15 +444,15 @@ for p in model.parameters():
     
 model.eval()
 # apply modified resnet50 to data
-dataloaders = DataLoader(mimicDataset(input_list[:n,:]), batch_size=n,num_workers=0)
+dataloaders = DataLoader(mimicDataset(input_list_labels[:n,:], load_labels = True), batch_size=n,num_workers=0)
     
 data, labels = next(iter(dataloaders))
 with torch.no_grad():
     features_var = model(data)
     features = features_var.data 
-    all_X_finetuned = features.reshape(n,2048).numpy()
+    train_X_finetuned = features.reshape(n,2048).numpy()
 
 # save features matrix
-dump(all_X_finetuned, "all_X_finetuned.lib")
+dump(train_X_finetuned, X_finetuned)
 
 
