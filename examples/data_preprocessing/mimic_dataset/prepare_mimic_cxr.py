@@ -82,7 +82,7 @@ X_finetuned = "train_X_finetuned.lib"
 
 
 
-if (download == True):
+if download:
     # downloads from mimic-cxr 
     url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
            " https://physionet.org/files/mimic-cxr/2.0.0/"]
@@ -109,7 +109,7 @@ if (download == True):
 record_list = pd.read_csv("cxr-record-list.csv").to_numpy()
 study_list = pd.read_csv("cxr-study-list.csv").to_numpy()
 
-if (download == True):
+if download:
     # image download
     for i in tqdm(range(1000,n)):
         url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
@@ -175,7 +175,7 @@ labels = {id: cat for (cat, id) in enumerate(labels_chexpert.columns[2:16])}
 classes = [string.lower().replace(" ", "_") for string in labels]
 num_classes = len(classes)
 labels2ids = {classes[i]:i for i in range(num_classes)}
-if (download == True):
+if download:
     # create folder
     os.makedirs("".join([os.getcwd(),"/chexpert_rules"]))
     # store files in folder
@@ -257,7 +257,7 @@ class mimicDataset(Dataset):
         # Select sample
         image = Image.open(self.path[index,3].replace(".dcm", ".jpg")).convert('RGB')
         X = self.transform(image)
-        if (self.load_labels == True): # for the second approach with finetuning
+        if self.load_labels: # for the second approach with finetuning
             label = self.path[index,5]      
             return X, torch.tensor(label)
         else:
