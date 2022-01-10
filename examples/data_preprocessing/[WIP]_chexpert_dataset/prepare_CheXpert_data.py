@@ -63,6 +63,9 @@ storing_location = "storing_location_path"
 joblib_labels_train = os.path.join(storing_location, 'chexpert_data_train_labels.lib')
 joblib_labels_valid = os.path.join(storing_location, 'chexpert_data_valid_labels.lib')
 
+os.makedirs(os.path.join(storing_location, "train_images"), exist_ok=True)
+os.makedirs(os.path.join(storing_location, "valid_images"), exist_ok=True)
+
 ## Load the dataset
 
 """
@@ -162,11 +165,13 @@ print(tabulate(val_list, headers=["Pathology", "0.0", "1.0"]), "\n")
 
 ## Image preprocessing
 
+splitted_path = os.path.split(path)[0]
+
 # paths to training images
-image_paths_train = [os.path.join(path[: path.find("CheXpert-v1.0-small")], "CheXpert-v1.0-small", p) for p in training_set["Path"]]
+image_paths_train = [os.path.join(splitted_path,p) for p in training_set["Path"]]
 
 # paths to validation images
-image_paths_valid = [os.path.join(path[: path.find("CheXpert-v1.0-small")], "CheXpert-v1.0-small", p) for p in validation_set["Path"]]
+image_paths_valid = [os.path.join(splitted_path,p) for p in validation_set["Path"]]
 
 # sample image from training set
 sample_image = Image.open(image_paths_train[0]).convert('RGB')
