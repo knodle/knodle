@@ -2,6 +2,9 @@
 import re
 import bioc
 from negbio.pipeline import text2bioc, ssplit
+import os
+import sys
+sys.path.append(os.getcwd())
 from examples.labeler.chexpert.constants.constants import *
 from . import t_matrix_fct
 

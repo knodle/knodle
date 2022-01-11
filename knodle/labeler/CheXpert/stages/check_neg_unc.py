@@ -4,6 +4,9 @@ from negbio.pipeline import parse, ptb2ud, negdetect
 from negbio.neg import semgraph, propagator, neg_detector
 from negbio import ngrex
 from tqdm import tqdm
+import os
+import sys
+sys.path.append(os.getcwd())
 from examples.labeler.chexpert.constants.constants import *
 
 

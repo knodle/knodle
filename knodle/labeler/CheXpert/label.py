@@ -1,5 +1,8 @@
 """Entry-point script to label radiology reports."""
 import shutil
+import os
+import sys
+sys.path.append(os.getcwd())
 from args import ArgParser
 from stages import Loader, Extractor, Classifier, Aggregator, transform
 from examples.labeler.chexpert.constants.constants import *

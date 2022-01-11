@@ -1,6 +1,9 @@
 """Define mention aggregator class."""
 from tqdm import tqdm
 from . import get_rule_idx
+import os
+import sys
+sys.path.append(os.getcwd())
 from examples.labeler.chexpert.constants.constants import *
 
 

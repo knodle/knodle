@@ -4,6 +4,9 @@ import itertools
 from collections import defaultdict
 from tqdm import tqdm
 import bioc
+import os
+import sys
+sys.path.append(os.getcwd())
 from examples.labeler.chexpert.constants.constants import *
 from . import z_matrix_fct
 from . import get_rule_idx
