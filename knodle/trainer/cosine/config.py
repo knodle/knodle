@@ -35,7 +35,7 @@ class CosineConfig(BaseTrainerConfig):
         self.use_cuda = args.use_cuda
         self.seed = args.manualSeed
         self.weight_decay = args.weight_decay
-        self.soft = True if args.teacher_label_type else False
+        self.soft = True if args.teacher_label_type == 'soft' else False
 
 
     # def get_cache_file(self):
