@@ -335,7 +335,7 @@ m = min(750,n)
 
 # 80% training and 20% validation
 n_train = round(m*0.8)
-indices_train = random.sample(range(750),n_train)
+indices_train = random.sample(range(m),n_train)
 
 input_train = input_list_labels[:m,:][indices_train,:]
 input_validate = np.delete((input_list_labels[:m,:]),indices_train, axis = 0)
