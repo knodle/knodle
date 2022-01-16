@@ -49,12 +49,11 @@ from torchvision.utils import save_image
 If you wish to save the preprocessed data on your computer, please specify a path to the location where you want to store the data where "storing_location_path" is mentioned in the code underneath.
 
 You will be presented two options of storing the preprocessed data:
-
+    
 - storing each preprocessed image tensor with its corresponding labels in a separate .npz file (~ 35 GB in total)
 - storing each preprocessed image as a .jpg file and saving all of the labels in a .lib file (~ 2 GB in total)
 
-Please note that in both approaches, the training and the validation set will be stored separately. 
-If you wish to store the data, please create two folders, named "train_images" and "valid_images" respectively, in your specified location.
+Please note that in both approaches, the training and the validation set will be stored separately.
 """
 
 storing_location = "storing_location_path"
@@ -444,7 +443,7 @@ def transform_images(image_paths: List[str],
 
 """
 The two different options of storing the data provided in this tutorial are:
-
+    
 - storing each preprocessed image tensor with its corresponding labels in a separate .npz file (~ 35 GB in total)
 - storing each resized image as a .jpg file and saving all of the labels in a joblib file (~ 2 GB in total)
 
