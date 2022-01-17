@@ -1,16 +1,20 @@
 import os
 from tqdm.auto import tqdm
 from minio import Minio
+from knodle.labeler.CheXpert.label import Labeler
 
 # Define Constants & Download Data
 #
-# In this tutorial all data is downloaded from the knodle Minio browser
-# For the CheXpert labeler to work, all the constants below which are written in caps need to be specified in the
-# config.py file, if
+# In this tutorial all data is downloaded from the knodle Minio browser & saved in
+# the knodle.examples.labeler.chexpert directory, in the default config.py file, these paths are accessed.
 
 client = Minio("knodle.cc", secure=False)
+
+# Directory where all the files should be saved in is specified
 CHEXPERT_DATA_DIR = os.path.join(os.getcwd(), "examples", "labeler", "chexpert")
 
+
+# RULE DIRECTORIES -----------------------------------------------------------------------------------
 MENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "mention")
 os.makedirs(MENTION_DATA_DIR, exist_ok=True)
 files_mention = [
@@ -37,6 +41,8 @@ for file in tqdm(files_unmention):
         file_path=os.path.join(UNMENTION_DATA_DIR, file),
     )
 
+
+# PATTERN DIRECTORY ----------------------------------------------------------------------------------
 PATTERNS_DIR = os.path.join(CHEXPERT_DATA_DIR, "patterns")
 os.makedirs(PATTERNS_DIR, exist_ok=True)
 files_patterns = [
@@ -48,10 +54,9 @@ for file in tqdm(files_patterns):
         object_name=os.path.join("examples/labeler/chexpert/patterns/", file),
         file_path=os.path.join(PATTERNS_DIR, file),
     )
-PRE_NEG_UNC_PATH = os.path.join(PATTERNS_DIR, "pre_negation_uncertainty.txt")
-NEG_PATH = os.path.join(PATTERNS_DIR, "negation.txt")
-POST_NEG_UNC_PATH = os.path.join(PATTERNS_DIR, "post_negation_uncertainty.txt")
 
+
+# SAMPLE DIRECTORY -----------------------------------------------------------------------------------
 SAMPLE_DIR = os.path.join(CHEXPERT_DATA_DIR, "reports")
 os.makedirs(SAMPLE_DIR, exist_ok=True)
 files_sample = [
@@ -64,20 +69,14 @@ for file in tqdm(files_sample):
         file_path=os.path.join(SAMPLE_DIR, file),
     )
 
+
+# OUTPUT DIRECTORY -----------------------------------------------------------------------------------
 OUTPUT_DIR = os.path.join(CHEXPERT_DATA_DIR, "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created
-FILES = os.listdir(MENTION_DATA_DIR)
-FILES.sort()
 
-# Observation constants - CheXpert data specific
-CARDIOMEGALY = "Cardiomegaly"
-ENLARGED_CARDIOMEDIASTINUM = "Enlarged Cardiomediastinum"
-SUPPORT_DEVICES = "Support Devices"
-NO_FINDING = "No Finding"
-OBSERVATION = "observation"
+# The labeler class is initiated without passing a config.py file, so the default one is used.
+labeler = Labeler()
 
-
-from knodle.labeler.CheXpert.label import label
-label(transform_patterns=False, uncertain=1, chexpert_bool=True)
+# The label function is run, outputting the matrices X, T and Z.
+labeler.label(transform_patterns=False, uncertain=1, chexpert_bool=True)

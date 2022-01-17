@@ -1,52 +1,50 @@
 """Entry-point script to label radiology reports."""
 import shutil
 
+from knodle.labeler.CheXpert.config import ChexpertConfig
 from knodle.labeler.CheXpert.stages.utils import *
 from knodle.labeler.CheXpert.stages import Loader, Extractor, Classifier, Aggregator, transform
 
 
-def label(transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: bool = True) -> None:  # config: str = "config.py"
-    """Label the provided report(s).
+class Labeler:
 
-    Args:
-        transform_patterns: Set to True if patterns are not in negbio compatible format.
-        uncertain: How should uncertain matches be handled? -1 = uncertain, 0 = negative or 1 = positive
-        (Info: at the moment other knodle modules can only handle 0 & 1)
-        chexpert_bool: Set to True if CheXpert data is used, then some CheXpert data specific code is run.
-    """
-    # delimiter = "."
-    # CONFIG_PATH = delimiter.join(["knodle", "labeler", "CheXpert", config])
-    # from CONFIG_PATH import *
+    def __init__(self, **kwargs):
+        self.labeler_config = kwargs.get("labeler_config", ChexpertConfig())
 
-    if transform_patterns:
-        transform(PRE_NEG_UNC_PATH)
-        transform(NEG_PATH)
-        transform(POST_NEG_UNC_PATH)
+    def label(self, transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: bool = True) -> None:
+        """Label the provided report(s).
 
-    loader = Loader()
+        Args:
+            transform_patterns: Set to True if patterns are not in negbio compatible format.
+            uncertain: How should uncertain matches be handled? -1 = uncertain, 0 = negative or 1 = positive
+            (Info: at the moment other knodle modules can only handle 0 (negative) & 1 (positive))
+            chexpert_bool: Set to True if CheXpert data is used, then some CheXpert data specific code is run.
+        """
 
-    extractor = Extractor(chexpert_data=chexpert_bool)
-    classifier = Classifier()
-    aggregator = Aggregator()
+        if transform_patterns:
+            transform(self.labeler_config.pre_neg_unc_path)
+            transform(self.labeler_config.neg_path)
+            transform(self.labeler_config.post_neg_unc_path)
 
-    # Load reports in place.
-    loader.load()
-    # Extract observation mentions in place.
-    extractor.extract(loader.collection)
-    # Classify mentions in place.
-    classifier.classify(loader.collection)
+        loader = Loader(config=self.labeler_config)
 
-    # Adjust Z matrix.
-    Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix, chexpert_data=chexpert_bool)
+        extractor = Extractor(config=self.labeler_config, chexpert_data=chexpert_bool)
+        classifier = Classifier(config=self.labeler_config)
+        aggregator = Aggregator(config=self.labeler_config)
 
-    Z_matrix[Z_matrix == UNCERTAIN] = uncertain
+        # Load reports in place.
+        loader.load()
+        # Extract observation mentions in place.
+        extractor.extract(loader.collection)
+        # Classify mentions in place.
+        classifier.classify(loader.collection)
 
-    # Save the matrices X, T and Z
-    shutil.copy(SAMPLE_PATH, os.path.join(OUTPUT_DIR, "X_matrix.csv"))
-    np.savetxt(os.path.join(OUTPUT_DIR, "T_matrix.csv"), loader.T_matrix, delimiter=",")
-    np.savetxt(os.path.join(OUTPUT_DIR, "Z_matrix.csv"), Z_matrix, delimiter=",")
+        # Adjust Z matrix.
+        Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix, chexpert_data=chexpert_bool)
 
-#
-# if __name__ == "__main__":
-#     parser = ArgParser()
-#     label(parser.parse_args(), transform_patterns=False, uncertain=POSITIVE)
+        Z_matrix[Z_matrix == self.labeler_config.uncertain] = uncertain
+
+        # Save the matrices X, T and Z
+        shutil.copy(self.labeler_config.sample_path, os.path.join(self.labeler_config.output_dir, "X_matrix.csv"))
+        np.savetxt(os.path.join(self.labeler_config.output_dir, "T_matrix.csv"), loader.T_matrix, delimiter=",")
+        np.savetxt(os.path.join(self.labeler_config.output_dir, "Z_matrix.csv"), Z_matrix, delimiter=",")

@@ -3,16 +3,16 @@ import re
 import itertools
 from collections import defaultdict
 from typing import DefaultDict
-import bioc
-
 from .utils import *
 
 
 class Extractor(object):
     """Extract observations from reports."""
-    def __init__(self, chexpert_data: bool = True):
-        self.observation2mention_phrases = self.load_phrases(MENTION_DATA_DIR)
-        self.observation2unmention_phrases = self.load_phrases(UNMENTION_DATA_DIR)
+    def __init__(self, config: Type[ChexpertConfig], chexpert_data: bool = True):
+        self.labeler_config = config
+        self.observation2mention_phrases = self.load_phrases(self.labeler_config.mention_data_dir)
+        self.observation2unmention_phrases = self.load_phrases(self.labeler_config.unmention_data_dir)
+
         # CheXpert specific
         if chexpert_data:
             self.add_unmention_phrases()
@@ -33,9 +33,9 @@ class Extractor(object):
     def add_unmention_phrases(self) -> None:
         """This function is specifically designed for the CheXpert rules."""
         cardiomegaly_mentions\
-            = self.observation2mention_phrases[CARDIOMEGALY]
+            = self.observation2mention_phrases[self.labeler_config.cardiomegaly]
         enlarged_cardiom_mentions\
-            = self.observation2mention_phrases[ENLARGED_CARDIOMEDIASTINUM]
+            = self.observation2mention_phrases[self.labeler_config.enlarged_cardiomediastinum]
         positional_phrases = (["over the", "overly the", "in the"],
                               ["", " superior", " left", " right"])
         positional_unmentions\
@@ -53,12 +53,16 @@ class Extractor(object):
                for e1 in positional_unmentions
                for e2 in enlarged_cardiom_mentions]
 
-        self.observation2unmention_phrases[CARDIOMEGALY]\
+        self.observation2unmention_phrases[self.labeler_config.cardiomegaly]\
             = cardiomegaly_unmentions
-        self.observation2unmention_phrases[ENLARGED_CARDIOMEDIASTINUM]\
+        self.observation2unmention_phrases[self.labeler_config.enlarged_cardiomediastinum]\
             = enlarged_cardiomediastinum_unmentions
 
-    def overlaps_with_unmention(self, sentence: str, observation: str, start: int, end: int) -> bool:  # todo: check types
+    def overlaps_with_unmention(self,
+                                sentence: Type[bioc.BioCSentence],
+                                observation: str,
+                                start: int,
+                                end: int) -> bool:
         """Return True if a given match overlaps with an unmention phrase."""
         unmention_overlap = False
         unmention_list = self.observation2unmention_phrases.get(observation,
@@ -75,16 +79,21 @@ class Extractor(object):
 
         return unmention_overlap
 
-    def add_match(self, section, sentence, ann_index, phrase: str,
-                  observation: str, start: int, end: int) -> None:  # todo: check types
-        """Add the match data and metadata to the report object
-        in place."""
+    def add_match(self,
+                  section: Type[bioc.BioCPassage],
+                  sentence: Type[bioc.BioCSentence],
+                  ann_index: str,
+                  phrase: str,
+                  observation: str,
+                  start: int,
+                  end: int) -> None:
+        """Add the match data and metadata to the report object in place."""
         annotation = bioc.BioCAnnotation()
         annotation.id = ann_index
         annotation.infons['CUI'] = None
         annotation.infons['semtype'] = None
         annotation.infons['term'] = phrase
-        annotation.infons[OBSERVATION] = observation
+        annotation.infons[self.labeler_config.observation] = observation
         annotation.infons['annotator'] = 'Phrase'
         length = end - start
         annotation.add_location(bioc.BioCLocation(sentence.offset + start,
@@ -93,18 +102,18 @@ class Extractor(object):
 
         section.annotations.append(annotation)
 
-    def extract(self, collection) -> None:  # todo: check types
+    def extract(self, collection: Type[bioc.BioCCollection]) -> None:
         """Extract the observations in each report.
 
         Args:
             collection (BioCCollection): Passages of each report.
         """
-        self.Z_matrix = z_matrix_fct()
+        self.Z_matrix = z_matrix_fct(config=self.labeler_config)
 
         # The BioCCollection consists of a series of documents.
-        # Each document is a report
+        # Each document is a report.
         documents = collection.documents
-        for i, document in enumerate(documents):  # added enumerate
+        for i, document in enumerate(documents):
             # Get the first section.
             section = document.passages[0]
             annotation_index = itertools.count(len(section.annotations))
@@ -132,4 +141,7 @@ class Extractor(object):
                                            start,
                                            end)
 
-                            self.Z_matrix[i, get_rule_idx(phrase)] = MATCH  # match, but not clarified if pos/neg/unc
+                            # Corresponding Z matrix position is adjusted, so it is clear that there was a match.
+                            # At this point it is not clear though, whether it is positive, negative or uncertain.
+                            self.Z_matrix[i, get_rule_idx(phrase,
+                                                          config=self.labeler_config)] = self.labeler_config.match

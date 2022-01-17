@@ -2,41 +2,62 @@ from pathlib import Path
 import os
 
 
-# Paths
-HOME_DIR = Path.home()
-PARSING_MODEL_DIR = HOME_DIR / ".local/share/bllipparser/GENIA+PubMed"
+class ChexpertConfig:
+    def __init__(
+            self,
+            home_dir: str = Path.home(),
+            chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
-CHEXPERT_DATA_DIR = os.path.join(os.getcwd(), "examples", "labeler", "chexpert")
+            # Observation constants - CheXpert data specific
+            cardiomegaly: str = "Cardiomegaly",
+            enlarged_cardiomediastinum: str = "Enlarged Cardiomediastinum",
+            support_devices: str = "Support Devices",
+            no_finding: str = "No Finding",
+            observation: str = "observation",
 
-MENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "mention")
-UNMENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "unmention")
+            # Numeric constants
+            match: int = 999,  # choose any number but 1, 0 or -1
+            positive: int = 1,
+            negative: int = 0,
+            uncertain: int = -1,
 
-SAMPLE_PATH = os.path.join(CHEXPERT_DATA_DIR, "reports", "sample_reports.csv")
+            # Misc. constants
+            uncertainty: str = "uncertainty",
+            negation: str = "negation",
+            reports: str = "Reports"
+    ):
 
-OUTPUT_DIR = os.path.join(CHEXPERT_DATA_DIR, "output")
+        self.parsing_model_dir = home_dir / ".local/share/bllipparser/GENIA+PubMed"
 
-PRE_NEG_UNC_PATH = os.path.join(CHEXPERT_DATA_DIR, "patterns", "pre_negation_uncertainty.txt")
-NEG_PATH = os.path.join(CHEXPERT_DATA_DIR, "patterns", "negation.txt")
-POST_NEG_UNC_PATH = os.path.join(CHEXPERT_DATA_DIR, "patterns", "post_negation_uncertainty.txt")
+        self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
+        self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")
 
-# Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created
-FILES = os.listdir(MENTION_DATA_DIR)
-FILES.sort()
+        self.pre_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "pre_negation_uncertainty.txt")
+        self.neg_path = os.path.join(chexpert_data_dir, "patterns", "negation.txt")
+        self.post_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "post_negation_uncertainty.txt")
 
-# Observation constants - CheXpert data specific
-CARDIOMEGALY = "Cardiomegaly"
-ENLARGED_CARDIOMEDIASTINUM = "Enlarged Cardiomediastinum"
-SUPPORT_DEVICES = "Support Devices"
-NO_FINDING = "No Finding"
-OBSERVATION = "observation"
+        self.sample_path = os.path.join(chexpert_data_dir, "reports", "sample_reports.csv")
 
-# Numeric constants
-MATCH = 999
-POSITIVE = 1
-NEGATIVE = 0
-UNCERTAIN = -1
+        self.output_dir = os.path.join(chexpert_data_dir, "output")
 
-# Misc. constants
-UNCERTAINTY = "uncertainty"
-NEGATION = "negation"
-REPORTS = "Reports"
+        # Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created
+        self.files = os.listdir(self.mention_data_dir)
+        self.files.sort()
+
+        # Observation constants - CheXpert data specific
+        self.cardiomegaly = cardiomegaly
+        self.enlarged_cardiomediastinum = enlarged_cardiomediastinum
+        self.support_devices = support_devices
+        self.no_finding = no_finding
+        self.observation = observation
+
+        # Numeric constants
+        self.match = match
+        self.positive = positive
+        self.negative = negative
+        self.uncertain = uncertain
+
+        # Misc. constants
+        self.uncertainty = uncertainty
+        self.negation = negation
+        self.reports = reports

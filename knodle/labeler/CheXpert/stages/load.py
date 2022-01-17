@@ -1,16 +1,15 @@
 """Define report loader class."""
 import re
-import bioc
 from negbio.pipeline import text2bioc, ssplit
-
 from .utils import *
 
 
 class Loader:
     """Report loader."""
-    def __init__(self):
-        self.reports_path = SAMPLE_PATH
-        # add space after punctuation symbols: I added ";" here
+    def __init__(self, config: Type[ChexpertConfig]):
+        self.labeler_config = config
+        self.reports_path = self.labeler_config.sample_path
+        # Add space after punctuation symbols.
         self.punctuation_spacer = str.maketrans({key: f"{key} "
                                                  for key in ".,;"})
         self.splitter = ssplit.NegBioSSplitter(newline=False)
@@ -20,22 +19,22 @@ class Loader:
         collection = bioc.BioCCollection()
         reports = pd.read_csv(self.reports_path,
                               header=None,
-                              names=[REPORTS])[REPORTS].tolist()
+                              names=[self.labeler_config.reports])[self.labeler_config.reports].tolist()
 
         for i, report in enumerate(reports):
             clean_report = self.clean(report)
-            # convert text to BioCDocument instance: id (str) = BioCDocument id, text (str): text
+            # Convert text to BioCDocument instance: id (str) = BioCDocument id, text (str): text.
             document = text2bioc.text2document(str(i), clean_report)
 
             split_document = self.splitter.split_doc(document)
 
-            # if length is not exactly 1, raise error
+            # If length is not exactly 1, raise error.
             assert len(split_document.passages) == 1, 'Each document must have a single passage.'
 
             collection.add_document(split_document)
 
         self.collection = collection
-        self.T_matrix = t_matrix_fct()
+        self.T_matrix = t_matrix_fct(config=self.labeler_config)
 
     def clean(self, report: pd.DataFrame = None) -> pd.DataFrame:
         """Clean the report text."""
@@ -48,13 +47,13 @@ class Loader:
         corrected_report = re.sub('(?<=[a-zA-Z])/(?=[a-zA-Z])',
                                   ' or ',
                                   corrected_report)
-        # Clean double periods
+        # Clean double periods.
         clean_report = corrected_report.replace("..", ".")
         # Insert space after commas and periods.
         clean_report = clean_report.translate(self.punctuation_spacer)
         # Convert any multi white spaces to single white spaces.
         clean_report = ' '.join(clean_report.split())
-        # Remove empty sentences
+        # Remove empty sentences.
         clean_report = re.sub(r'\.\s+\.', '../CheXpert', clean_report)
 
         return clean_report
