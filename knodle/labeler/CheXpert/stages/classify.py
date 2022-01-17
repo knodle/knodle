@@ -3,11 +3,8 @@ import logging
 from negbio.pipeline import parse, ptb2ud, negdetect
 from negbio.neg import semgraph, propagator, neg_detector
 from negbio import ngrex
-from tqdm import tqdm
-import os
-import sys
-sys.path.append(os.getcwd())
-from examples.labeler.chexpert.constants.constants import *
+
+from .utils import *
 
 
 class ModifiedDetector(neg_detector.Detector):
@@ -20,7 +17,7 @@ class ModifiedDetector(neg_detector.Detector):
         self.uncertain_patterns = ngrex.load(POST_NEG_UNC_PATH)
         self.preneg_uncertain_patterns = ngrex.load(PRE_NEG_UNC_PATH)
 
-    def detect(self, sentence, locs):
+    def detect(self, sentence: str, locs: list) -> None:  # todo: check types
         """Detect rules in report sentences.
 
         Args:
@@ -58,14 +55,14 @@ class ModifiedDetector(neg_detector.Detector):
                             if postneg_m:
                                 yield UNCERTAINTY, postneg_m, loc
 
-    def match_uncertainty(self, graph, node):
+    def match_uncertainty(self, graph, node):  # todo: check types
         for pattern in self.uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
                 if n0 == node:
                     return m
 
-    def match_prenegation_uncertainty(self, graph, node):
+    def match_prenegation_uncertainty(self, graph, node):  # todo: check types
         for pattern in self.preneg_uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
@@ -75,22 +72,17 @@ class ModifiedDetector(neg_detector.Detector):
 
 class Classifier(object):
     """Classify mentions of observations from radiology reports."""
-    def __init__(self, verbose=False):
+    def __init__(self):
         self.parser = parse.NegBioParser(model_dir=PARSING_MODEL_DIR)
         lemmatizer = ptb2ud.Lemmatizer()
         self.ptb2dep = ptb2ud.NegBioPtb2DepConverter(lemmatizer, universal=True)
 
-        self.verbose = verbose
-
         self.detector = ModifiedDetector()
 
-    def classify(self, collection):
+    def classify(self, collection) -> None:  # todo: check types
         """Classify each mention into one of
         negative, uncertain, or positive."""
         documents = collection.documents
-        if self.verbose:
-            print("Classifying mentions...")
-            documents = tqdm(documents)
         for document in documents:
             # Parse the impression text in place.
             self.parser.parse_doc(document)

@@ -2,29 +2,25 @@
 import re
 import bioc
 from negbio.pipeline import text2bioc, ssplit
-import os
-import sys
-sys.path.append(os.getcwd())
-from examples.labeler.chexpert.constants.constants import *
-from . import t_matrix_fct
+
+from .utils import *
 
 
 class Loader:
     """Report loader."""
     def __init__(self):
-        self.reports_path = REPORTS_PATH
+        self.reports_path = SAMPLE_PATH
         # add space after punctuation symbols: I added ";" here
         self.punctuation_spacer = str.maketrans({key: f"{key} "
                                                  for key in ".,;"})
         self.splitter = ssplit.NegBioSSplitter(newline=False)
 
-    def load(self):
+    def load(self) -> None:
         """Load and clean the reports."""
         collection = bioc.BioCCollection()
         reports = pd.read_csv(self.reports_path,
                               header=None,
                               names=[REPORTS])[REPORTS].tolist()
-        # self.X_matrix = []
 
         for i, report in enumerate(reports):
             clean_report = self.clean(report)
@@ -42,7 +38,7 @@ class Loader:
         self.collection = collection
         self.T_matrix = t_matrix_fct()
 
-    def clean(self, report):
+    def clean(self, report: pd.DataFrame = None) -> pd.DataFrame:
         """Clean the report text."""
         lower_report = report.lower()
         # Change `and/or` to `or`.

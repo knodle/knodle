@@ -2,25 +2,22 @@
 import re
 import itertools
 from collections import defaultdict
-from tqdm import tqdm
+from typing import DefaultDict
 import bioc
-import os
-import sys
-sys.path.append(os.getcwd())
-from examples.labeler.chexpert.constants.constants import *
-from . import z_matrix_fct
-from . import get_rule_idx
+
+from .utils import *
 
 
 class Extractor(object):
     """Extract observations from reports."""
-    def __init__(self, verbose=False):
-        self.verbose = verbose
-        self.observation2mention_phrases = self.load_phrases(MENTION_DATA_DIR, "mention")
-        self.observation2unmention_phrases = self.load_phrases(UNMENTION_DATA_DIR, "unmention")
-        self.add_unmention_phrases()
+    def __init__(self, chexpert_data: bool = True):
+        self.observation2mention_phrases = self.load_phrases(MENTION_DATA_DIR)
+        self.observation2unmention_phrases = self.load_phrases(UNMENTION_DATA_DIR)
+        # CheXpert specific
+        if chexpert_data:
+            self.add_unmention_phrases()
 
-    def load_phrases(self, phrases_dir, phrases_type):
+    def load_phrases(self, phrases_dir: str) -> DefaultDict:
         """Read in map from observations to phrases for matching."""
         observation2phrases = defaultdict(list)
         for phrases_path in os.listdir(phrases_dir):
@@ -31,13 +28,9 @@ class Extractor(object):
                     if line:
                         observation2phrases[observation].append(phrase)
 
-        if self.verbose:
-            print(f"Loading {phrases_type} phrases for "
-                  f"{len(observation2phrases)} observations.")
-
         return observation2phrases
 
-    def add_unmention_phrases(self):
+    def add_unmention_phrases(self) -> None:
         """This function is specifically designed for the CheXpert rules."""
         cardiomegaly_mentions\
             = self.observation2mention_phrases[CARDIOMEGALY]
@@ -65,7 +58,7 @@ class Extractor(object):
         self.observation2unmention_phrases[ENLARGED_CARDIOMEDIASTINUM]\
             = enlarged_cardiomediastinum_unmentions
 
-    def overlaps_with_unmention(self, sentence, observation, start, end):
+    def overlaps_with_unmention(self, sentence: str, observation: str, start: int, end: int) -> bool:  # todo: check types
         """Return True if a given match overlaps with an unmention phrase."""
         unmention_overlap = False
         unmention_list = self.observation2unmention_phrases.get(observation,
@@ -82,8 +75,8 @@ class Extractor(object):
 
         return unmention_overlap
 
-    def add_match(self, section, sentence, ann_index, phrase,
-                  observation, start, end):
+    def add_match(self, section, sentence, ann_index, phrase: str,
+                  observation: str, start: int, end: int) -> None:  # todo: check types
         """Add the match data and metadata to the report object
         in place."""
         annotation = bioc.BioCAnnotation()
@@ -100,7 +93,7 @@ class Extractor(object):
 
         section.annotations.append(annotation)
 
-    def extract(self, collection):
+    def extract(self, collection) -> None:  # todo: check types
         """Extract the observations in each report.
 
         Args:
@@ -114,9 +107,6 @@ class Extractor(object):
         # The BioCCollection consists of a series of documents.
         # Each document is a report
         documents = collection.documents
-        if self.verbose:
-            print("Extracting mentions...")
-            documents = tqdm(documents)
         for i, document in enumerate(documents):  # added enumerate
             # Get the first section.
             section = document.passages[0]

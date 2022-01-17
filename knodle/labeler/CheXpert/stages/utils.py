@@ -1,10 +1,10 @@
 import os
-import sys
-sys.path.append(os.getcwd())
-from examples.labeler.chexpert.constants.constants import *
+import pandas as pd
+import numpy as np
+from knodle.labeler.CheXpert.config import *
 
 
-def t_matrix_fct():
+def t_matrix_fct() -> pd.DataFrame:
     """Create T-matrix from rules (mentions)."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None).assign(
@@ -15,14 +15,14 @@ def t_matrix_fct():
     return T_matrix
 
 
-def z_matrix_fct():
+def z_matrix_fct() -> np.ndarray:
     """Create T-matrix from rules (mentions)."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None).assign(
         classes=os.path.basename(file).split('.')[0]) for file in FILES], ignore_index=True)
     n_rules = len(mentions[0])
 
-    reports = pd.read_csv(REPORTS_PATH,
+    reports = pd.read_csv(SAMPLE_PATH,
                           header=None,
                           names=[REPORTS])[REPORTS].tolist()
     n_samples = len(reports)
@@ -32,7 +32,7 @@ def z_matrix_fct():
     return Z_matrix
 
 
-def get_rule_idx(phrase):
+def get_rule_idx(phrase: str) -> int:
     """Given phrase, outputs number of rule."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None).assign(
@@ -43,7 +43,7 @@ def get_rule_idx(phrase):
     return index
 
 
-def transform(text_file):
+def transform(text_file: str) -> None:
     """Transform file of words to patterns which are compatible with ngrex."""
 
     file = open(text_file, "r+")

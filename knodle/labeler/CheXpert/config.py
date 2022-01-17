@@ -1,7 +1,5 @@
 from pathlib import Path
 import os
-import pandas as pd
-import numpy as np
 
 
 # Paths
@@ -13,11 +11,9 @@ CHEXPERT_DATA_DIR = os.path.join(os.getcwd(), "examples", "labeler", "chexpert")
 MENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "mention")
 UNMENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "unmention")
 
-REPORTS_PATH = os.path.join(CHEXPERT_DATA_DIR, "reports", "sample_reports.csv")
+SAMPLE_PATH = os.path.join(CHEXPERT_DATA_DIR, "reports", "sample_reports.csv")
 
-OUTPUT_PATH = os.path.join(CHEXPERT_DATA_DIR, "output")
-if not os.path.exists(OUTPUT_PATH):
-    os.makedirs(OUTPUT_PATH)
+OUTPUT_DIR = os.path.join(CHEXPERT_DATA_DIR, "output")
 
 PRE_NEG_UNC_PATH = os.path.join(CHEXPERT_DATA_DIR, "patterns", "pre_negation_uncertainty.txt")
 NEG_PATH = os.path.join(CHEXPERT_DATA_DIR, "patterns", "negation.txt")
@@ -35,6 +31,7 @@ NO_FINDING = "No Finding"
 OBSERVATION = "observation"
 
 # Numeric constants
+MATCH = 999
 POSITIVE = 1
 NEGATIVE = 0
 UNCERTAIN = -1
