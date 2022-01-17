@@ -24,7 +24,6 @@ class Loader:
 
         for i, report in enumerate(reports):
             clean_report = self.clean(report)
-            # self.X_matrix.append(clean_report)
             # convert text to BioCDocument instance: id (str) = BioCDocument id, text (str): text
             document = text2bioc.text2document(str(i), clean_report)
 

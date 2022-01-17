@@ -16,7 +16,7 @@ def t_matrix_fct() -> pd.DataFrame:
 
 
 def z_matrix_fct() -> np.ndarray:
-    """Create T-matrix from rules (mentions)."""
+    """Create Z-matrix from combination of rules (mentions) and samples."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None).assign(
         classes=os.path.basename(file).split('.')[0]) for file in FILES], ignore_index=True)
@@ -33,7 +33,7 @@ def z_matrix_fct() -> np.ndarray:
 
 
 def get_rule_idx(phrase: str) -> int:
-    """Given phrase, outputs number of rule."""
+    """Given phrase, outputs index of rule."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(MENTION_DATA_DIR, file), header=None).assign(
         classes=os.path.basename(file).split('.')[0]) for file in FILES], ignore_index=True)

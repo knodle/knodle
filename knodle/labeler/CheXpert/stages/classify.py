@@ -81,7 +81,7 @@ class Classifier(object):
 
     def classify(self, collection) -> None:  # todo: check types
         """Classify each mention into one of
-        negative, uncertain, or positive."""
+        negative, uncertain, or none (positive)."""
         documents = collection.documents
         for document in documents:
             # Parse the impression text in place.

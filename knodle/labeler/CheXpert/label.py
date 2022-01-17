@@ -5,15 +5,19 @@ from knodle.labeler.CheXpert.stages.utils import *
 from knodle.labeler.CheXpert.stages import Loader, Extractor, Classifier, Aggregator, transform
 
 
-# Should uncertain matches be POSITIVE=1, NEGATIVE=0 or UNCERTAIN=-1?
-# Info: at the moment other knodle modules can only handle 0 & 1
 def label(transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: bool = True) -> None:  # config: str = "config.py"
-    """Label the provided report(s)."""
+    """Label the provided report(s).
+
+    Args:
+        transform_patterns: Set to True if patterns are not in negbio compatible format.
+        uncertain: How should uncertain matches be handled? -1 = uncertain, 0 = negative or 1 = positive
+        (Info: at the moment other knodle modules can only handle 0 & 1)
+        chexpert_bool: Set to True if CheXpert data is used, then some CheXpert data specific code is run.
+    """
     # delimiter = "."
     # CONFIG_PATH = delimiter.join(["knodle", "labeler", "CheXpert", config])
     # from CONFIG_PATH import *
 
-    # If neg/unc patterns are not in negbio format
     if transform_patterns:
         transform(PRE_NEG_UNC_PATH)
         transform(NEG_PATH)
@@ -32,17 +36,15 @@ def label(transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: b
     # Classify mentions in place.
     classifier.classify(loader.collection)
 
-    # X_matrix = np.array(loader.X_matrix)
-    # Aggregate mentions to obtain one set of labels for each report.
+    # Adjust Z matrix.
     Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix, chexpert_data=chexpert_bool)
 
     Z_matrix[Z_matrix == UNCERTAIN] = uncertain
 
-    # np.savetxt(os.path.join(OUTPUT_PATH, "X_matrix.csv"), X_matrix, fmt="%s")
+    # Save the matrices X, T and Z
     shutil.copy(SAMPLE_PATH, os.path.join(OUTPUT_DIR, "X_matrix.csv"))
     np.savetxt(os.path.join(OUTPUT_DIR, "T_matrix.csv"), loader.T_matrix, delimiter=",")
     np.savetxt(os.path.join(OUTPUT_DIR, "Z_matrix.csv"), Z_matrix, delimiter=",")
-    # return X_matrix, loader.T_matrix, Z_matrix
 
 #
 # if __name__ == "__main__":

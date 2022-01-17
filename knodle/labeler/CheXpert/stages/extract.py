@@ -98,9 +98,6 @@ class Extractor(object):
 
         Args:
             collection (BioCCollection): Passages of each report.
-
-        Return:
-            extracted_mentions
         """
         self.Z_matrix = z_matrix_fct()
 
@@ -135,4 +132,4 @@ class Extractor(object):
                                            start,
                                            end)
 
-                            self.Z_matrix[i, get_rule_idx(phrase)] = 999  # match, but not clarified if pos/neg/unc
+                            self.Z_matrix[i, get_rule_idx(phrase)] = MATCH  # match, but not clarified if pos/neg/unc

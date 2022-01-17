@@ -25,21 +25,21 @@ class Aggregator(object):
 
                 # CheXpert specific checks
                 if chexpert_data:
-                    # Don't add any labels for No Finding
+                    # Don't add any labels for No Finding.
                     if category == NO_FINDING:
                         continue
 
-                    # add exception for 'chf' and 'heart failure'
+                    # Add exception for 'chf' and 'heart failure'.
                     if ((label in [UNCERTAIN, POSITIVE]) and
                         (annotation.text == 'chf' or
                          annotation.text == 'heart failure')):
-                        # manually inputted the positions of the first cardiomegaly rule "cardiomegaly"
+                        # Manually inputted the positions of the first cardiomegaly rule "cardiomegaly"
                         # if there is no rule match -> change 0 to -1 in the matrix; if 1, leave 1
                         if self.Z_matrix[i, 2] == NEGATIVE:
                             self.Z_matrix[i, 2] = UNCERTAIN
 
-                # check what label has been assigned before
-                if self.Z_matrix[i, rule_idx] in [label, POSITIVE]:  # if label is same as previous or previous is 1
+                # Check what label has been assigned before.
+                if self.Z_matrix[i, rule_idx] in [label, POSITIVE]:  # if label is same as previous or previous is POS
                     continue
                 elif self.Z_matrix[i, rule_idx] == MATCH:
                     self.Z_matrix[i, rule_idx] = label
