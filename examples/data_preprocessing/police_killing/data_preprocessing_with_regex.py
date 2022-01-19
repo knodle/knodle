@@ -51,9 +51,7 @@ from joblib import dump
 from minio import Minio
 from tqdm import tqdm
 
-sys.path.append('..')
-from data_to_mapping_rules_labels_t import get_mapping_rules_labels_t
-
+from examples.data_preprocessing.utils import get_mapping_rules_labels_t
 
 """
 Get the data
