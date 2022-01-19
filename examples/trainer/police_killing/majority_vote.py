@@ -11,18 +11,11 @@ import scipy.sparse as sp
 import torch
 from torch.utils.data import TensorDataset
 
-sys.path.append('../../..')
-
-from model.logistic_regression_model import LogisticRegressionModel
-from knodle.trainer.baseline.majority import MajorityVoteTrainer
-#from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
-#import knodle.trainer.baseline.config
-#from knodle.trainer import AutoConfig
-from knodle.trainer.baseline.config import MajorityConfig
 from examples.trainer.preprocessing import get_tfidf_features
+from knodle.model.logistic_regression_model import LogisticRegressionModel
+from knodle.trainer import MajorityConfig, MajorityVoteTrainer
 
-
-processed_data_dir = "../../../data_from_minio/police_killing/processed_regex"
+processed_data_dir = "/data_from_minio/police_killing/processed_regex"
 os.makedirs(processed_data_dir, exist_ok=True)
 os.path.join(processed_data_dir)
 
