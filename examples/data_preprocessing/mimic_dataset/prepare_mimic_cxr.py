@@ -116,7 +116,7 @@ study_list = pd.read_csv("cxr-study-list.csv").to_numpy()
 two_records_per_study = record_list_all.groupby('study_id').count() == 2
 record_list = pd.merge(record_list_all, two_records_per_study['subject_id'], 
                               how = 'left', on= ['study_id'])
-record_list_reduced = record_list[record_list['subject_id_y'] == True]
+record_list_reduced = record_list[record_list['subject_id_y']]
 record_list_reduced = record_list_reduced.groupby('subject_id_x').head(2)
 record_list = record_list_reduced.drop(columns = ['subject_id_y']).to_numpy()
 
@@ -280,7 +280,6 @@ class mimicDataset(Dataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-# model = models.resnet50(pretrained=True) 
 model = models.resnet50(pretrained=True)
 modules = list(model.children())[:-1]
 model=torch.nn.Sequential(*modules)
