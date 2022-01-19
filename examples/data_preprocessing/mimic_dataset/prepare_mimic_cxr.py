@@ -79,7 +79,8 @@ Z = "rule_matches_z.lib"
 T = "mapping_rules_labels_t.lib"
 X = "train_X.lib"
 X_finetuned = "train_X_finetuned.lib"
-
+X_test = "X_test.lib"
+y_test = "gold_labels_test.lib"
 
 
 if download:
@@ -106,8 +107,18 @@ if download:
 ##############################################################################
 # MIMIC-CXR-JPG images
 ############################################################################## 
-record_list = pd.read_csv("cxr-record-list.csv").to_numpy()
+record_list_all = pd.read_csv("cxr-record-list.csv")
 study_list = pd.read_csv("cxr-study-list.csv").to_numpy()
+
+# restrict records
+# only want to include studies where there are two images
+# only want to include one per person
+two_records_per_study = record_list_all.groupby('study_id').count() == 2
+record_list = pd.merge(record_list_all, two_records_per_study['subject_id'], 
+                              how = 'left', on= ['study_id'])
+record_list_reduced = record_list[record_list['subject_id_y'] == True]
+record_list_reduced = record_list_reduced.groupby('subject_id_x').head(2)
+record_list = record_list_reduced.drop(columns = ['subject_id_y']).to_numpy()
 
 if download:
     # image download
@@ -446,7 +457,7 @@ model.eval()
 # apply modified resnet50 to data
 dataloaders = DataLoader(mimicDataset(input_list_labels[:n,:], load_labels = True), batch_size=n,num_workers=0)
     
-data, labels = next(iter(dataloaders))
+data, weak_labels = next(iter(dataloaders))
 with torch.no_grad():
     features_var = model(data)
     features = features_var.data 
@@ -455,4 +466,59 @@ with torch.no_grad():
 # save features matrix
 dump(train_X_finetuned, X_finetuned)
 
+##############################################################################
+# Test data preprocessing 
+# - riqueres a model defined for image encoding
+##############################################################################
+# download Chexpert data and unzip it to the same directory
+validation_set_pd = pd.read_csv("CheXpert-v1.0-small/CheXpert-v1.0-small/valid.csv")
+validation_set = validation_set_pd.to_numpy()
+
+labels_test_list = validation_set_pd.columns[5:19].to_numpy()
+class chexpertDataset(Dataset):
+    
+    def __init__(self, path):
+        'Initialization'
+        self.path = path
+        
+    def __len__(self):
+        'Denotes the total number of samples'
+        return len(self.path)
+    
+    def __getitem__(self, index):
+        'Generates one sample of data'
+        # Select sample
+        image = Image.open("".join("CheXpert-v1.0-small/" + self.path[index,0])).convert('RGB')
+        X = self.transform(image)
+        
+        label_is1 = self.path[index,5:19] == 1.0
+        if (sum(label_is1)==1):
+            y = labels.get(labels_test_list[np.where(label_is1)[0][0]])
+        elif sum(label_is1) > 1:
+            y = labels.get(labels_test_list[random.choice(np.where(label_is1)[0])])
+        else: 
+            y = 8 #no finding
+        
+        return X, torch.tensor(y)
+    
+    transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
+n_test = len(validation_set)
+dataloaders = DataLoader(chexpertDataset(validation_set), batch_size=n_test,num_workers=0)
+    
+data_test, gold_labels_test = next(iter(dataloaders))
+
+model.eval()
+with torch.no_grad():
+    features_var = model(data_test) # same model as used with training data
+    features = features_var.data 
+    test_X = features.reshape(n_test,2048).numpy()
+
+# save test data
+dump(test_X, X_test)
+dump(gold_labels_test, y_test)
 
