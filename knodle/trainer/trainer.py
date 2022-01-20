@@ -3,6 +3,7 @@ import logging
 from typing import Union, Dict, Tuple
 
 import skorch
+from torch.nn.modules.loss import _Loss
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 
@@ -133,8 +134,7 @@ class BaseTrainer(Trainer):
         return input_batch, label_batch
 
     def _train_loop(
-            self, feature_label_dataloader, use_sample_weights: bool = False,
-            draw_plot: bool = False
+            self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False
     ):
         log_section("Training starts", logger)
 
@@ -164,17 +164,15 @@ class BaseTrainer(Trainer):
                     logits = outputs[0]
 
                 if use_sample_weights:
-                    loss_no_reduction = self.trainer_config.criterion(
-                        logits, label_batch, weight=self.trainer_config.class_weights, reduction="none"
-                    )
-                    loss = (loss_no_reduction * sample_weights).mean()
+                    loss = self.calculate_loss_with_sample_weights(logits, label_batch, sample_weights)
                 else:
-                    loss = self.trainer_config.criterion(logits, label_batch, weight=self.trainer_config.class_weights)
+                    loss = self.calculate_loss(logits, label_batch)
 
                 # backward pass
                 loss.backward()
                 if isinstance(self.trainer_config.grad_clipping, (int, float)):
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.trainer_config.grad_clipping)
+
                 self.trainer_config.optimizer.step()
                 acc = accuracy_of_probs(logits, label_batch)
 
@@ -224,7 +222,6 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
-
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
@@ -249,7 +246,7 @@ class BaseTrainer(Trainer):
                     prediction_vals = outputs[0]
 
                 if loss_calculation:
-                    dev_loss += self._calculate_dev_loss(prediction_vals, label_batch.long())
+                    dev_loss += self.calculate_loss(prediction_vals, label_batch.long())
 
                 # add predictions and labels
                 predictions = np.argmax(prediction_vals.detach().cpu().numpy(), axis=-1)
@@ -260,13 +257,6 @@ class BaseTrainer(Trainer):
         gold_labels = np.squeeze(np.hstack(label_list))
 
         return predictions, gold_labels, dev_loss
-
-    def _calculate_dev_loss(self, predictions: Tensor, labels: Tensor) -> Tensor:
-        """ Calculates the loss on the dev set using given criterion"""
-        predictions_one_hot = F.one_hot(predictions.argmax(1), num_classes=self.trainer_config.output_classes).float()
-        labels_one_hot = F.one_hot(labels, self.trainer_config.output_classes)
-        loss = self.trainer_config.criterion(predictions_one_hot, labels_one_hot)
-        return loss.detach()
 
     def test(
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
@@ -294,3 +284,30 @@ class BaseTrainer(Trainer):
             return clf_report, dev_loss / len(feature_label_dataloader)
         else:
             return clf_report, None
+
+    def calculate_loss_with_sample_weights(self, logits: Tensor, gold_labels: Tensor, sample_weights: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(
+                weight=self.trainer_config.class_weights, reduction="none"
+            ).cuda() if self.trainer_config.device == torch.device("cuda") else self.trainer_config.criterion(
+                weight=self.trainer_config.class_weights, reduction="none"
+            )
+            loss_no_reduction = criterion(logits, gold_labels)
+        else:
+            loss_no_reduction = self.trainer_config.criterion(
+                logits, gold_labels, weight=self.trainer_config.class_weights, reduction="none"
+            )
+        return (loss_no_reduction * sample_weights).mean()
+
+    def calculate_loss(self, logits: Tensor, gold_labels: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights).cuda() \
+                if self.trainer_config.device == torch.device("cuda") \
+                else self.trainer_config.criterion(weight=self.trainer_config.class_weights)
+            return criterion(logits, gold_labels)
+        else:
+            if len(gold_labels.shape) == 1:
+                gold_labels = torch.nn.functional.one_hot(
+                    gold_labels.to(torch.int64), num_classes=self.trainer_config.output_classes
+                )
+            return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
