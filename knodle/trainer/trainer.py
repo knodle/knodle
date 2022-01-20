@@ -222,7 +222,6 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
-
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
@@ -308,5 +307,7 @@ class BaseTrainer(Trainer):
             return criterion(logits, gold_labels)
         else:
             if len(gold_labels.shape) == 1:
-                gold_labels = torch.nn.functional.one_hot(gold_labels.to(torch.int64))
+                gold_labels = torch.nn.functional.one_hot(
+                    gold_labels.to(torch.int64), num_classes=self.trainer_config.output_classes
+                )
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
