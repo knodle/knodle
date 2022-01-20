@@ -311,3 +311,28 @@ class BaseTrainer(Trainer):
                     gold_labels.to(torch.int64), num_classes=self.trainer_config.output_classes
                 )
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
+
+    def calculate_loss_with_sample_weights(self, logits: Tensor, gold_labels: Tensor, sample_weights: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(
+                weight=self.trainer_config.class_weights, reduction="none"
+            ).cuda() if self.trainer_config.device == torch.device("cuda") else self.trainer_config.criterion(
+                weight=self.trainer_config.class_weights, reduction="none"
+            )
+            loss_no_reduction = criterion(logits, gold_labels)
+        else:
+            loss_no_reduction = self.trainer_config.criterion(
+                logits, gold_labels, weight=self.trainer_config.class_weights, reduction="none"
+            )
+        return (loss_no_reduction * sample_weights).mean()
+
+    def calculate_loss(self, logits: Tensor, gold_labels: Tensor) -> float:
+        if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
+            criterion = self.trainer_config.criterion(weight=self.trainer_config.class_weights).cuda() \
+                if self.trainer_config.device == torch.device("cuda") \
+                else self.trainer_config.criterion(weight=self.trainer_config.class_weights)
+            return criterion(logits, gold_labels)
+        else:
+            if len(gold_labels.shape) == 1:
+                gold_labels = torch.nn.functional.one_hot(gold_labels.to(torch.int64))
+            return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
