@@ -6,10 +6,11 @@ from knodle.labeler.CheXpert.stages.utils import *
 from knodle.labeler.CheXpert.stages import Loader, Extractor, Classifier, Aggregator, transform
 
 
-class Labeler:
+class Labeler():
 
     def __init__(self, **kwargs):
-        self.labeler_config = kwargs.get("labeler_config", ChexpertConfig())
+        if kwargs.get("labeler_config", None) is None:
+            self.labeler_config = kwargs.get("labeler_config", ChexpertConfig())
 
     def label(self, transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: bool = True) -> None:
         """Label the provided report(s).
