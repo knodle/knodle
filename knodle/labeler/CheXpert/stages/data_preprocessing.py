@@ -4,7 +4,7 @@ from negbio.pipeline import text2bioc, ssplit
 from .utils import *
 
 
-class Loader:
+class Preprocessor:
     """Report loader."""
     def __init__(self, config: Type[ChexpertConfig]):
         self.labeler_config = config
@@ -14,7 +14,7 @@ class Loader:
                                                  for key in ".,;"})
         self.splitter = ssplit.NegBioSSplitter(newline=False)
 
-    def load(self) -> None:
+    def preprocess(self) -> None:
         """Load and clean the reports."""
         collection = bioc.BioCCollection()
         reports = pd.read_csv(self.reports_path,

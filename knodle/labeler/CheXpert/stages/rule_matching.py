@@ -6,7 +6,7 @@ from typing import DefaultDict
 from .utils import *
 
 
-class Extractor(object):
+class Matcher(object):
     """Extract observations from reports."""
     def __init__(self, config: Type[ChexpertConfig], chexpert_data: bool = True):
         self.labeler_config = config
@@ -102,7 +102,7 @@ class Extractor(object):
 
         section.annotations.append(annotation)
 
-    def extract(self, collection: Type[bioc.BioCCollection]) -> None:
+    def match(self, collection: Type[bioc.BioCCollection]) -> None:
         """Extract the observations in each report.
 
         Args:

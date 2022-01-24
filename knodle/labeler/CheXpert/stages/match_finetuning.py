@@ -75,7 +75,7 @@ class ModifiedDetector(neg_detector.Detector):
                     return m
 
 
-class Classifier(object):
+class Finetuner(object):
     """Classify mentions of observations from reports."""
     def __init__(self, config: Type[ChexpertConfig]):
         self.labeler_config = config
@@ -85,7 +85,7 @@ class Classifier(object):
 
         self.detector = ModifiedDetector(config=self.labeler_config)
 
-    def classify(self, collection: Type[bioc.BioCCollection]) -> None:
+    def finetune(self, collection: Type[bioc.BioCCollection]) -> None:
         """Classify each mention into one of negative, uncertain, or none (positive)."""
         documents = collection.documents
         for document in documents:

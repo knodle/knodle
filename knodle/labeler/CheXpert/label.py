@@ -3,10 +3,10 @@ import shutil
 
 from knodle.labeler.CheXpert.config import ChexpertConfig
 from knodle.labeler.CheXpert.stages.utils import *
-from knodle.labeler.CheXpert.stages import Loader, Extractor, Classifier, Aggregator, transform
+from knodle.labeler.CheXpert.stages import Preprocessor, Matcher, Finetuner, Updater, transform
 
 
-class Labeler():
+class Labeler:
 
     def __init__(self, **kwargs):
         if kwargs.get("labeler_config", None) is None:
@@ -27,25 +27,25 @@ class Labeler():
             transform(self.labeler_config.neg_path)
             transform(self.labeler_config.post_neg_unc_path)
 
-        loader = Loader(config=self.labeler_config)
+        preprocessor = Preprocessor(config=self.labeler_config)
 
-        extractor = Extractor(config=self.labeler_config, chexpert_data=chexpert_bool)
-        classifier = Classifier(config=self.labeler_config)
-        aggregator = Aggregator(config=self.labeler_config)
+        matcher = Matcher(config=self.labeler_config, chexpert_data=chexpert_bool)
+        finetuner = Finetuner(config=self.labeler_config)
+        updater = Updater(config=self.labeler_config)
 
-        # Load reports in place.
-        loader.load()
-        # Extract observation mentions in place.
-        extractor.extract(loader.collection)
-        # Classify mentions in place.
-        classifier.classify(loader.collection)
+        # Get reports & preprocess them.
+        preprocessor.preprocess()
+        # Get mention & unmention phrases, look for matches.
+        matcher.match(preprocessor.collection)
+        # Get patterns and finetune matches as negative/uncertain.
+        finetuner.finetune(preprocessor.collection)
 
-        # Adjust Z matrix.
-        Z_matrix = aggregator.aggregate(loader.collection, extractor.Z_matrix, chexpert_data=chexpert_bool)
+        # Update Z matrix.
+        Z_matrix = updater.update(preprocessor.collection, matcher.Z_matrix, chexpert_data=chexpert_bool)
 
         Z_matrix[Z_matrix == self.labeler_config.uncertain] = uncertain
 
         # Save the matrices X, T and Z
         shutil.copy(self.labeler_config.sample_path, os.path.join(self.labeler_config.output_dir, "X_matrix.csv"))
-        np.savetxt(os.path.join(self.labeler_config.output_dir, "T_matrix.csv"), loader.T_matrix, delimiter=",")
+        np.savetxt(os.path.join(self.labeler_config.output_dir, "T_matrix.csv"), preprocessor.T_matrix, delimiter=",")
         np.savetxt(os.path.join(self.labeler_config.output_dir, "Z_matrix.csv"), Z_matrix, delimiter=",")

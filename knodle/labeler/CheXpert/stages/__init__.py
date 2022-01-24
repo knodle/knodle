@@ -1,5 +1,5 @@
 from .utils import t_matrix_fct, z_matrix_fct, get_rule_idx, transform
-from .load import Loader
-from .extract import Extractor
-from .classify import Classifier
-from .aggregate import Aggregator
+from .data_preprocessing import Preprocessor
+from .rule_matching import Matcher
+from .match_finetuning import Finetuner
+from .rule_updating import Updater

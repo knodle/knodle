@@ -2,15 +2,15 @@
 from .utils import *
 
 
-class Aggregator(object):
+class Updater(object):
     """Aggregate mentions of observations from reports."""
     def __init__(self, config: Type[ChexpertConfig]):
         self.labeler_config = config
 
-    def aggregate(self,
-                  collection: Type[bioc.BioCCollection],
-                  z_matrix: np.ndarray,
-                  chexpert_data: bool) -> np.ndarray:
+    def update(self,
+               collection: Type[bioc.BioCCollection],
+               z_matrix: np.ndarray,
+               chexpert_data: bool) -> np.ndarray:
         self.Z_matrix = z_matrix
         NEGATION = self.labeler_config.negation
         NEGATIVE = self.labeler_config.negative
