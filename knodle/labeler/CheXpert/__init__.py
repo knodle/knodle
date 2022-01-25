@@ -1,1 +1,1 @@
-from knodle.labeler.CheXpert.stages.data_preprocessing import Preprocessor
+from knodle.labeler.CheXpert.stages.preprocessing import Preprocessor

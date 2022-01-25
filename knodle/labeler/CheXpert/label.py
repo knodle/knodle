@@ -8,9 +8,14 @@ from knodle.labeler.CheXpert.stages import Preprocessor, Matcher, Finetuner, Upd
 
 class Labeler:
 
+    # this does not work
     def __init__(self, **kwargs):
         if kwargs.get("labeler_config", None) is None:
-            self.labeler_config = kwargs.get("labeler_config", ChexpertConfig())
+            kwargs["labeler_config"] = ChexpertConfig()
+        super().__init__(**kwargs)
+        # this works:
+        # if kwargs.get("labeler_config", None) is None:
+        #     self.labeler_config = kwargs.get("labeler_config", ChexpertConfig())
 
     def label(self, transform_patterns: bool = False, uncertain: int = 1, chexpert_bool: bool = True) -> None:
         """Label the provided report(s).
