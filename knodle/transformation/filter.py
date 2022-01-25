@@ -24,7 +24,8 @@ def filter_tensor_dataset_by_indices(dataset: TensorDataset, filter_ids: Union[n
 def filter_empty_probabilities(
         input_data_x: TensorDataset, class_probas_y: np.ndarray, rule_matches_z: np.ndarray = None
 ) -> Union[Tuple[TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray]]:
-    """Delete rows of TensorDataset's where the cumulative probability equals 0.
+    """
+    Delete rows of TensorDataset's where the cumulative probability equals 0.
     Args:
         input_data_x: A TensorDataset serving as input to a model
         class_probas_y: Array, holding class probabilities, shape=num_samples, num_classes
@@ -46,11 +47,12 @@ def filter_empty_probabilities(
 
 
 def filter_probability_threshold(
-        input_data_x: TensorDataset, class_probas_y: np.ndarray, rule_matches_z: np.ndarray = None,
+        input_data_x: TensorDataset,
+        class_probas_y: np.ndarray,
+        rule_matches_z: np.ndarray = None,
         probability_threshold: float = 0.7
 ) -> Union[Tuple[TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray]]:
-    """Filters instances where no single class probability exceeds "probability_threshold".
-    """
+    """ Filters instances where no single class probability exceeds "probability_threshold """
     prob_sums = class_probas_y.max(axis=-1)
     conclusive_idx = np.where(prob_sums >= probability_threshold)[0]
 
