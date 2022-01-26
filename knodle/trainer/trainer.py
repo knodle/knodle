@@ -1,29 +1,27 @@
-import os
 import logging
+import os
+from abc import ABC, abstractmethod
 from typing import Union, Dict, Tuple
 
-import skorch
-from torch.nn.modules.loss import _Loss
-from tqdm.auto import tqdm
-from abc import ABC, abstractmethod
-
 import numpy as np
-from sklearn.metrics import classification_report
-
+import skorch
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.metrics import classification_report
 from torch import Tensor
 from torch.nn import Module
+from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
-import torch.nn.functional as F
+from tqdm.auto import tqdm
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
-from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
-
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
-from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.trainer.utils.checks import check_other_class_id
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.transformation.rule_reduction import reduce_rule_matches
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +135,12 @@ class BaseTrainer(Trainer):
             self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False
     ):
         log_section("Training starts", logger)
+
+        if self.trainer_config.multi_label and self.trainer_config.criterion not in [nn.BCELoss, nn.BCEWithLogitsLoss]:
+            raise ValueError(
+                "Criterion for multi-label classification should be Binary Cross-Entropy "
+                "(BCELoss or BCEWithLogitsLoss in Pytorch.) "
+            )
 
         self.model.to(self.trainer_config.device)
         self.model.train()

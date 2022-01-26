@@ -181,11 +181,8 @@ def input_to_majority_vote_input(
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
         if multi_label:
-            kwargs = {
-                "choose_random_label": True, "other_class_id": other_class_id, "multi_label": multi_label,
-                "threshold": threshold
-            }
-            noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
+            kwargs = {"choose_random_label": True, "other_class_id": other_class_id, "threshold": threshold}
+            noisy_y_train = np.apply_along_axis(probabilities_to_binary_multi_labels, axis=1, arr=noisy_y_train, **kwargs)
         else:
             kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
             noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
