@@ -105,7 +105,7 @@ def test_get_majority_vote_probs_sigmoid(prob_values):
     z, t, _, _ = prob_values
 
     gold_probs = np.array([
-        [[0.73, 0.73], [0.73, 0.95], [0.5, 0.73], [0, 0]]
+        [[0.73, 0.73], [0.73, 0.95], [0, 0.73], [0, 0]]
     ])
 
     majority_probs = z_t_matrices_to_majority_vote_probs(z, t, normalization="sigmoid")
