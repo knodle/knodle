@@ -14,17 +14,18 @@ def encode_to_binary(labels: List[List[str]], labels_indicator: List[str]):
     Returns: Binary vectors for each instance
     """
     encoded_labels = []
-    for l in labels:
+    for label in labels:
         y = np.zeros(len(labels_indicator), dtype=float)
 
-        for i, label in enumerate(labels_indicator):
+        for i, label_id in enumerate(labels_indicator):
             # Can leave zero if doesn't exist in ground truth, else make one
-            if label in l:
+            if label_id in label:
                 y[i] = 1
 
         encoded_labels.append(y)
 
     return np.array(encoded_labels)
+
 
 def get_predicted_labels(probs: List[float], threshold: float, labels_indicator: List[str]):
     """
@@ -42,6 +43,7 @@ def get_predicted_labels(probs: List[float], threshold: float, labels_indicator:
         predicted_labels.append([labels_indicator[index] for index in indices])
 
     return predicted_labels
+
 
 def evaluate_multilabel(true_labels: Dict, predicted_probs: Dict, threshold: float, labels_indicator: List[str]):
     """
@@ -71,4 +73,3 @@ def evaluate_multilabel(true_labels: Dict, predicted_probs: Dict, threshold: flo
     f1 = f1_score(y_true, y_pred, average="samples")
 
     return {"precision": p, "recall": r, "f1": f1}
-
