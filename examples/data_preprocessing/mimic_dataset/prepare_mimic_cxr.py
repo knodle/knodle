@@ -54,10 +54,10 @@ import csv
 import itertools
 
 import torch
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torchvision.models as models
 import torch.optim as optim
+from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
 from typing import Dict
 from joblib import dump
@@ -113,27 +113,36 @@ study_list = pd.read_csv("cxr-study-list.csv").to_numpy()
 # restrict records
 # only want to include studies where there are two images
 # only want to include one per person
-two_records_per_study = record_list_all.groupby('study_id').count() == 2
-record_list = pd.merge(record_list_all, two_records_per_study['subject_id'], 
-                              how = 'left', on= ['study_id'])
-record_list_reduced = record_list[record_list['subject_id_y']]
-record_list_reduced = record_list_reduced.groupby('subject_id_x').head(2)
-record_list = record_list_reduced.drop(columns = ['subject_id_y']).to_numpy()
+two_records_per_study = record_list_all.groupby("study_id").count() == 2
+two_records_per_study = two_records_per_study.rename(columns={"subject_id":"two_rec"})
+record_list = pd.merge(record_list_all, two_records_per_study["two_rec"], 
+                              how = "left", on= ["study_id"])
+record_list_reduced = record_list[record_list["two_rec"]]
+record_list_reduced = record_list_reduced.groupby("subject_id").head(2)
+record_list_pd = record_list_reduced.drop(columns = ["two_rec"])
+record_list = record_list_pd.to_numpy()
 
-if download:
-    # image download
-    for i in tqdm(range(1000,n)):
+# draw a random subset 
+random.seed(10)
+study_indices = random.sample(range(int(len(record_list)/2)), n)
+record_indices = [element * 2 for element in study_indices]+[element * 2+1 for element in study_indices]
+record_indices.sort() 
+record_indices = record_indices[:10000] ########################remove in final version
+if download:            
+    for i in tqdm(record_indices):
+        path = record_list[i,3]
         url = ["wget -N -c -np --user=", USERNAME, " --password=", PASSWORD, 
-               " https://physionet.org/files/mimic-cxr-jpg/2.0.0/",record_list[i,3]]
-        command = "".join(url)
-        command = "".join([command.replace(".dcm", ""),".jpg -P ",record_list[i,3]])
+               " https://physionet.org/files/mimic-cxr-jpg/2.0.0/",
+               path, " -P ", path.replace("/"+record_list[i,2]+".dcm", "")]
+        command = "".join(url).replace(".dcm", ".jpg")
         os.system(command)
-            
+        
+        
     # load reports and save all in one csv
-    with open('mimic_cxr_text.csv', 'w', newline='', encoding='utf-8') as f:
+    with open("mimic_cxr_text.csv", "w", newline="", encoding="utf-8") as f:
         for i in tqdm(range(len(study_list))):
-            with open(''.join(["mimic-cxr-reports/", study_list[i,2]])) as f_path:
-                text = ''.join(f_path.readlines())
+            with open("".join(["mimic-cxr-reports/", study_list[i,2]])) as f_path:
+                text = "".join(f_path.readlines())
             text = text.replace("\n", "")
             text = text.replace(",", "")
             start = text.find("FINDINGS:")
@@ -147,7 +156,7 @@ if download:
 # open report csv
 reports = pd.read_csv("mimic_cxr_text.csv", 
                       names = ["subject_id","study_id", "findings", "impressions"], 
-                      na_values='.')
+                      na_values=".")
 
 print("average length findings section:", 
       np.mean(reports["findings"].str.len()))
@@ -156,21 +165,20 @@ print("average length impression section:",
       np.mean(reports["impressions"].str.len()))
 
 print("number of NAs in findings and impressions:\n", 
-      pd.isna(reports[['findings', 'impressions']]).sum())
+      pd.isna(reports[["findings", "impressions"]]).sum())
 
 # if impression is missing insert finding
 reports.impressions.fillna(reports.findings, inplace=True)
 #if neither are there, we do not analyse this study -> drop
-del reports['findings']
+del reports["findings"]
 reports_processed = reports.dropna()
 
 # merge reports to record_list
-record_list = pd.read_csv("cxr-record-list.csv")
-record_report_list = pd.merge(record_list, reports_processed, 
-                              how = 'left', on= ['study_id','subject_id'])
+record_report_list = pd.merge(record_list_pd, reports_processed, 
+                              how = "left", on= ["study_id","subject_id"])
 
 # only first n rows, drop nas
-input_list_pd = record_report_list.iloc[:n,:].dropna()
+input_list_pd = record_report_list.iloc[record_indices,:].dropna()
 input_list = input_list_pd.to_numpy()
 # save new n
 n = len(input_list)
@@ -200,14 +208,14 @@ for i in range(len(classes)):
     with open("".join(["chexpert_rules/", classes[i], ".txt"])) as f:
         lines[classes[i]] = [each_string.replace("\n", "") for each_string in f.readlines()]
           
-mentions = pd.DataFrame({'label': label, 'rule': rule} for (label, rule) in lines.items())
+mentions = pd.DataFrame({"label": label, "rule": rule} for (label, rule) in lines.items())
 mentions.head()
 
-rules = pd.DataFrame([i for i in itertools.chain.from_iterable(mentions['rule'])], columns = ["rule"])
-rules['rule_id'] = range(len(rules))
-rules['label'] = np.concatenate([
-    np.repeat(mentions['label'][i], len(mentions['rule'][i])) for i in range(num_classes)])
-rules['label_id'] = [labels2ids[rules['label'][i]] for i in range(len(rules))]
+rules = pd.DataFrame([i for i in itertools.chain.from_iterable(mentions["rule"])], columns = ["rule"])
+rules["rule_id"] = range(len(rules))
+rules["label"] = np.concatenate([
+    np.repeat(mentions["label"][i], len(mentions["rule"][i])) for i in range(num_classes)])
+rules["label_id"] = [labels2ids[rules["label"][i]] for i in range(len(rules))]
 rules.head()
 
 rule2rule_id = dict(zip(rules["rule"], rules["rule_id"]))
@@ -226,8 +234,8 @@ mapping_rules_labels_t.shape
 
 dump(mapping_rules_labels_t, T)
 
-len(np.unique(rules['rule'])) == len(rules['rule'])
-rules_size = rules.groupby('rule').size() 
+len(np.unique(rules["rule"])) == len(rules["rule"])
+rules_size = rules.groupby("rule").size() 
 rules_size[np.where(rules_size > 1)[0]]
 # rule defib appears for two different classes
 
@@ -255,18 +263,18 @@ dump(rule_matches_z, Z)
 class mimicDataset(Dataset):
     
     def __init__(self, path, load_labels = False):
-        'Initialization'
+        "initialization"
         self.path = path
         self.load_labels = load_labels
         
     def __len__(self):
-        'Denotes the total number of samples'
+        "total number of samples"
         return len(self.path)
     
     def __getitem__(self, index):
-        'Generates one sample of data'
+        "one sample of data"
         # Select sample
-        image = Image.open(self.path[index,3].replace(".dcm", ".jpg")).convert('RGB')
+        image = Image.open(self.path[index,3].replace(".dcm", ".jpg")).convert("RGB")
         X = self.transform(image)
         if self.load_labels: # for the second approach with finetuning
             label = self.path[index,5]      
@@ -288,13 +296,15 @@ for p in model.parameters():
     
 model.eval()
 # apply modified resnet50 to data
-dataloaders = DataLoader(mimicDataset(input_list[:n,:]), batch_size=n,num_workers=0)
+dataloaders = DataLoader(mimicDataset(input_list), batch_size=n,num_workers=0)
     
 data = next(iter(dataloaders))
 with torch.no_grad():
     features_var = model(data)
     features = features_var.data 
     train_X = features.reshape(n,2048).numpy()
+    
+# concatenate both image embeddings of a study to one 
 
 # save feature matrix
 dump(train_X, X)
@@ -306,7 +316,7 @@ dump(train_X, X)
 # For finetuning the CNN, we use the weak labels from Chexpert
 labels = {id: cat for (cat, id) in enumerate(labels_chexpert.columns[2:16])}
 # initialise labels with 0
-labels_chexpert['label'] = 0
+labels_chexpert["label"] = 0
 labels_list = labels_chexpert.columns.to_numpy()
 # iterate through labels: 
 # three cases: only one, non, or multiple diagnoses
@@ -318,18 +328,18 @@ for i in tqdm(range(len(labels_chexpert))):
     elif sum(label_is1) > 1:
         labels_chexpert.iloc[i,16] = random.choice(labels_list[label_is1])
     else: 
-        labels_chexpert.iloc[i,16] = 'No Finding'
+        labels_chexpert.iloc[i,16] = "No Finding"
         
     
         
 # merge labels with records and reports
 input_list_labels_pd = pd.merge(input_list_pd, 
                                     labels_chexpert.iloc[:,[0,1,16]], 
-                                    how = 'left', 
-                                    on = ['study_id','subject_id'])
+                                    how = "left", 
+                                    on = ["study_id","subject_id"])
 
 print("classes proportions:", 
-      input_list_labels_pd.groupby('label').size()/len(input_list_labels_pd))
+      input_list_labels_pd.groupby("label").size()/len(input_list_labels_pd))
 # keep in mind that the dataset is unbalenced
 
 # Changing names to indices
@@ -339,6 +349,8 @@ for i in tqdm(range(len(input_list_labels_pd))):
 # convert to numpy
 input_list_labels = input_list_labels_pd.to_numpy()
 dump(input_list_labels, "input_list_labels.lib")
+
+input_list_labels = load("input_list_labels.lib") ##################### remove in final version
 # finetuning
 # m ... number of samples used for finetuning
 m = min(750,n)
@@ -361,14 +373,14 @@ sample_weights = sample_weights.double()
 sampler = torch.utils.data.WeightedRandomSampler(weights=sample_weights, 
                                                  num_samples=len(sample_weights))
 
-dataset = {'train' : mimicDataset(input_train, load_labels = True),
-           'val': mimicDataset(input_validate, load_labels = True)}
+dataset = {"train" : mimicDataset(input_train, load_labels = True),
+           "val": mimicDataset(input_validate, load_labels = True)}
 
-dataloaders = {'train': DataLoader(dataset['train'] , batch_size=4, num_workers=0, sampler = sampler),
-               'val': DataLoader(dataset['val'] , batch_size=4, num_workers=0 )}
+dataloaders = {"train": DataLoader(dataset["train"] , batch_size=4, num_workers=0, sampler = sampler),
+               "val": DataLoader(dataset["val"] , batch_size=4, num_workers=0 )}
 
 
-dataset_sizes = {x: len(dataset[x]) for x in ['train', 'val']}
+dataset_sizes = {x: len(dataset[x]) for x in ["train", "val"]}
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
@@ -378,12 +390,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     best_acc = 0.0
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-' * 10)
+        print("Epoch {}/{}".format(epoch, num_epochs - 1))
+        print("-" * 10)
 
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
-            if phase == 'train':
+        for phase in ["train", "val"]:
+            if phase == "train":
                 model.train()  # Set model to training mode
             else:
                 model.eval()   # Set model to evaluate mode
@@ -398,13 +410,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                 # forward
                 # track history if only in train
-                with torch.set_grad_enabled(phase == 'train'):
+                with torch.set_grad_enabled(phase == "train"):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
 
                     # backward + optimize only if in training phase
-                    if phase == 'train':
+                    if phase == "train":
                         optimizer.zero_grad()
                         loss.backward()
                         optimizer.step()
@@ -413,23 +425,23 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
-            if phase == 'train':
+            if phase == "train":
                 scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+            print("{} Loss: {:.4f} Acc: {:.4f}".format(
                 phase, epoch_loss, epoch_acc))
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
+            if phase == "val" and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         print()
 
-    print('Best val Acc: {:4f}'.format(best_acc), )
+    print("Best val Acc: {:4f}".format(best_acc), )
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -454,7 +466,7 @@ for p in model.parameters():
     
 model.eval()
 # apply modified resnet50 to data
-dataloaders = DataLoader(mimicDataset(input_list_labels[:n,:], load_labels = True), batch_size=n,num_workers=0)
+dataloaders = DataLoader(mimicDataset(input_list_labels, load_labels = True), batch_size=n,num_workers=0)
     
 data, weak_labels = next(iter(dataloaders))
 with torch.no_grad():
@@ -477,17 +489,17 @@ labels_test_list = validation_set_pd.columns[5:19].to_numpy()
 class chexpertDataset(Dataset):
     
     def __init__(self, path):
-        'Initialization'
+        "initialization"
         self.path = path
         
     def __len__(self):
-        'Denotes the total number of samples'
+        "total number of samples"
         return len(self.path)
     
     def __getitem__(self, index):
-        'Generates one sample of data'
+        "one sample of data"
         # Select sample
-        image = Image.open("".join("CheXpert-v1.0-small/" + self.path[index,0])).convert('RGB')
+        image = Image.open("".join("CheXpert-v1.0-small/" + self.path[index,0])).convert("RGB")
         X = self.transform(image)
         
         label_is1 = self.path[index,5:19] == 1.0
