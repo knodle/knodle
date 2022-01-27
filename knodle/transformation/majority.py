@@ -1,13 +1,17 @@
-import numpy as np
-import scipy.sparse as sp
+import logging
+import random
 import warnings
 
+import numpy as np
+import scipy.sparse as sp
 from torch.utils.data import TensorDataset
 
 from knodle.transformation.filter import filter_empty_probabilities, filter_probability_threshold
 
+logger = logging.getLogger(__name__)
 
-def probabilies_to_majority_vote(
+
+def probabilities_to_majority_vote(
         probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None
 ) -> int:
     """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
@@ -37,7 +41,10 @@ def probabilies_to_majority_vote(
 
 
 def z_t_matrices_to_majority_vote_probs(
-        rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, other_class_id: int = None
+        rule_matches_z: np.ndarray,
+        mapping_rules_labels_t: np.ndarray,
+        other_class_id: int = None,
+        normalization: str = "softmax"
 ) -> np.ndarray:
     """
     This function calculates a majority vote probability for all rule_matches_z. The difference from simple
@@ -49,6 +56,9 @@ def z_t_matrices_to_majority_vote_probs(
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
         other_class_id: Class which is chosen, if no function is hitting.
+        normalization: The way how the vectors will be normalized. Currently, there are two supported normalizations:
+            - softmax
+            - sigmoid
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
 
@@ -75,14 +85,24 @@ def z_t_matrices_to_majority_vote_probs(
             rule_counts[~rule_counts.any(axis=1), other_class_id] = 1
         else:
             raise ValueError("Other class id is incorrect")
-    rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+
+    if normalization == "softmax":
+        rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+    elif normalization == "sigmoid":
+        rule_counts_probs = 1 / (1 + np.exp(-rule_counts))
+        zeros = np.where(rule_counts == 0)  # the values that were 0s (= no LF from this class matched) should remain 0s
+        rule_counts_probs[zeros] = rule_counts[zeros]
+    else:
+        raise ValueError(
+            "Unknown label probabilities normalization; currently softmax and sigmoid normalization are supported"
+        )
     rule_counts_probs[np.isnan(rule_counts_probs)] = 0
     return rule_counts_probs
 
 
 def z_t_matrices_to_majority_vote_labels(
-        rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray,
-        choose_random_label: bool = True, other_class_id: int = None
+        rule_matches_z: np.ndarray, mapping_rules_labels_t: np.ndarray, choose_random_label: bool = True,
+        other_class_id: int = None
 ) -> np.array:
     """Computes the majority labels. If no clear "winner" is found, other_class_id is used instead.
     Args:
@@ -95,7 +115,7 @@ def z_t_matrices_to_majority_vote_labels(
     rule_counts_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
 
     kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
-    majority_labels = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=rule_counts_probs, **kwargs)
+    majority_labels = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=rule_counts_probs, **kwargs)
     return majority_labels
 
 
@@ -107,6 +127,8 @@ def input_to_majority_vote_input(
         filter_non_labelled: bool = True,
         probability_threshold: int = None,
         other_class_id: int = None,
+        multi_label: bool = False,
+        multi_label_threshold: float = None
 ) -> np.ndarray:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
@@ -116,13 +138,29 @@ def input_to_majority_vote_input(
     :param filter_non_labelled: boolean value, whether the no matched samples should be filtered out or not.
     :param other_class_id: the id of other class, i.e. the class of no matched samples, if they are to be stored.
     :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
-    or single values.
+        or single values.
+    :param multi_label: boolean value, whether the classification is multi-label
+    :param multi_label_threshold: : a value for calculation the classes in case of multi-label classification: if a class has
+        a probability greater than the threshold, this class will be selected as a true one
     :return:
     """
+
+    if multi_label:
+        logger.info("The multi-label scenario demands the sigmoid normalization")
+        normalization = "sigmoid"
+    else:
+        logger.info("The softmax normalization will be used")
+        normalization = "softmax"
+
     if other_class_id is not None and filter_non_labelled:
         raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
 
-    noisy_y_train = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t, other_class_id)
+    noisy_y_train = z_t_matrices_to_majority_vote_probs(
+        rule_matches_z,
+        mapping_rules_labels_t,
+        other_class_id,
+        normalization=normalization
+    )
 
     if filter_non_labelled and probability_threshold is not None:
         raise ValueError("You can either filter all non labeled samples or those that have probabilities below "
@@ -142,7 +180,35 @@ def input_to_majority_vote_input(
 
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
-        kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
-        noisy_y_train = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
+        if multi_label:
+            kwargs = {"choose_random_label": True, "other_class_id": other_class_id, "threshold": multi_label_threshold}
+            noisy_y_train = np.apply_along_axis(probabilities_to_binary_multi_labels, axis=1, arr=noisy_y_train, **kwargs)
+        else:
+            kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
+            noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
     return model_input_x, noisy_y_train, rule_matches_z
+
+
+def probabilities_to_binary_multi_labels(
+        probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None, threshold: float = 0.5
+) -> np.ndarray:
+    """
+    probs: Vector of probabilities for 1 sample. Shape: classes x 1
+    choose_random_label: Choose a random label, if there's no clear majority.
+    other_class_id: Class ID being used, if there's no clear majority
+    multi_label: boolean value, whether the classification is multi-label
+    threshold: a value for calculation the classes in case of multi-label classification: if a class has
+        a probability greater than the threshold, this class will be selected as a true one
+    """
+    probs[probs >= threshold] = 1
+    probs[probs < threshold] = 0
+
+    if np.all((probs == 0)):
+        if choose_random_label:
+            probs[:, random.randrange(probs.shape[1])] = 1
+        elif other_class_id is not None:
+            probs[:, other_class_id] = 1
+
+    return probs
+
