@@ -279,7 +279,7 @@ class BaseTrainer(Trainer):
 
         if self.trainer_config.multi_label:
             clf_report = evaluate_multilabel(
-                y_true=gold_labels, y_pred=predictions, threshold=self.trainer_config.threshold,
+                y_true=gold_labels, y_pred=predictions, threshold=self.trainer_config.multi_label_threshold,
                 ids2labels=self.trainer_config.ids2labels
             )
 

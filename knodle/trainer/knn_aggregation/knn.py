@@ -61,7 +61,7 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
             probability_threshold=self.trainer_config.probability_threshold,
             other_class_id=self.trainer_config.other_class_id,
             multi_label=self.trainer_config.multi_label,
-            threshold=self.trainer_config.threshold
+            multi_label_threshold=self.trainer_config.multi_label_threshold
         )
 
         feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_input_y)

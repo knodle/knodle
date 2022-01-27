@@ -128,7 +128,7 @@ def input_to_majority_vote_input(
         probability_threshold: int = None,
         other_class_id: int = None,
         multi_label: bool = False,
-        threshold: float = None
+        multi_label_threshold: float = None
 ) -> np.ndarray:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
@@ -140,7 +140,7 @@ def input_to_majority_vote_input(
     :param use_probabilistic_labels: boolean value, whether the output labels should be in form of probabilistic labels
         or single values.
     :param multi_label: boolean value, whether the classification is multi-label
-    :param threshold: : a value for calculation the classes in case of multi-label classification: if a class has
+    :param multi_label_threshold: : a value for calculation the classes in case of multi-label classification: if a class has
         a probability greater than the threshold, this class will be selected as a true one
     :return:
     """
@@ -181,7 +181,7 @@ def input_to_majority_vote_input(
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
         if multi_label:
-            kwargs = {"choose_random_label": True, "other_class_id": other_class_id, "threshold": threshold}
+            kwargs = {"choose_random_label": True, "other_class_id": other_class_id, "threshold": multi_label_threshold}
             noisy_y_train = np.apply_along_axis(probabilities_to_binary_multi_labels, axis=1, arr=noisy_y_train, **kwargs)
         else:
             kwargs = {"choose_random_label": True, "other_class_id": other_class_id}

@@ -55,7 +55,7 @@ class CleanLabTrainer(MajorityVoteTrainer):
             filter_non_labelled=self.trainer_config.filter_non_labelled,
             other_class_id=self.trainer_config.other_class_id,
             multi_label=self.trainer_config.multi_label,
-            threshold=self.trainer_config.threshold
+            multi_label_threshold=self.trainer_config.multi_label_threshold
         )
 
         # turn input to the CL-compatible format
