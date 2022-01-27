@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import Dict, List
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import precision_recall_fscore_support
 
 
 def encode_to_binary(labels: List[List[str]], labels_indicator: List[str]):
@@ -45,31 +45,27 @@ def get_predicted_labels(probs: List[float], threshold: float, labels_indicator:
     return predicted_labels
 
 
-def evaluate_multilabel(true_labels: Dict, predicted_probs: Dict, threshold: float, labels_indicator: List[str]):
+def evaluate_multilabel(y_true: Dict, y_pred: Dict, threshold: float, ids2labels: List[str]):
     """
     Calculates precision, recall and F1 scores for multilabel classification results. The scores are macro
     averaged over the instances
     Args:
-        true_labels: Dictionary with instance ids as keys. The values are lists with the string labels
-        predicted_probs: Dictionary with instance ids as keys and predicted probabilities as values
+        y_true: Dictionary with instance ids as keys. The values are lists with the string labels
+        y_pred: Dictionary with instance ids as keys and predicted probabilities as values
         threshold: Number from 0 to 1 to be used as inference threshold
-        labels_indicator: List with all the existing labels in the dataset, used to map each label to its id
+        ids2labels: List with all the existing labels in the dataset, used to map each label to its id
         and corresponding predicted probability
     Returns: Average precision, recall and F1
     """
 
-    assert true_labels.keys() == predicted_probs.keys()
+    assert y_true.keys() == y_pred.keys()
 
     # Prepare ground truth
-    y_true = encode_to_binary(list(true_labels.values()), labels_indicator)
+    y_true = encode_to_binary(list(y_true.values()), ids2labels)
 
     # Prepare predictions
-    predicted_labels = get_predicted_labels(list(predicted_probs.values()), threshold, labels_indicator)
-    y_pred = encode_to_binary(predicted_labels, labels_indicator)
+    predicted_labels = get_predicted_labels(list(y_pred.values()), threshold, ids2labels)
+    y_pred = encode_to_binary(predicted_labels, ids2labels)
 
     # Evaluate
-    p = precision_score(y_true, y_pred, average="samples")
-    r = recall_score(y_true, y_pred, average="samples")
-    f1 = f1_score(y_true, y_pred, average="samples")
-
-    return {"precision": p, "recall": r, "f1": f1}
+    return precision_recall_fscore_support(y_true, y_pred, average="samples")

@@ -51,7 +51,8 @@ class MajorityVoteTrainer(BaseTrainer):
             filter_non_labelled=self.trainer_config.filter_non_labelled,
             probability_threshold=self.trainer_config.probability_threshold,
             other_class_id=self.trainer_config.other_class_id,
-            multi_label=self.trainer_config.multi_label
+            multi_label=self.trainer_config.multi_label,
+            threshold=self.trainer_config.threshold
         )
 
         feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train)

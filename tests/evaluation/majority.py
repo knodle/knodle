@@ -59,3 +59,4 @@ def test_majority_vote_random_guess():
     y = np.array([0, 1, 1, 1])
     report = majority_sklearn_report(z, t, y)
     assert 0.5 <= report["accuracy"] <= 0.75
+

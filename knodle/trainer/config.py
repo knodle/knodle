@@ -31,7 +31,8 @@ class TrainerConfig:
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
             saved_models_dir: str = None,
-            multi_label: bool = False
+            multi_label: bool = False,
+            multi_label_threshold: float = None
     ):
         """
         A default and minimum sufficient configuration of a Trainer instance.
@@ -98,6 +99,11 @@ class TrainerConfig:
             self.class_weights = class_weights
 
         self.multi_label = multi_label
+
+        if multi_label_threshold is None:
+            self.multi_label_threshold = 0.5
+        else:
+            self.multi_label_threshold = multi_label_threshold
 
 
 class BaseTrainerConfig(TrainerConfig):

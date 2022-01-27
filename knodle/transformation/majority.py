@@ -191,7 +191,7 @@ def input_to_majority_vote_input(
 
 
 def probabilities_to_binary_multi_labels(
-        probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None, threshold: float = None
+        probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None, threshold: float = 0.5
 ) -> np.ndarray:
     """
     probs: Vector of probabilities for 1 sample. Shape: classes x 1
@@ -201,9 +201,6 @@ def probabilities_to_binary_multi_labels(
     threshold: a value for calculation the classes in case of multi-label classification: if a class has
         a probability greater than the threshold, this class will be selected as a true one
     """
-    if threshold is None:
-        threshold = 0.5
-
     probs[probs >= threshold] = 1
     probs[probs < threshold] = 0
 
