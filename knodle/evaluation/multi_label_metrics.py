@@ -44,7 +44,7 @@ def get_predicted_labels(probs: np.array, threshold: float) -> List:
 
 def evaluate_multi_label(
         y_true: List[List[int]], y_pred: np.ndarray, threshold: float, ids2labels: Dict
-) -> Dict[str: float]:
+) -> Dict[str, float]:
     """
     Calculates precision, recall and F1 scores for multi-label classification results. The scores are macro
     averaged over the instances.
