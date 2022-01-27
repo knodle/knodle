@@ -90,7 +90,7 @@ def z_t_matrices_to_majority_vote_probs(
         rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
     elif normalization == "sigmoid":
         rule_counts_probs = 1 / (1 + np.exp(-rule_counts))
-        zeros = np.where(rule_counts == 0)
+        zeros = np.where(rule_counts == 0)  # the values that were 0s (= no LF from this class matched) should remain 0s
         rule_counts_probs[zeros] = rule_counts[zeros]
     else:
         raise ValueError(
