@@ -63,7 +63,7 @@ def z_t_matrices_to_majority_vote_probs(
     else:
         rule_counts = np.matmul(rule_matches_z, mapping_rules_labels_t)
 
-    if other_class_id:
+    if other_class_id is not None:
         if other_class_id < 0:
             raise RuntimeError("Label for negative samples should be greater than 0 for correct matrix multiplication")
         if other_class_id < mapping_rules_labels_t.shape[1] - 1:
@@ -107,6 +107,7 @@ def input_to_majority_vote_input(
         filter_non_labelled: bool = True,
         probability_threshold: int = None,
         other_class_id: int = None,
+        choose_random_label: bool = True
 ) -> np.ndarray:
     """
     This function calculates noisy labels y_hat from Knodle Z and T matrices.
@@ -142,7 +143,7 @@ def input_to_majority_vote_input(
 
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
-        kwargs = {"choose_random_label": True, "other_class_id": other_class_id}
+        kwargs = {"choose_random_label": choose_random_label, "other_class_id": other_class_id}
         noisy_y_train = np.apply_along_axis(probabilies_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
     return model_input_x, noisy_y_train, rule_matches_z

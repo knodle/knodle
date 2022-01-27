@@ -202,13 +202,13 @@ class BaseTrainer(Trainer):
                 logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
-            if self.trainer_config.saved_models_dir is not None:
-                model_path = os.path.join(
-                    self.trainer_config.saved_models_dir,
-                    f"model_state_dict_epoch_{current_epoch}.pt"
-                )
-                torch.save(self.model.cpu().state_dict(), model_path)
-                self.model.to(self.trainer_config.device)
+            # if self.trainer_config.saved_models_dir is not None:
+            #     model_path = os.path.join(
+            #         self.trainer_config.saved_models_dir,
+            #         f"model_state_dict_epoch_{current_epoch}.pt"
+            #     )
+            #     torch.save(self.model.cpu().state_dict(), model_path)
+            #     self.model.to(self.trainer_config.device)
 
         log_section("Training done", logger)
 
@@ -269,7 +269,7 @@ class BaseTrainer(Trainer):
             predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
-            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=True)
             predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
         if self.trainer_config.evaluate_with_other_class:

@@ -106,6 +106,7 @@ class BaseTrainerConfig(TrainerConfig):
             max_rules: int = None,
             min_coverage: float = None,
             drop_rules: bool = False,
+            choose_random_label: bool = True,
             **kwargs
     ):
         """
@@ -139,3 +140,5 @@ class BaseTrainerConfig(TrainerConfig):
         self.max_rules = max_rules
         self.min_coverage = min_coverage
         self.drop_rules = drop_rules
+
+        self.choose_random_label = choose_random_label
