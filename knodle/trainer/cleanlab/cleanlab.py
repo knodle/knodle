@@ -53,7 +53,10 @@ class CleanLabTrainer(MajorityVoteTrainer):
             self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
             use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             filter_non_labelled=self.trainer_config.filter_non_labelled,
-            other_class_id=self.trainer_config.other_class_id,)
+            other_class_id=self.trainer_config.other_class_id,
+            multi_label=self.trainer_config.multi_label,
+            multi_label_threshold=self.trainer_config.multi_label_threshold
+        )
 
         # turn input to the CL-compatible format
         model_input_x_numpy = dataset_to_numpy_input(self.model_input_x)
