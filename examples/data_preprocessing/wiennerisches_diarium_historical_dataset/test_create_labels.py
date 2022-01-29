@@ -6,7 +6,6 @@ def test_create_labels():
     example_cleaned = [["Die", "Anna", "Musterfrau", "99", "J.", "gestorben", "in", "der", "Zuckerwarenfabrik", "Wonka ", "in", "der", "Königsegggasse", "7", "an", "einer", "Zuckerüberdosis."]]
     example_label = [[None, None, None, None, None, None, None, None, None, 0, 0, None, None, 1, 1, None, None, None]]
     example_place_name_dic = {"Zuckerwarenfabrik Wonka":0, "Königsegggasse 7": 1}
-    #test_label_output,test_sentence_output,test_dic_output = create_labels(example_sentence)
     assert create_labels(example_sentence) == example_label,example_cleaned,example_place_name_dic
 
 
