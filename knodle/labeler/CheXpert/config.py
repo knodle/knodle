@@ -1,7 +1,6 @@
 import os
 import tempfile
 from bllipparser import ModelFetcher
-from pathlib import Path
 
 from knodle.labeler.config import LabelerConfig
 
@@ -9,7 +8,6 @@ from knodle.labeler.config import LabelerConfig
 class CheXpertConfig(LabelerConfig):
     def __init__(
             self,
-            home_dir: str = Path.home(),
             chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
             observation: str = "observation",
