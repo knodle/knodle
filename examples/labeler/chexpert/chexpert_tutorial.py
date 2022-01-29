@@ -37,7 +37,7 @@ files_unmention = [
 for file in tqdm(files_unmention):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("examples/labeler/chexpert/phrases/unmention/", file),
+        object_name=os.path.join("datasets/chexpert/phrases/unmention/", file),
         file_path=os.path.join(UNMENTION_DATA_DIR, file),
     )
 
@@ -51,7 +51,7 @@ files_patterns = [
 for file in tqdm(files_patterns):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("examples/labeler/chexpert/patterns/", file),
+        object_name=os.path.join("datasets/chexpert/patterns/", file),
         file_path=os.path.join(PATTERNS_DIR, file),
     )
 
@@ -65,7 +65,7 @@ files_sample = [
 for file in tqdm(files_sample):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("examples/labeler/chexpert/reports/", file),
+        object_name=os.path.join("datasets/chexpert/reports/", file),
         file_path=os.path.join(SAMPLE_DIR, file),
     )
 
@@ -79,4 +79,4 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 labeler = CheXpertLabeler()
 
 # The label function is run, outputting the matrices X, T and Z.
-labeler.label(uncertain=1, chexpert_bool=True)
+labeler.label(uncertain=-1, chexpert_bool=True)

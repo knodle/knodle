@@ -38,7 +38,7 @@ class CheXpertConfig(LabelerConfig):
         self.neg_path = os.path.join(chexpert_data_dir, "patterns", "negation.txt")
         self.post_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "post_negation_uncertainty.txt")
 
-        self.sample_path = os.path.join(chexpert_data_dir, "reports", "weather_forecast.csv")
+        self.sample_path = os.path.join(chexpert_data_dir, "reports", "sample_reports.csv")
 
         self.output_dir = os.path.join(chexpert_data_dir, "output")
 
@@ -58,3 +58,9 @@ class CheXpertConfig(LabelerConfig):
         self.uncertainty = uncertainty
         self.negation = negation
         self.reports = reports
+
+        # Observation constants - CheXpert data specific
+        self.cardiomegaly = "Cardiomegaly"
+        self.enlarged_cardiomediastinum = "Enlarged Cardiomediastinum"
+        self.support_devices = "Support Devices"
+        self.no_finding = "No Finding"
