@@ -67,19 +67,22 @@ from PIL import Image
 # set directory
 # os.chdir("")
 
-# set n between 1 and 377110
-n = 1000
-# PhysioNet
-USERNAME = "your_username_her"
-PASSWORD = "your_pw_here"
+# set n between 1 and 50375
+n = 10000
 download = False
+# PhysioNet
+if download:
+    USERNAME = "your_username_her"
+    PASSWORD = "your_pw_here"
 
 # Files that will be created:
 Z = "rule_matches_z.lib"
 T = "mapping_rules_labels_t.lib"
 X = "train_X.lib"
+finetuned_model = 'finetuned_model.lib'
 X_finetuned = "train_X_finetuned.lib"
 X_test = "X_test.lib"
+X_test_finetuned = "X_test_finetuned.lib"
 y_test = "gold_labels_test.lib"
 
 
@@ -127,7 +130,7 @@ random.seed(10)
 study_indices = random.sample(range(int(len(record_list)/2)), n)
 record_indices = [element * 2 for element in study_indices]+[element * 2+1 for element in study_indices]
 record_indices.sort() 
-record_indices = record_indices[:10000] ########################remove in final version
+
 if download:            
     for i in tqdm(record_indices):
         path = record_list[i,3]
@@ -181,7 +184,7 @@ record_report_list = pd.merge(record_list_pd, reports_processed,
 input_list_pd = record_report_list.iloc[record_indices,:].dropna()
 input_list = input_list_pd.to_numpy()
 # save new n
-n = len(input_list)
+n = int(len(input_list)/2)
 
 
 ##############################################################################
@@ -203,6 +206,7 @@ if download:
                            classes[i], ".txt ", "-o chexpert_rules/", classes[i], ".txt"]))
 
 # make T matrix
+# read txt in
 lines = {}
 for i in range(len(classes)):
     with open("".join(["chexpert_rules/", classes[i], ".txt"])) as f:
@@ -253,7 +257,12 @@ def get_rule_matches_z (data: np.ndarray, num_rules: int) -> np.ndarray:
                 rule_matches_z[ind, rule_id] = 1
     return rule_matches_z
 
-rule_matches_z = get_rule_matches_z(input_list[:,4], (len(rule2rule_id)+1))
+# insert every second row of input_list (one for each study)
+rule_matches_z = get_rule_matches_z(input_list[range(0,n*2,2),4], (len(rule2rule_id)+1))
+
+# how many studies without matches
+print("proportion of studies without any matches:\n", 
+      sum(np.sum(rule_matches_z, axis = 1)==0)/len(rule_matches_z))
 
 dump(rule_matches_z, Z)
 ######################################################################
@@ -295,16 +304,19 @@ for p in model.parameters():
     p.requires_grad = False
     
 model.eval()
-# apply modified resnet50 to data
-dataloaders = DataLoader(mimicDataset(input_list), batch_size=n,num_workers=0)
-    
-data = next(iter(dataloaders))
-with torch.no_grad():
-    features_var = model(data)
+# apply modified resnet50 to data    
+img_embedding = np.zeros([n*2,2048])
+dataloaders = DataLoader(mimicDataset(input_list), batch_size=1,num_workers=0)
+for i, data in enumerate(tqdm(dataloaders)):
+    features_var = model(data) # same model as used with training data
     features = features_var.data 
-    train_X = features.reshape(n,2048).numpy()
-    
-# concatenate both image embeddings of a study to one 
+    img_embedding[i,:] = features.reshape(1,2048).numpy()
+
+
+# concatenate both image embeddings of a study to one embedding
+train_X = np.zeros([n, 2048*2])
+for i in range(n):
+    train_X[i,:] = np.concatenate((img_embedding[i,:], img_embedding[i+1,:]))
 
 # save feature matrix
 dump(train_X, X)
@@ -350,10 +362,9 @@ for i in tqdm(range(len(input_list_labels_pd))):
 input_list_labels = input_list_labels_pd.to_numpy()
 dump(input_list_labels, "input_list_labels.lib")
 
-input_list_labels = load("input_list_labels.lib") ##################### remove in final version
 # finetuning
-# m ... number of samples used for finetuning
-m = min(750,n)
+# m ... number of images used for finetuning
+m = min(750,n*2)
 
 # 80% training and 20% validation
 n_train = round(m*0.8)
@@ -366,7 +377,7 @@ input_validate = np.delete((input_list_labels[:m,:]),indices_train, axis = 0)
 class_counts = np.zeros(num_classes)
 for i in range(num_classes): 
     class_counts[i] = sum(input_train[:,5]==i)
-weight = 1/class_counts
+weight = 1/class_counts # no class count should be 0
 sample_weights = np.array([weight[t] for t in input_train[:,5]])
 sample_weights = torch.from_numpy(sample_weights)
 sample_weights = sample_weights.double()
@@ -449,30 +460,38 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
 
 model = models.resnet50(pretrained=True)
-
+model.train()
+num_ftrs = model.fc.in_features
 # set output size to 14 (number of classes)
-model.fc = nn.Linear(1000, num_classes)
+model.fc = nn.Linear(num_ftrs, num_classes)
 model = model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 step_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 model = train_model(model, criterion, optimizer, step_lr_scheduler, num_epochs=3)
 
+dump(model, finetuned_model)
 # delete last layer of the network
 modules = list(model.children())[:-1]
 model=torch.nn.Sequential(*modules)
+model.eval()
 for p in model.parameters():
     p.requires_grad = False
     
-model.eval()
 # apply modified resnet50 to data
-dataloaders = DataLoader(mimicDataset(input_list_labels, load_labels = True), batch_size=n,num_workers=0)
-    
-data, weak_labels = next(iter(dataloaders))
-with torch.no_grad():
-    features_var = model(data)
+img_embedding_finetuned = np.zeros([n*2,2048])
+dataloaders = DataLoader(mimicDataset(input_list_labels, load_labels = True), batch_size=1,num_workers=0)
+for i, data in enumerate(tqdm(dataloaders)):
+    data_train, weak_labels = data
+    features_var = model(data_train) # same model as used with training data
     features = features_var.data 
-    train_X_finetuned = features.reshape(n,2048).numpy()
+    img_embedding_finetuned[i,:] = features.reshape(1,2048).numpy()
+
+
+# concatenate both image embeddings of a study to one embedding
+train_X_finetuned = np.zeros([n, 2048*2])
+for i in range(n):
+    train_X_finetuned[i,:] = np.concatenate((img_embedding_finetuned[i,:], img_embedding_finetuned[i+1,:]))
 
 # save features matrix
 dump(train_X_finetuned, X_finetuned)
@@ -482,10 +501,12 @@ dump(train_X_finetuned, X_finetuned)
 # - riqueres a model defined for image encoding
 ##############################################################################
 # download Chexpert data and unzip it to the same directory
-validation_set_pd = pd.read_csv("CheXpert-v1.0-small/CheXpert-v1.0-small/valid.csv")
-validation_set = validation_set_pd.to_numpy()
+test_set_pd = pd.read_csv("CheXpert-v1.0-small/CheXpert-v1.0-small/valid.csv")
+# add column with study_id
+test_set_pd = test_set_pd.assign(study_id = lambda x: x['Path'].map(lambda string: "".join(string.split("/")[2:4])))
+test_set = test_set_pd.to_numpy()
 
-labels_test_list = validation_set_pd.columns[5:19].to_numpy()
+labels_test_list = test_set_pd.columns[5:19].to_numpy()
 class chexpertDataset(Dataset):
     
     def __init__(self, path):
@@ -502,15 +523,7 @@ class chexpertDataset(Dataset):
         image = Image.open("".join("CheXpert-v1.0-small/" + self.path[index,0])).convert("RGB")
         X = self.transform(image)
         
-        label_is1 = self.path[index,5:19] == 1.0
-        if (sum(label_is1)==1):
-            y = labels.get(labels_test_list[np.where(label_is1)[0][0]])
-        elif sum(label_is1) > 1:
-            y = labels.get(labels_test_list[random.choice(np.where(label_is1)[0])])
-        else: 
-            y = 8 #no finding
-        
-        return X, torch.tensor(y)
+        return X
     
     transform = transforms.Compose([
         transforms.Resize(256),
@@ -518,18 +531,44 @@ class chexpertDataset(Dataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-n_test = len(validation_set)
-dataloaders = DataLoader(chexpertDataset(validation_set), batch_size=n_test,num_workers=0)
-    
-data_test, gold_labels_test = next(iter(dataloaders))
-
+# apply model from before
 model.eval()
-with torch.no_grad():
-    features_var = model(data_test) # same model as used with training data
+n_test = len(test_set)
+img_embedding_test = np.zeros([n_test,2048])
+dataloaders = DataLoader(chexpertDataset(test_set), batch_size=1,num_workers=0)
+for i, data in enumerate(dataloaders):
+    features_var = model(data) # same model as used with training data
     features = features_var.data 
-    test_X = features.reshape(n_test,2048).numpy()
+    img_embedding_test[i,:] = features.reshape(1,2048).numpy()
+
+
+# concatenate image embeddings of a study to one embedding
+test_X = np.zeros([n_test, 2048*2])
+j = []
+for i in range(n_test-1):
+    if  test_set[i,19] == test_set[i+1,19]: # two images of same study
+        test_X[i,:] = np.concatenate((img_embedding_test[i,:], img_embedding_test[i+1,:]))
+        j.append(i+1) # i+1 embedding is are already incuded in i-th embedding, keep indices to remove later
+        
+    elif i == n_test-2: # last two entries
+        test_X[i,:] = np.concatenate((img_embedding_test[i,:], np.zeros(2048)))
+        test_X[i+1,:] = np.concatenate((img_embedding_test[i+1,:], np.zeros(2048)))
+        
+    else:
+        test_X[i,:] = np.concatenate((img_embedding_test[i,:], np.zeros(2048)))
+test_X = np.delete(test_X,j,0) # remove j rows
+
+# extracting gold labels
+ind = np.delete(range(n_test),j,0)
+gold_labels_test = []
+for i in ind:
+    label_is1 = test_set[i,5:19] == 1.0
+    if (sum(label_is1) != 0):
+        gold_labels_test.append([labels[x] for x in labels_test_list[np.where(label_is1)[0]]])
+    else: 
+        gold_labels_test.append([8]) #no finding
 
 # save test data
-dump(test_X, X_test)
+dump(test_X, X_test_finetuned)
 dump(gold_labels_test, y_test)
 
