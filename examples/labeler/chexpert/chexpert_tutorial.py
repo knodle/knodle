@@ -1,7 +1,7 @@
 import os
 from tqdm.auto import tqdm
 from minio import Minio
-from knodle.labeler.CheXpert.label import Labeler
+from knodle.labeler.CheXpert.label import CheXpertLabeler
 
 # Define Constants & Download Data
 #
@@ -25,7 +25,7 @@ files_mention = [
 for file in tqdm(files_mention):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("examples/labeler/chexpert/phrases/mention/", file),
+        object_name=os.path.join("datasets/chexpert/phrases/mention/", file),
         file_path=os.path.join(MENTION_DATA_DIR, file),
     )
 
@@ -76,7 +76,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 # The labeler class is initiated without passing a config.py file, so the default one is used.
-labeler = Labeler()
+labeler = CheXpertLabeler()
 
 # The label function is run, outputting the matrices X, T and Z.
-labeler.label(transform_patterns=False, uncertain=1, chexpert_bool=True)
+labeler.label(uncertain=1, chexpert_bool=True)

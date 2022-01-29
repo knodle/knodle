@@ -1,21 +1,37 @@
-"""Define report loader class."""
+"""
+This code builds upon the CheXpert labeler from Stanford ML Group.
+It has been slightly modified to be compatible with knodle.
+The original code can be found here: https://github.com/stanfordmlgroup/chexpert-labeler
+
+----------------------------------------------------------------------------------------
+
+Define the report preprocessing class.
+"""
+import bioc
 import re
+import pandas as pd
 from negbio.pipeline import text2bioc, ssplit
-from .utils import *
+
+from .config import CheXpertConfig
 
 
 class Preprocessor:
-    """Report loader."""
-    def __init__(self, config: Type[ChexpertConfig]):
+    """
+    Load and preprocess the provided report(s).
+
+    Original code:
+    https://github.com/stanfordmlgroup/chexpert-labeler/blob/master/loader/load.py
+    """
+
+    def __init__(self, config: CheXpertConfig):
         self.labeler_config = config
         self.reports_path = self.labeler_config.sample_path
-        # Add space after punctuation symbols.
         self.punctuation_spacer = str.maketrans({key: f"{key} "
                                                  for key in ".,;"})
         self.splitter = ssplit.NegBioSSplitter(newline=False)
 
     def preprocess(self) -> None:
-        """Load and clean the reports."""
+        """Load and clean the report(s)."""
         collection = bioc.BioCCollection()
         reports = pd.read_csv(self.reports_path,
                               header=None,
@@ -27,14 +43,12 @@ class Preprocessor:
             document = text2bioc.text2document(str(i), clean_report)
 
             split_document = self.splitter.split_doc(document)
-
             # If length is not exactly 1, raise error.
             assert len(split_document.passages) == 1, 'Each document must have a single passage.'
 
             collection.add_document(split_document)
 
         self.collection = collection
-        self.T_matrix = t_matrix_fct(config=self.labeler_config)
 
     def clean(self, report: pd.DataFrame = None) -> pd.DataFrame:
         """Clean the report text."""

@@ -1,19 +1,36 @@
-"""Define observation extractor class."""
-import re
+"""
+This code builds upon the CheXpert labeler from Stanford ML Group.
+It has been slightly modified to be compatible with knodle.
+The original code can be found here: https://github.com/stanfordmlgroup/chexpert-labeler
+
+----------------------------------------------------------------------------------------
+
+Define observation matcher class.
+"""
+import bioc
 import itertools
+import os
+import re
 from collections import defaultdict
 from typing import DefaultDict
-from .utils import *
+
+from .config import CheXpertConfig
+from .utils import z_matrix_fct, get_rule_idx
 
 
 class Matcher(object):
-    """Extract observations from reports."""
-    def __init__(self, config: Type[ChexpertConfig], chexpert_data: bool = True):
+    """
+    Find mentions matching observations in report(s).
+
+    Original code:
+    https://github.com/stanfordmlgroup/chexpert-labeler/blob/master/stages/extract.py
+    """
+    def __init__(self, config: CheXpertConfig, chexpert_data: bool = True):
         self.labeler_config = config
         self.observation2mention_phrases = self.load_phrases(self.labeler_config.mention_data_dir)
         self.observation2unmention_phrases = self.load_phrases(self.labeler_config.unmention_data_dir)
 
-        # CheXpert specific
+        # Add CheXpert specific unmention phrases.
         if chexpert_data:
             self.add_unmention_phrases()
 
@@ -31,7 +48,7 @@ class Matcher(object):
         return observation2phrases
 
     def add_unmention_phrases(self) -> None:
-        """This function is specifically designed for the CheXpert rules."""
+        """Define additional unmentions. This function is custom-made for the CheXpert rules."""
         cardiomegaly_mentions\
             = self.observation2mention_phrases[self.labeler_config.cardiomegaly]
         enlarged_cardiom_mentions\
@@ -59,11 +76,11 @@ class Matcher(object):
             = enlarged_cardiomediastinum_unmentions
 
     def overlaps_with_unmention(self,
-                                sentence: Type[bioc.BioCSentence],
+                                sentence: bioc.BioCSentence,
                                 observation: str,
                                 start: int,
                                 end: int) -> bool:
-        """Return True if a given match overlaps with an unmention phrase."""
+        """Return "True" if a given match overlaps with an unmention phrase."""
         unmention_overlap = False
         unmention_list = self.observation2unmention_phrases.get(observation,
                                                                 [])
@@ -80,8 +97,8 @@ class Matcher(object):
         return unmention_overlap
 
     def add_match(self,
-                  section: Type[bioc.BioCPassage],
-                  sentence: Type[bioc.BioCSentence],
+                  section: bioc.BioCPassage,
+                  sentence: bioc.BioCSentence,
                   ann_index: str,
                   phrase: str,
                   observation: str,
@@ -90,7 +107,7 @@ class Matcher(object):
         """Add the match data and metadata to the report object in place."""
         annotation = bioc.BioCAnnotation()
         annotation.id = ann_index
-        annotation.infons['CUI'] = None
+        annotation.infons['CUI'] = None  # TODO: check if necessary
         annotation.infons['semtype'] = None
         annotation.infons['term'] = phrase
         annotation.infons[self.labeler_config.observation] = observation
@@ -102,20 +119,17 @@ class Matcher(object):
 
         section.annotations.append(annotation)
 
-    def match(self, collection: Type[bioc.BioCCollection]) -> None:
-        """Extract the observations in each report.
-
-        Args:
-            collection (BioCCollection): Passages of each report.
-        """
-        self.Z_matrix = z_matrix_fct(config=self.labeler_config)
+    def match(self, collection: bioc.BioCCollection) -> None:
+        """Find the observation matches in each report."""
+        # Initialize the Z matrix.
+        self.z_matrix = z_matrix_fct(config=self.labeler_config)
 
         # The BioCCollection consists of a series of documents.
         # Each document is a report.
         documents = collection.documents
         for i, document in enumerate(documents):
             # Get the first section.
-            section = document.passages[0]
+            section = document.passages[0]  # TODO: check if necessary
             annotation_index = itertools.count(len(section.annotations))
 
             for sentence in section.sentences:
@@ -141,7 +155,7 @@ class Matcher(object):
                                            start,
                                            end)
 
-                            # Corresponding Z matrix position is adjusted, so it is clear that there was a match.
+                            # Corresponding Z matrix position is adjusted, indicating that there was a match.
                             # At this point it is not clear though, whether it is positive, negative or uncertain.
-                            self.Z_matrix[i, get_rule_idx(phrase,
+                            self.z_matrix[i, get_rule_idx(phrase,
                                                           config=self.labeler_config)] = self.labeler_config.match

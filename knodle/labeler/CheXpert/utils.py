@@ -1,12 +1,14 @@
+"""
+Define helper functions.
+"""
 import os
 import pandas as pd
 import numpy as np
-import bioc
-from typing import Type
-from knodle.labeler.CheXpert.config import ChexpertConfig
+
+from .config import CheXpertConfig
 
 
-def t_matrix_fct(config: Type[ChexpertConfig]) -> pd.DataFrame:
+def t_matrix_fct(config: CheXpertConfig) -> pd.DataFrame:
     """Create T-matrix from rules (mentions)."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(config.mention_data_dir, file), header=None).assign(
@@ -17,7 +19,7 @@ def t_matrix_fct(config: Type[ChexpertConfig]) -> pd.DataFrame:
     return T_matrix
 
 
-def z_matrix_fct(config: Type[ChexpertConfig]) -> np.ndarray:
+def z_matrix_fct(config: CheXpertConfig) -> np.ndarray:
     """Create Z-matrix from combination of rules (mentions) and samples."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(config.mention_data_dir, file), header=None).assign(
@@ -29,12 +31,12 @@ def z_matrix_fct(config: Type[ChexpertConfig]) -> np.ndarray:
                           names=[config.reports])[config.reports].tolist()
     n_samples = len(reports)
 
-    Z_matrix = np.zeros((n_samples, n_rules))  # , dtype=int
+    Z_matrix = np.zeros((n_samples, n_rules))
 
     return Z_matrix
 
 
-def get_rule_idx(phrase: str, config: Type[ChexpertConfig]) -> int:
+def get_rule_idx(phrase: str, config: CheXpertConfig) -> int:
     """Given phrase, outputs index of rule."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(config.mention_data_dir, file), header=None).assign(
@@ -43,22 +45,3 @@ def get_rule_idx(phrase: str, config: Type[ChexpertConfig]) -> int:
     index = mentions.index[mentions[0] == phrase]
 
     return index
-
-
-def transform(text_file: str) -> None:
-    """Transform file of words to patterns which are compatible with ngrex."""
-
-    file = open(text_file, "r+")
-
-    new_file = []
-
-    for line in file:
-        lemmatized1 = "{} < {} {lemma:/" + str(line).rstrip() + "/}"
-        new_file.append(lemmatized1)
-
-        lemmatized2 = "{} > {} {lemma:/" + str(line).rstrip() + "/}"
-        new_file.append(lemmatized2)
-
-    with open(text_file, "w+") as file:
-        for i in new_file:
-            file.write(i + "\n")

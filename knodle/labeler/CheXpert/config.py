@@ -1,18 +1,17 @@
-from pathlib import Path
 import os
+import tempfile
+from bllipparser import ModelFetcher
+from pathlib import Path
+
+from knodle.labeler.config import LabelerConfig
 
 
-class ChexpertConfig:
+class CheXpertConfig(LabelerConfig):
     def __init__(
             self,
             home_dir: str = Path.home(),
             chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
-            # Observation constants - CheXpert data specific
-            cardiomegaly: str = "Cardiomegaly",
-            enlarged_cardiomediastinum: str = "Enlarged Cardiomediastinum",
-            support_devices: str = "Support Devices",
-            no_finding: str = "No Finding",
             observation: str = "observation",
 
             # Numeric constants
@@ -24,10 +23,13 @@ class ChexpertConfig:
             # Misc. constants
             uncertainty: str = "uncertainty",
             negation: str = "negation",
-            reports: str = "Reports"
+            reports: str = "Reports",
+
+            parsing_model_dir: str = ModelFetcher.download_and_install_model(
+                'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models'))
     ):
 
-        self.parsing_model_dir = home_dir / ".local/share/bllipparser/GENIA+PubMed"
+        self.parsing_model_dir = os.path.expanduser(parsing_model_dir)
 
         self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
         self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")
@@ -36,19 +38,14 @@ class ChexpertConfig:
         self.neg_path = os.path.join(chexpert_data_dir, "patterns", "negation.txt")
         self.post_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "post_negation_uncertainty.txt")
 
-        self.sample_path = os.path.join(chexpert_data_dir, "reports", "sample_reports.csv")
+        self.sample_path = os.path.join(chexpert_data_dir, "reports", "weather_forecast.csv")
 
         self.output_dir = os.path.join(chexpert_data_dir, "output")
 
-        # Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created
+        # Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created.
         self.files = os.listdir(self.mention_data_dir)
         self.files.sort()
 
-        # Observation constants - CheXpert data specific
-        self.cardiomegaly = cardiomegaly
-        self.enlarged_cardiomediastinum = enlarged_cardiomediastinum
-        self.support_devices = support_devices
-        self.no_finding = no_finding
         self.observation = observation
 
         # Numeric constants

@@ -1,34 +1,37 @@
-"""Define mention classifier class."""
+"""
+This code builds upon the CheXpert labeler from Stanford ML Group.
+It has been slightly modified to be compatible with knodle.
+The original code can be found here: https://github.com/stanfordmlgroup/chexpert-labeler
+
+----------------------------------------------------------------------------------------
+
+Define negation and uncertainty detection class.
+"""
+import bioc
 import logging
-from negbio.pipeline import parse, ptb2ud, negdetect
-from negbio.neg import semgraph, propagator, neg_detector
-from negbio import ngrex
 import networkx as nx
-from .utils import *
+from negbio import ngrex
+from negbio.neg import semgraph, propagator, neg_detector
+from negbio.pipeline import parse, ptb2ud, negdetect
+
+from .config import CheXpertConfig
 
 
 class ModifiedDetector(neg_detector.Detector):
-    """Child class of NegBio Detector class.
-
-    Overrides parent methods __init__, detect, and match_uncertainty.
     """
-    def __init__(self, config: Type[ChexpertConfig]):
+    Child class of NegBio Detector class.
+    Overrides parent methods __init__, detect, and match_uncertainty.
+
+    See: https://github.com/stanfordmlgroup/chexpert-labeler/blob/master/stages/classify.py
+    """
+    def __init__(self, config: CheXpertConfig):
         self.labeler_config = config
         self.neg_patterns = ngrex.load(self.labeler_config.neg_path)
         self.uncertain_patterns = ngrex.load(self.labeler_config.post_neg_unc_path)
         self.preneg_uncertain_patterns = ngrex.load(self.labeler_config.pre_neg_unc_path)
 
-    def detect(self, sentence: Type[bioc.BioCSentence], locs: list) -> None:
-        """Detect rules in report sentences.
-
-        Args:
-            sentence(BioCSentence): a sentence with universal dependencies
-            locs(list): a list of (begin, end)
-
-        Return:
-            (str, MatcherObj, (begin, end)): negation or uncertainty,
-            matcher, matched annotation
-        """
+    def detect(self, sentence: bioc.BioCSentence, locs: list) -> None:
+        """Detect rules in report sentences. Return negation or uncertainty if detectable."""
         logger = logging.getLogger(__name__)
 
         try:
@@ -57,8 +60,8 @@ class ModifiedDetector(neg_detector.Detector):
                                 yield self.labeler_config.uncertainty, postneg_m, loc
 
     def match_uncertainty(self,
-                          graph: Type[nx.DiGraph],
-                          node: Type[bioc.BioCNode]) -> Type[ngrex.pattern.MatcherObj]:
+                          graph: nx.DiGraph,
+                          node: bioc.BioCNode) -> ngrex.pattern.MatcherObj:
         for pattern in self.uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
@@ -66,8 +69,8 @@ class ModifiedDetector(neg_detector.Detector):
                     return m
 
     def match_prenegation_uncertainty(self,
-                                      graph: Type[nx.DiGraph],
-                                      node: Type[bioc.BioCNode]) -> Type[ngrex.pattern.MatcherObj]:
+                                      graph: nx.DiGraph,
+                                      node: bioc.BioCNode) -> ngrex.pattern.MatcherObj:
         for pattern in self.preneg_uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
@@ -75,9 +78,13 @@ class ModifiedDetector(neg_detector.Detector):
                     return m
 
 
-class Finetuner(object):
-    """Classify mentions of observations from reports."""
-    def __init__(self, config: Type[ChexpertConfig]):
+class NegUncDetector(object):
+    """
+    Detect negation or uncertainty in observation mentions from report(s).
+
+    Original code: https://github.com/stanfordmlgroup/chexpert-labeler/blob/master/stages/classify.py
+    """
+    def __init__(self, config: CheXpertConfig):
         self.labeler_config = config
         self.parser = parse.NegBioParser(model_dir=self.labeler_config.parsing_model_dir)
         lemmatizer = ptb2ud.Lemmatizer()
@@ -85,11 +92,11 @@ class Finetuner(object):
 
         self.detector = ModifiedDetector(config=self.labeler_config)
 
-    def finetune(self, collection: Type[bioc.BioCCollection]) -> None:
-        """Classify each mention into one of negative, uncertain, or none (positive)."""
+    def neg_unc_detect(self, collection: bioc.BioCCollection) -> None:
+        """Mark each mention as one of negative, uncertain, or none (positive)."""
         documents = collection.documents
         for document in documents:
-            # Parse the impression text in place.
+            # Parse the report text in place.
             self.parser.parse_doc(document)
             # Add the universal dependency graph in place.
             self.ptb2dep.convert_doc(document)
