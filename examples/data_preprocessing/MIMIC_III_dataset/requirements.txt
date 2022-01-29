@@ -1,0 +1,12 @@
+numpy
+pandas
+seaborn
+matplotlib
+
+minio
+pprint
+itertools
+sklearn
+tqdm
+scipy
+joblib
