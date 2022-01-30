@@ -43,7 +43,7 @@ def get_predicted_labels(probs: np.array, threshold: float) -> List:
 
 
 def evaluate_multi_label(
-        y_true: List[List[int]], y_pred: np.ndarray, threshold: float, ids2labels: Dict
+        y_true: List[List[int]], y_pred: np.ndarray, threshold: float, num_classes: int
 ) -> Dict[str, float]:
     """
     Calculates precision, recall and F1 scores for multi-label classification results. The scores are macro
@@ -52,17 +52,14 @@ def evaluate_multi_label(
         y_true: List that contains a list with the ids of ground truth labels for each instance
         y_pred: Numpy array with the predicted probabilities
         threshold: Number from 0 to 1 to be used as inference threshold
-        ids2labels: Dictionary with ids and the corresponding labels (ids start from 0)
+        num_classes: Number of output classes
     Returns: Average precision, recall and F1
     """
 
-    # Prepare ground truth
-    y_true_binary = encode_to_binary(y_true, len(ids2labels))
-
     # Prepare predictions
     predicted_labels = get_predicted_labels(y_pred, threshold)
-    y_pred_binary = encode_to_binary(predicted_labels, len(ids2labels))
+    y_pred_binary = encode_to_binary(predicted_labels, num_classes)
 
-    precision, recall, f1, _ = precision_recall_fscore_support(y_true_binary, y_pred_binary, average="samples")
+    precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred_binary, average="samples")
     # Evaluate
     return {"precision": precision, "recall": recall, "f1": f1}
