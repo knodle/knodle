@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Union, Dict, Tuple
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
 import skorch
@@ -15,7 +15,7 @@ from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm.auto import tqdm
 
-from knodle.evaluation.multi_label_metrics import evaluate_multi_label
+from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_to_binary
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
@@ -261,15 +261,17 @@ class BaseTrainer(Trainer):
                 label_list.append(label_batch.detach().cpu().numpy())
 
         predictions = np.squeeze(np.hstack(predictions_list))
-        gold_labels = np.squeeze(np.hstack(label_list))
 
-        return predictions, gold_labels, dev_loss
+        return predictions, dev_loss
 
     def test(
-            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+            self, features_dataset: TensorDataset, labels: Union[TensorDataset, List], loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
-        gold_labels = labels.tensors[0].cpu().numpy()
+        if type(labels) is list:
+            gold_labels = encode_to_binary(labels, self.trainer_config.output_classes)
+        else:
+            gold_labels = labels.tensors[0].cpu().numpy()
 
         if isinstance(self.model, skorch.NeuralNetClassifier):
             # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
@@ -277,12 +279,12 @@ class BaseTrainer(Trainer):
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
-            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+            predictions, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
         if self.trainer_config.multi_label:
             clf_report = evaluate_multi_label(
                 y_true=gold_labels, y_pred=predictions, threshold=self.trainer_config.multi_label_threshold,
-                ids2labels=self.trainer_config.ids2labels
+                num_classes=self.trainer_config.output_classes
             )
 
         elif self.trainer_config.evaluate_with_other_class:
