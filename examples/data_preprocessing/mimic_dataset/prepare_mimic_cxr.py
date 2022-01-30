@@ -79,11 +79,11 @@ if download:
 Z = "rule_matches_z.lib"
 T = "mapping_rules_labels_t.lib"
 X = "train_X.lib"
-finetuned_model = 'finetuned_model.lib'
-X_finetuned = "train_X_finetuned.lib"
-X_test = "X_test.lib"
-X_test_finetuned = "X_test_finetuned.lib"
-y_test = "gold_labels_test.lib"
+FINETUNED_MODEL = 'finetuned_model.lib'
+X_FINETUNED = "train_X_finetuned.lib"
+X_TEST = "X_test.lib"
+X_TEST_FINETUNED = "X_test_finetuned.lib"
+Y_TEST = "gold_labels_test.lib"
 
 
 if download:
@@ -360,7 +360,6 @@ for i in tqdm(range(len(input_list_labels_pd))):
 
 # convert to numpy
 input_list_labels = input_list_labels_pd.to_numpy()
-dump(input_list_labels, "input_list_labels.lib")
 
 # finetuning
 # m ... number of images used for finetuning
@@ -470,7 +469,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.0001)
 step_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 model = train_model(model, criterion, optimizer, step_lr_scheduler, num_epochs=3)
 
-dump(model, finetuned_model)
+dump(model, FINETUNED_MODEL)
 # delete last layer of the network
 modules = list(model.children())[:-1]
 model=torch.nn.Sequential(*modules)
@@ -494,7 +493,7 @@ for i in range(n):
     train_X_finetuned[i,:] = np.concatenate((img_embedding_finetuned[i,:], img_embedding_finetuned[i+1,:]))
 
 # save features matrix
-dump(train_X_finetuned, X_finetuned)
+dump(train_X_finetuned, X_FINETUNED)
 
 ##############################################################################
 # Test data preprocessing 
@@ -569,6 +568,6 @@ for i in ind:
         gold_labels_test.append([8]) #no finding
 
 # save test data
-dump(test_X, X_test_finetuned)
-dump(gold_labels_test, y_test)
+dump(test_X, X_TEST_FINETUNED)
+dump(gold_labels_test, Y_TEST)
 
