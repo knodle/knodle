@@ -30,7 +30,9 @@ class TrainerConfig:
             device: str = None,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
-            saved_models_dir: str = None
+            saved_models_dir: str = None,
+            multi_label: bool = False,
+            multi_label_threshold: float = None
     ):
         """
         A default and minimum sufficient configuration of a Trainer instance.
@@ -51,6 +53,7 @@ class TrainerConfig:
         :param caching_suffix: a specific index that could be added to the caching file name (e.g. in WSCrossWeigh for
         sample weights calculated in different iterations and stored in different files.)
         :param saved_models_dir: a path to the folder where trained models will be stored. If None, the trained models
+        :param multi_label: a boolean value whether the classification is multi-label
         won't be stored.
         """
         self.seed = seed
@@ -94,6 +97,13 @@ class TrainerConfig:
             if len(class_weights) != self.output_classes:
                 raise Exception("Wrong class sample_weights initialisation!")
             self.class_weights = class_weights
+
+        self.multi_label = multi_label
+
+        if multi_label_threshold is None:
+            self.multi_label_threshold = 0.5
+        else:
+            self.multi_label_threshold = multi_label_threshold
 
 
 class BaseTrainerConfig(TrainerConfig):
