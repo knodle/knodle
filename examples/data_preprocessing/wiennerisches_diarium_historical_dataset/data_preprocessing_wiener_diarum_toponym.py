@@ -45,7 +45,7 @@ sterbeliste = sterbelisten_strip_html2.split("\n\n\n")
 
 # CREATE LABELED SENTENCES AND A DICTIONARY OF PLACE NAMES
 
-def get_location_id(curr_loc: List, all_loc: List) -> tuple:
+def get_location_id(curr_loc: List, all_loc: Dict) -> tuple[int,Dict]:
     '''
     Descr: This function loops through the list of place names,
     if it doesn't find a given place name it adds the place name to the list
@@ -130,7 +130,7 @@ def create_labels(sterbeliste: List):
         print(all_loc)
     return samples, clean_sterbeliste, all_loc
 samples, clean_sterbeliste, all_loc = create_labels(sterbeliste)
-#create_labels(sterbeliste)
+
 
 print(f"Sample_tagging:{samples[0]}")
 print(f"Cleaned Sentence: {clean_sterbeliste[0]}")
