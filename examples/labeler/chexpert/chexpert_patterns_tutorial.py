@@ -2,10 +2,10 @@ import os
 from tqdm.auto import tqdm
 from minio import Minio
 from knodle.labeler.CheXpert.label import CheXpertLabeler
+from examples.labeler.chexpert.config_pattern_tutorial import WeatherConfig
 
-
-# In this tutorial all data is downloaded from the knodle Minio browser & saved in
-# the knodle.examples.labeler.chexpert directory, in the default config.py file these paths are accessed.
+# This notebook demonstrates how negation & uncertainty patterns for the CheXpert labeler work.
+# Please have a look at the identically named jupyter notebook for further explanations.
 
 # Define Constants & Download Data.
 
@@ -19,26 +19,25 @@ CHEXPERT_DATA_DIR = os.path.join(os.getcwd(), "examples", "labeler", "chexpert")
 MENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "mention")
 os.makedirs(MENTION_DATA_DIR, exist_ok=True)
 files_mention = [
-    "pleural_effusion.txt", "no_finding.txt", "edema.txt", "support_devices.txt", "lung_lesion.txt",
-    "cardiomegaly.txt", "pneumothorax.txt", "atelectasis.txt", "fracture.txt", "pneumonia.txt",
-    "pleural_other.txt", "consolidation.txt", "enlarged_cardiomediastinum.txt", "lung_opacity.txt"
+    "clouds.txt", "cold.txt", "rain.txt", "snow.txt",
+    "storm.txt", "sun.txt", "warm.txt", "wind.txt"
 ]
 for file in tqdm(files_mention):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/chexpert/phrases/mention/", file),
+        object_name=os.path.join("datasets/weather/phrases/mention/", file),
         file_path=os.path.join(MENTION_DATA_DIR, file),
     )
 
 UNMENTION_DATA_DIR = os.path.join(CHEXPERT_DATA_DIR, "phrases", "unmention")
 os.makedirs(UNMENTION_DATA_DIR, exist_ok=True)
 files_unmention = [
-    "pleural_effusion.txt", "lung_opacity.txt", "lung_lesion.txt"
+    "rain.txt"
 ]
 for file in tqdm(files_unmention):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/chexpert/phrases/unmention/", file),
+        object_name=os.path.join("datasets/weather/phrases/unmention/", file),
         file_path=os.path.join(UNMENTION_DATA_DIR, file),
     )
 
@@ -52,7 +51,7 @@ files_patterns = [
 for file in tqdm(files_patterns):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/chexpert/patterns/", file),
+        object_name=os.path.join("datasets/weather/patterns/", file),
         file_path=os.path.join(PATTERNS_DIR, file),
     )
 
@@ -61,12 +60,12 @@ for file in tqdm(files_patterns):
 SAMPLE_DIR = os.path.join(CHEXPERT_DATA_DIR, "reports")
 os.makedirs(SAMPLE_DIR, exist_ok=True)
 files_sample = [
-    "sample_reports.csv"
+    "weather_forecast.csv"
 ]
 for file in tqdm(files_sample):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/chexpert/reports/", file),
+        object_name=os.path.join("datasets/weather/reports/", file),
         file_path=os.path.join(SAMPLE_DIR, file),
     )
 
@@ -76,8 +75,8 @@ OUTPUT_DIR = os.path.join(CHEXPERT_DATA_DIR, "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-# The labeler class is initiated without passing a config.py file, so the default one is used.
-labeler = CheXpertLabeler()
+# The labeler class is initiated using the "config_pattern_tutorial.py" as config file.
+labeler = CheXpertLabeler(labeler_config=WeatherConfig())
 
 # The label function is run, outputting the matrices X, T and Z.
-labeler.label(uncertain=-1, chexpert_bool=True)
+labeler.label(uncertain=-1, chexpert_bool=False)
