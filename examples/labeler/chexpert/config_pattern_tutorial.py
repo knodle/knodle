@@ -1,11 +1,14 @@
-from pathlib import Path
 import os
+import tempfile
+from bllipparser import ModelFetcher
 
 
 class WeatherConfig:
     def __init__(
             self,
-            home_dir: str = Path.home(),
+            parsing_model_dir: str = ModelFetcher.download_and_install_model(
+                'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models')),
+
             chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
             observation: str = "observation",
@@ -21,8 +24,7 @@ class WeatherConfig:
             negation: str = "negation",
             reports: str = "Reports"
     ):
-
-        self.parsing_model_dir = home_dir / ".local/share/bllipparser/GENIA+PubMed"
+        self.parsing_model_dir = os.path.expanduser(parsing_model_dir)
 
         self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
         self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")
@@ -38,6 +40,8 @@ class WeatherConfig:
         # Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created
         self.files = os.listdir(self.mention_data_dir)
         self.files.sort()
+
+        self.observation = observation
 
         # Numeric constants
         self.match = match

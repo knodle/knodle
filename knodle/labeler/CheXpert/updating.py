@@ -38,9 +38,9 @@ class Updater(object):
         documents = collection.documents
         for i, document in enumerate(documents):
 
-            impression_passage = document.passages[0]  # TODO: check if necessary
+            section = document.passages[0]
 
-            for annotation in impression_passage.annotations:
+            for annotation in section.annotations:
                 category = annotation.infons[self.labeler_config.observation]
                 rule_idx = get_rule_idx(annotation.infons['term'], config=self.labeler_config)
 

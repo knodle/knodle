@@ -107,8 +107,6 @@ class Matcher(object):
         """Add the match data and metadata to the report object in place."""
         annotation = bioc.BioCAnnotation()
         annotation.id = ann_index
-        annotation.infons['CUI'] = None  # TODO: check if necessary
-        annotation.infons['semtype'] = None
         annotation.infons['term'] = phrase
         annotation.infons[self.labeler_config.observation] = observation
         annotation.infons['annotator'] = 'Phrase'
@@ -128,8 +126,8 @@ class Matcher(object):
         # Each document is a report.
         documents = collection.documents
         for i, document in enumerate(documents):
-            # Get the first section.
-            section = document.passages[0]  # TODO: check if necessary
+            # Get the first (and only) section.
+            section = document.passages[0]
             annotation_index = itertools.count(len(section.annotations))
 
             for sentence in section.sentences:

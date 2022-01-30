@@ -8,6 +8,9 @@ from knodle.labeler.config import LabelerConfig
 class CheXpertConfig(LabelerConfig):
     def __init__(
             self,
+            parsing_model_dir: str = ModelFetcher.download_and_install_model(
+                'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models')),
+
             chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
             observation: str = "observation",
@@ -21,14 +24,12 @@ class CheXpertConfig(LabelerConfig):
             # Misc. constants
             uncertainty: str = "uncertainty",
             negation: str = "negation",
-            reports: str = "Reports",
-
-            parsing_model_dir: str = ModelFetcher.download_and_install_model(
-                'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models'))
+            reports: str = "Reports"
     ):
 
         self.parsing_model_dir = os.path.expanduser(parsing_model_dir)
 
+        # Define paths to locations where the files can be found.
         self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
         self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")
 
