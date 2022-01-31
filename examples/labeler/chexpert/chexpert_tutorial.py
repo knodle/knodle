@@ -81,3 +81,10 @@ labeler = CheXpertLabeler()
 
 # The label function is run, outputting the matrices X, T and Z.
 labeler.label(uncertain=-1, chexpert_bool=True)
+
+# DATA IN MINIO --------------------------------------------------------------------------------------
+# I uploaded the data to the knodle MinIO server under “datasets/chexpert”. There is one folder for phrases, patterns
+# and reports respectively where the input data is stored, and one folder called “processed” where the matrices can be
+# found in .lib format. The Z matrix is uploaded three times, each version covering different uncertainty handling.
+# So, there is one with uncertain labels, one where all uncertain labels are converted to positive and one where all
+# uncertain labels are converted to negative.
