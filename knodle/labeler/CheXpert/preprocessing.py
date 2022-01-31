@@ -68,6 +68,6 @@ class Preprocessor:
         # Convert any multi white spaces to single white spaces.
         clean_report = ' '.join(clean_report.split())
         # Remove empty sentences.
-        clean_report = re.sub(r'\.\s+\.', '../CheXpert', clean_report)
+        clean_report = re.sub(r'\.\s+\.', '.', clean_report)
 
         return clean_report
