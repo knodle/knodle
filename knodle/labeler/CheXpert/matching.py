@@ -9,10 +9,10 @@ Define observation matcher class.
 """
 import bioc
 import itertools
-import os
+import logging
 import re
-from collections import defaultdict
-from typing import DefaultDict
+import yaml
+from typing import AnyStr, Pattern
 
 from .config import CheXpertConfig
 from .utils import z_matrix_fct, get_rule_idx
@@ -27,53 +27,58 @@ class Matcher(object):
     """
     def __init__(self, config: CheXpertConfig, chexpert_data: bool = True):
         self.labeler_config = config
-        self.observation2mention_phrases = self.load_phrases(self.labeler_config.mention_data_dir)
-        self.observation2unmention_phrases = self.load_phrases(self.labeler_config.unmention_data_dir)
+
+        with open(self.labeler_config.phrases_path) as fp:
+            phrases = yaml.load(fp, yaml.FullLoader)
+
+        self.vocab_name = self.labeler_config.phrases_path.stem
+        self.observation2mention_phrases = {}
+        self.observation2unmention_phrases = {}
+        for observation, v in phrases.items():
+            if 'include' in v:
+                self.observation2mention_phrases[observation] = phrases[observation]['include']
+            if 'exclude' in v:
+                self.observation2unmention_phrases[observation] = phrases[observation]['exclude']
+
+        logging.debug("Loading mention phrases for %s observations.",
+                      len(self.observation2mention_phrases))
+        logging.debug("Loading unmention phrases for %s observations.",
+                      len(self.observation2unmention_phrases))
 
         # Add CheXpert specific unmention phrases.
         if chexpert_data:
             self.add_unmention_phrases()
 
-    def load_phrases(self, phrases_dir: str) -> DefaultDict:
-        """Read in map from observations to phrases for matching."""
-        observation2phrases = defaultdict(list)
-        for phrases_path in os.listdir(phrases_dir):
-            with open(os.path.join(phrases_dir, phrases_path)) as f:
-                for line in f:
-                    phrase = line.strip().replace("_", " ")
-                    observation = phrases_path.replace("_", " ").title()
-                    if line:
-                        observation2phrases[observation].append(phrase)
-
-        return observation2phrases
-
     def add_unmention_phrases(self) -> None:
         """Define additional unmentions. This function is custom-made for the CheXpert rules."""
-        cardiomegaly_mentions\
-            = self.observation2mention_phrases[self.labeler_config.cardiomegaly]
-        enlarged_cardiom_mentions\
-            = self.observation2mention_phrases[self.labeler_config.enlarged_cardiomediastinum]
-        positional_phrases = (["over the", "overly the", "in the"],
+        cardiomegaly_mentions = self.observation2mention_phrases.get("Cardiomegaly", [])
+        enlarged_cardiom_mentions = self.observation2mention_phrases.get("Enlarged Cardiomediastinum", [])
+        positional_phrases = (["over the", "overly the", "in the", "assessment of", "diameter of"],
                               ["", " superior", " left", " right"])
-        positional_unmentions\
-            = [e1 + e2
-               for e1 in positional_phrases[0]
-               for e2 in positional_phrases[1]]
-        cardiomegaly_unmentions\
-            = [e1 + " " + e2.replace("the ", "")
-               for e1 in positional_unmentions
-               for e2 in cardiomegaly_mentions
-               if e2 not in ["cardiomegaly",
-                             "cardiac enlargement"]]
-        enlarged_cardiomediastinum_unmentions\
-            = [e1 + " " + e2
-               for e1 in positional_unmentions
-               for e2 in enlarged_cardiom_mentions]
+        positional_unmentions = \
+            [e1 + e2
+             for e1 in positional_phrases[0]
+             for e2 in positional_phrases[1]]
+
+        cardiomegaly_unmentions = \
+            [e1 + " " + e2.replace("the ", "")
+             for e1 in positional_unmentions
+             for e2 in cardiomegaly_mentions
+             if e2 not in ["cardiomegaly", "cardiac enlargement"]]
+
+        enlarged_cardiomediastinum_unmentions = \
+            [e1 + " " + e2
+             for e1 in positional_unmentions
+             for e2 in enlarged_cardiom_mentions]
 
         self.observation2unmention_phrases[self.labeler_config.cardiomegaly]\
             = cardiomegaly_unmentions
         self.observation2unmention_phrases[self.labeler_config.enlarged_cardiomediastinum]\
             = enlarged_cardiomediastinum_unmentions
+
+    def compile_pattern(self, pattern: AnyStr) -> Pattern[AnyStr]:
+        pattern = re.sub(' ', r'\\s+', pattern)
+        return re.compile(pattern, re.I | re.M)
 
     def overlaps_with_unmention(self,
                                 sentence: bioc.BioCSentence,
@@ -82,11 +87,10 @@ class Matcher(object):
                                 end: int) -> bool:
         """Return "True" if a given match overlaps with an unmention phrase."""
         unmention_overlap = False
-        unmention_list = self.observation2unmention_phrases.get(observation,
-                                                                [])
+        unmention_list = self.observation2unmention_phrases.get(observation, [])
         for unmention in unmention_list:
-            unmention_matches = re.finditer(unmention, sentence.text)
-            for unmention_match in unmention_matches:
+            unmention_pattern = self.compile_pattern(unmention)
+            for unmention_match in unmention_pattern.finditer(sentence.text):
                 unmention_start, unmention_end = unmention_match.span(0)
                 if start < unmention_end and end > unmention_start:
                     unmention_overlap = True
@@ -95,27 +99,6 @@ class Matcher(object):
                 break  # break early if overlap is found
 
         return unmention_overlap
-
-    def add_match(self,
-                  section: bioc.BioCPassage,
-                  sentence: bioc.BioCSentence,
-                  ann_index: str,
-                  phrase: str,
-                  observation: str,
-                  start: int,
-                  end: int) -> None:
-        """Add the match data and metadata to the report object in place."""
-        annotation = bioc.BioCAnnotation()
-        annotation.id = ann_index
-        annotation.infons['term'] = phrase
-        annotation.infons[self.labeler_config.observation] = observation
-        annotation.infons['annotator'] = 'Phrase'
-        length = end - start
-        annotation.add_location(bioc.BioCLocation(sentence.offset + start,
-                                                  length))
-        annotation.text = sentence.text[start:start+length]
-
-        section.annotations.append(annotation)
 
     def match(self, collection: bioc.BioCCollection) -> None:
         """Find the observation matches in each report."""
@@ -134,9 +117,8 @@ class Matcher(object):
                 obs_phrases = self.observation2mention_phrases.items()
                 for observation, phrases in obs_phrases:
                     for phrase in phrases:
-                        matches = re.finditer(phrase, sentence.text)
-
-                        for match in matches:
+                        pattern = self.compile_pattern(phrase)
+                        for match in pattern.finditer(sentence.text):
                             start, end = match.span(0)
 
                             if self.overlaps_with_unmention(sentence,
@@ -145,13 +127,16 @@ class Matcher(object):
                                                             end):
                                 continue
 
-                            self.add_match(section,
-                                           sentence,
-                                           str(next(annotation_index)),
-                                           phrase,
-                                           observation,
-                                           start,
-                                           end)
+                            annotation = bioc.BioCAnnotation()
+                            annotation.id = str(next(annotation_index))
+                            annotation.infons['term'] = phrase
+                            annotation.infons["observation"] = observation
+                            annotation.infons['annotator'] = 'RegEx'
+                            annotation.infons['vocab'] = self.vocab_name
+                            annotation.add_location(bioc.BioCLocation(sentence.offset + start,
+                                                                      end - start))
+                            annotation.text = sentence.text[start:end]
+                            section.annotations.append(annotation)
 
                             # Corresponding Z matrix position is adjusted, indicating that there was a match.
                             # At this point it is not clear though, whether it is positive, negative or uncertain.

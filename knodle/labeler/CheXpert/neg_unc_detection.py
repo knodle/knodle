@@ -12,7 +12,7 @@ import logging
 import networkx as nx
 from negbio import ngrex
 from negbio.neg import semgraph, propagator, neg_detector
-from negbio.pipeline import parse, ptb2ud, negdetect
+from negbio.pipeline2 import parse, lemmatize, ptb2ud, negdetect
 
 from .config import CheXpertConfig
 
@@ -26,9 +26,9 @@ class ModifiedDetector(neg_detector.Detector):
     """
     def __init__(self, config: CheXpertConfig):
         self.labeler_config = config
-        self.neg_patterns = ngrex.load(self.labeler_config.neg_path)
-        self.uncertain_patterns = ngrex.load(self.labeler_config.post_neg_unc_path)
-        self.preneg_uncertain_patterns = ngrex.load(self.labeler_config.pre_neg_unc_path)
+        self.neg_patterns = ngrex.load_yml(self.labeler_config.neg_path)
+        self.uncertain_patterns = ngrex.load_yml(self.labeler_config.post_neg_unc_path)
+        self.preneg_uncertain_patterns = ngrex.load_yml(self.labeler_config.pre_neg_unc_path)
 
     def detect(self, sentence: bioc.BioCSentence, locs: list) -> None:
         """Detect rules in report sentences. Return negation or uncertainty if detectable."""
@@ -61,7 +61,7 @@ class ModifiedDetector(neg_detector.Detector):
 
     def match_uncertainty(self,
                           graph: nx.DiGraph,
-                          node: bioc.BioCNode) -> ngrex.pattern.MatcherObj:
+                          node: bioc.BioCNode) -> ngrex.pattern.NgrexMatch:
         for pattern in self.uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
@@ -70,7 +70,7 @@ class ModifiedDetector(neg_detector.Detector):
 
     def match_prenegation_uncertainty(self,
                                       graph: nx.DiGraph,
-                                      node: bioc.BioCNode) -> ngrex.pattern.MatcherObj:
+                                      node: bioc.BioCNode) -> ngrex.pattern.NgrexMatch:
         for pattern in self.preneg_uncertain_patterns:
             for m in pattern.finditer(graph):
                 n0 = m.group(0)
@@ -87,8 +87,8 @@ class NegUncDetector(object):
     def __init__(self, config: CheXpertConfig):
         self.labeler_config = config
         self.parser = parse.NegBioParser(model_dir=self.labeler_config.parsing_model_dir)
-        lemmatizer = ptb2ud.Lemmatizer()
-        self.ptb2dep = ptb2ud.NegBioPtb2DepConverter(lemmatizer, universal=True)
+        #lemmatizer = lemmatize.Lemmatizer()
+        self.ptb2dep = ptb2ud.NegBioPtb2DepConverter(universal=True)
 
         self.detector = ModifiedDetector(config=self.labeler_config)
 
@@ -97,10 +97,11 @@ class NegUncDetector(object):
         documents = collection.documents
         for document in documents:
             # Parse the report text in place.
-            self.parser.parse_doc(document)
+            self.parser(document)
             # Add the universal dependency graph in place.
             self.ptb2dep.convert_doc(document)
             # Detect the negation and uncertainty rules in place.
-            negdetect.detect(document, self.detector)
+            negdetector = negdetect.NegBioNegDetector(self.detector)
+            negdetector(document)
             # To reduce memory consumption, remove sentences text.
             del document.passages[0].sentences[:]

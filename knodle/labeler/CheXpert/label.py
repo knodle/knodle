@@ -4,7 +4,7 @@ It has been slightly modified to be compatible with knodle.
 The original code can be found here: https://github.com/stanfordmlgroup/chexpert-labeler
 
 ----------------------------------------------------------------------------------------
-TEST
+
 Entry-point script to label the provided reports.
 """
 import os

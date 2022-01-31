@@ -30,20 +30,15 @@ class CheXpertConfig(LabelerConfig):
         self.parsing_model_dir = os.path.expanduser(parsing_model_dir)
 
         # Define paths to locations where the files can be found.
-        self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
-        self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")
+        self.phrases_path = os.path.join(chexpert_data_dir, "phrases", "chexpert_phrases.yml")
 
-        self.pre_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "pre_negation_uncertainty.txt")
-        self.neg_path = os.path.join(chexpert_data_dir, "patterns", "negation.txt")
-        self.post_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "post_negation_uncertainty.txt")
+        self.pre_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "chexpert_pre_negation_uncertainty.yml")
+        self.neg_path = os.path.join(chexpert_data_dir, "patterns", "neg_patterns2.yml")
+        self.post_neg_unc_path = os.path.join(chexpert_data_dir, "patterns", "post_negation_uncertainty.yml")
 
         self.sample_path = os.path.join(chexpert_data_dir, "reports", "sample_reports.csv")
 
         self.output_dir = os.path.join(chexpert_data_dir, "output")
-
-        # Get all the mention files and sort them alphabetically to avoid undesired behaviour when T-matrix is created.
-        self.files = os.listdir(self.mention_data_dir)
-        self.files.sort()
 
         self.observation = observation
 

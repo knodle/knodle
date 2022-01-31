@@ -10,7 +10,8 @@ Define the report preprocessing class.
 import bioc
 import re
 import pandas as pd
-from negbio.pipeline import text2bioc, ssplit
+from negbio import text2bioc
+from negbio.pipeline2 import ssplit
 
 from .config import CheXpertConfig
 
@@ -42,7 +43,7 @@ class Preprocessor:
             # Convert text to BioCDocument instance: id (str) = BioCDocument id, text (str): text.
             document = text2bioc.text2document(str(i), clean_report)
 
-            split_document = self.splitter.split_doc(document)
+            split_document = self.splitter(document)
             # If length is not exactly 1, raise error.
             assert len(split_document.passages) == 1, 'Each document must have a single passage.'
 
