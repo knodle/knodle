@@ -36,7 +36,7 @@ def z_matrix_fct(config: CheXpertConfig) -> np.ndarray:
     return Z_matrix
 
 
-def get_rule_idx(phrase: str, config: CheXpertConfig) -> int:
+def get_rule_idx(phrase: str, config: CheXpertConfig) -> pd.Int64Index:
     """Given phrase, outputs index of rule."""
 
     mentions = pd.concat([pd.read_csv(os.path.join(config.mention_data_dir, file), header=None).assign(
