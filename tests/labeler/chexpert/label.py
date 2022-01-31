@@ -8,6 +8,7 @@ from collections import defaultdict
 from knodle.labeler.CheXpert.label import CheXpertLabeler
 from knodle.labeler.CheXpert.preprocessing import Preprocessor
 from knodle.labeler.CheXpert.matching import Matcher
+from knodle.labeler.CheXpert.neg_unc_detection import NegUncDetector
 from knodle.labeler.CheXpert.utils import z_matrix_fct, t_matrix_fct, get_rule_idx
 from tests.labeler.chexpert.config_tests import WeatherTestsConfig
 
@@ -42,7 +43,7 @@ with open(os.path.join(PATTERNS_DIR, 'post_negation_uncertainty.txt'), 'w') as f
 SAMPLE_DIR = os.path.join(CHEXPERT_DATA_DIR, "reports")
 os.makedirs(SAMPLE_DIR, exist_ok=True)
 data = ['The weather is acting up today, even a storm is possible.']
-with open(os.path.join(SAMPLE_DIR, 'countries.csv'), 'w', encoding='UTF8') as f:
+with open(os.path.join(SAMPLE_DIR, 'weather_forecast.csv.csv'), 'w', encoding='UTF8') as f:
     writer = csv.writer(f)
     writer.writerow(data)
 
@@ -53,6 +54,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # OTHER-----------------------------------------------------------------------------------------------
 preprocessor = Preprocessor(config=WeatherTestsConfig())
 matcher = Matcher(config=WeatherTestsConfig(), chexpert_data=False)
+neg_unc_detector = NegUncDetector(config=WeatherTestsConfig())
 
 
 def test_chexpert_labeler_label():
@@ -80,11 +82,13 @@ def test_chexpert_labeler_preprocess():
     preprocessor.preprocess()
     collection = preprocessor.collection
 
-    part1 = "BioCCollection[source=,date=2022-01-31,key=,infons=[],documents=[BioCDocument[id=0,infons=[],"
-    part2 = "passages=[BioCPassage[offset=0,text='the weather is ac ... torm is possible.',infons=[],"
-    part3 = "sentences=[BioCSentence[offset=0,text='the weather is ac ... torm is possible.',"
-    part4 = "infons=[],annotations=[],relations=[],]],annotations=[],relations=[],]],annotations=[],relations=[],]],]"
-    collection_expected = part1 + part2 + part3 + part4
+    part1 = "BioCCollection[source=,date="
+    date = time.strftime("%Y-%m-%d")  # get date of today
+    part2 = ",key=,infons=[],documents=[BioCDocument[id=0,infons=[],"
+    part3 = "passages=[BioCPassage[offset=0,text='the weather is ac ... torm is possible.',infons=[],"
+    part4 = "sentences=[BioCSentence[offset=0,text='the weather is ac ... torm is possible.',"
+    part5 = "infons=[],annotations=[],relations=[],]],annotations=[],relations=[],]],annotations=[],relations=[],]],]"
+    collection_expected = part1 + date + part2 + part3 + part4 + part5
 
     assert str(collection) == collection_expected
 
@@ -123,12 +127,49 @@ def test_chexpert_labeler_match():
     preprocessor.preprocess()
     collection = preprocessor.collection
     matcher.match(collection)
+
+    part1 = "BioCCollection[source=,date="
+    date = time.strftime("%Y-%m-%d")  # get date of today
+    part2 = ",key=,infons=[],documents=[BioCDocument[id=0,infons=[],"
+    part3 = "passages=[BioCPassage[offset=0,text='the weather is ac ... torm is possible.',infons=[],"
+    part4 = "sentences=[BioCSentence[offset=0,text='the weather is ac ... torm is possible.',"
+    part5 = "infons=[],annotations=[],relations=[],]],annotations=[BioCAnnotation[id=0,text='storm',"
+    part6 = "infons=[term=storm,observation=Storm.Txt,annotator=Phrase],"
+    part7 = "locations=[BioCLocation[offset=39,length=5]],]],relations=[],]],annotations=[],relations=[],]],]"
+    collection_expected = part1 + date + part2 + part3 + part4 + part5 + part6 + part7
+
+    assert str(collection) == collection_expected
+
+
+def test_chexpert_labeler_match_z_matrix():
+
+    preprocessor.preprocess()
+    collection = preprocessor.collection
+    matcher.match(collection)
     z_matrix = matcher.z_matrix
 
     z_matrix_expected = np.array([[0, 999]], dtype=float)
 
     np.testing.assert_equal(z_matrix, z_matrix_expected)
 
+
+def test_chexpert_labeler_neg_unc_detect():
+
+    preprocessor.preprocess()
+    collection = preprocessor.collection
+    matcher.match(collection)
+    neg_unc_detector.neg_unc_detect(collection)
+
+    part1 = "BioCCollection[source=,date="
+    date = time.strftime("%Y-%m-%d")  # get date of today
+    part2 = ",key=,infons=[],documents=[BioCDocument[id=0,infons=[],"
+    part3 = "passages=[BioCPassage[offset=0,text='the weather is ac ... torm is possible.',infons=[],"
+    part4 = "sentences=[],annotations=[BioCAnnotation[id=0,text='storm',"
+    part5 = "infons=[term=storm,observation=Storm.Txt,annotator=Phrase,uncertainty=True],"
+    part6 = "locations=[BioCLocation[offset=39,length=5]],]],relations=[],]],annotations=[],relations=[],]],]"
+    collection_expected = part1 + date + part2 + part3 + part4 + part5 + part6
+
+    assert str(collection) == collection_expected
 
 
 
