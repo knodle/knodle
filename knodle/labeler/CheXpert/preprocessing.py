@@ -50,7 +50,7 @@ class Preprocessor:
 
         self.collection = collection
 
-    def clean(self, report: pd.DataFrame = None) -> pd.DataFrame:
+    def clean(self, report: str = None) -> str:
         """Clean the report text."""
         lower_report = report.lower()
         # Change `and/or` to `or`.
