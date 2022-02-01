@@ -1,8 +1,11 @@
 import os
+
 from tqdm.auto import tqdm
 from minio import Minio
-from knodle.labeler.CheXpert.label import CheXpertLabeler
+
 from examples.labeler.chexpert.config_pattern_tutorial import WeatherConfig
+from knodle.labeler.CheXpert.label import CheXpertLabeler
+
 
 # This notebook demonstrates how negation & uncertainty patterns for the CheXpert labeler work.
 # Please have a look at the identically named jupyter notebook for further explanations.

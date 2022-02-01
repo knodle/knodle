@@ -9,7 +9,9 @@ Define the report preprocessing class.
 """
 import bioc
 import re
+
 import pandas as pd
+
 from negbio.pipeline import text2bioc, ssplit
 
 from .config import CheXpertConfig

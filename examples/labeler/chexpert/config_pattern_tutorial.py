@@ -1,13 +1,13 @@
 import os
 import tempfile
+
 from bllipparser import ModelFetcher
 
 
 class WeatherConfig:
     def __init__(
             self,
-            parsing_model_dir: str = ModelFetcher.download_and_install_model(
-                'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models')),
+            parsing_model_dir: str = None,
 
             chexpert_data_dir: str = os.path.join(os.getcwd(), "examples", "labeler", "chexpert"),
 
@@ -24,7 +24,9 @@ class WeatherConfig:
             negation: str = "negation",
             reports: str = "Reports"
     ):
-        self.parsing_model_dir = os.path.expanduser(parsing_model_dir)
+        self.parsing_model_dir = os.path.expanduser(ModelFetcher.download_and_install_model(
+            'GENIA+PubMed', os.path.join(tempfile.gettempdir(), 'models'))) if parsing_model_dir is None \
+            else parsing_model_dir
 
         self.mention_data_dir = os.path.join(chexpert_data_dir, "phrases", "mention")
         self.unmention_data_dir = os.path.join(chexpert_data_dir, "phrases", "unmention")

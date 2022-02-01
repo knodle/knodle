@@ -11,6 +11,7 @@ import bioc
 import itertools
 import os
 import re
+
 from collections import defaultdict
 from typing import DefaultDict
 
@@ -90,9 +91,9 @@ class Matcher(object):
                 unmention_start, unmention_end = unmention_match.span(0)
                 if start < unmention_end and end > unmention_start:
                     unmention_overlap = True
-                    break  # break early if overlap is found
+                    return unmention_overlap
             if unmention_overlap:
-                break  # break early if overlap is found
+                return unmention_overlap
 
         return unmention_overlap
 
