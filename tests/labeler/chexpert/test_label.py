@@ -8,7 +8,7 @@ import pandas as pd
 
 from collections import defaultdict
 
-from tests.labeler.chexpert.config_test_label import WeatherTestsConfig
+from tests.labeler.chexpert.test_config_label import WeatherTestsConfig
 
 from knodle.labeler.CheXpert.label import CheXpertLabeler
 from knodle.labeler.CheXpert.preprocessing import Preprocessor
