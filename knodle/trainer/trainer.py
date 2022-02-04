@@ -1,29 +1,28 @@
-import os
 import logging
-from typing import Union, Dict, Tuple
-
-import skorch
-from torch.nn.modules.loss import _Loss
-from tqdm.auto import tqdm
+import os
 from abc import ABC, abstractmethod
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
-from sklearn.metrics import classification_report
-
+import skorch
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from sklearn.metrics import classification_report
 from torch import Tensor
 from torch.nn import Module
+from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
-import torch.nn.functional as F
+from tqdm.auto import tqdm
 
+from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_to_binary
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
-from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
-
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
-from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.trainer.utils.checks import check_other_class_id
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.transformation.rule_reduction import reduce_rule_matches
+from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +137,12 @@ class BaseTrainer(Trainer):
     ):
         log_section("Training starts", logger)
 
+        if self.trainer_config.multi_label and self.trainer_config.criterion not in [nn.BCELoss, nn.BCEWithLogitsLoss]:
+            raise ValueError(
+                "Criterion for multi-label classification should be Binary Cross-Entropy "
+                "(BCELoss or BCEWithLogitsLoss in Pytorch.) "
+            )
+
         self.model.to(self.trainer_config.device)
         self.model.train()
 
@@ -196,10 +201,12 @@ class BaseTrainer(Trainer):
 
             if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
-                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True)
+                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True
+                )
                 dev_losses.append(dev_loss)
-                dev_acc.append(dev_clf_report["accuracy"])
-                logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
+                if dev_clf_report["accuracy"]:
+                    dev_acc.append(dev_clf_report["accuracy"])
+                    logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
             # saving model
             if self.trainer_config.saved_models_dir is not None:
@@ -254,15 +261,17 @@ class BaseTrainer(Trainer):
                 label_list.append(label_batch.detach().cpu().numpy())
 
         predictions = np.squeeze(np.hstack(predictions_list))
-        gold_labels = np.squeeze(np.hstack(label_list))
 
-        return predictions, gold_labels, dev_loss
+        return predictions, dev_loss
 
     def test(
-            self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
+            self, features_dataset: TensorDataset, labels: Union[TensorDataset, List], loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
 
-        gold_labels = labels.tensors[0].cpu().numpy()
+        if type(labels) is list:
+            gold_labels = encode_to_binary(labels, self.trainer_config.output_classes)
+        else:
+            gold_labels = labels.tensors[0].cpu().numpy()
 
         if isinstance(self.model, skorch.NeuralNetClassifier):
             # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
@@ -270,9 +279,15 @@ class BaseTrainer(Trainer):
         else:
             feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
             feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
-            predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+            predictions, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
 
-        if self.trainer_config.evaluate_with_other_class:
+        if self.trainer_config.multi_label:
+            clf_report = evaluate_multi_label(
+                y_true=gold_labels, y_pred=predictions, threshold=self.trainer_config.multi_label_threshold,
+                num_classes=self.trainer_config.output_classes
+            )
+
+        elif self.trainer_config.evaluate_with_other_class:
             clf_report = classification_report_other_class(
                 y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
                 other_class_id=self.trainer_config.other_class_id
