@@ -15,14 +15,14 @@ Data Description
 There is a train and a test dataset, both of them containing dictionaries with the following keys:
 -	docid: unique identifiers of every mention of a person possibly killed by the police
 -	name: the normalized name of the person (a pair of a first name and a last name that was identified
-    by the HAPNIS (http://users.umiacs.umd.edu/~hal/HAPNIS/) name parser)
+        by the HAPNIS (http://users.umiacs.umd.edu/~hal/HAPNIS/) name parser)
 -	downloadtime: time the document was downloaded
 -	names_org: the original name of the person mentioned in the document
 -	sentnames: other names in the mention (not of the person possibly killed by the police)
--	sent_alter: the mention, name of the person possibly killed by the policed replaced by “TARGET”,
-    any other names replaced by “POLICE”
+-	sent_alter: the mention, but the name of the person possibly killed by the police is replaced by “TARGET” and any
+        other names are replaced by “PERSON“
 -	plabel: for the training data possibly erroneous labels obtained using weak supervision and gold labels for the
-    test data – in this project, only the labels of the test data will be used-	sent_org: the original mention
+        test data – in this project, only the labels of the test data will be used-	sent_org: the original mention
 
 Compared to the second approach that we try for solving this problem (using a Knowledge Base for labelling,
 as demonstrated in the Data Preprocessing with Knowledge Base Tutorial
