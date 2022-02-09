@@ -1,7 +1,0 @@
-minio
-pandas
-numpy
-jupyter
-typing
-tqdm
-joblib
