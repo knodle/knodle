@@ -1,0 +1,10 @@
+numpy
+pandas
+seaborn
+matplotlib
+
+minio
+sklearn
+tqdm
+scipy
+joblib
