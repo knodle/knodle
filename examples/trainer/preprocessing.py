@@ -1,10 +1,13 @@
 from typing import List, Union, Tuple
 from joblib import dump
-
+import numpy as np
+import scipy.sparse as sp
+import torch
+from torch.utils.data import TensorDataset
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-import numpy as np
-from torch.utils.data import TensorDataset
+
+
 
 
 def get_tfidf_features(
@@ -40,7 +43,7 @@ def get_tfidf_features(
     return train_transformed_data, test_transformed_data, dev_transformed_data
 
 
-def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorDataset:
+def convert_text_to_transformer_input(tokenizer, texts: List[str], max_sen_len=512) -> TensorDataset:
     """
     Convert input data to BERT encoded features (more details could be found at
     https://huggingface.co/transformers/model_doc)
@@ -49,10 +52,18 @@ def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorData
     :param tokenizer: DistilBertTokenizer tokenizer for english from HuggingFace
     :return: TensorDataset with encoded data
     """
-    encoding = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+    encoding = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_sen_len)
     input_ids = encoding.get('input_ids')
     attention_mask = encoding.get('attention_mask')
 
     input_values_x = TensorDataset(input_ids, attention_mask)
 
     return input_values_x
+
+
+def np_array_to_tensor_dataset(x: np.ndarray) -> TensorDataset:
+    if isinstance(x, sp.csr_matrix):
+        x = x.toarray()
+    x = torch.from_numpy(x)
+    x = TensorDataset(x)
+    return x
