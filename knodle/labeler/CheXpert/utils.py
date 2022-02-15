@@ -2,9 +2,10 @@
 Define helper functions.
 """
 import os
+import yaml
+
 import pandas as pd
 import numpy as np
-import yaml
 
 from .config import CheXpertConfig
 
