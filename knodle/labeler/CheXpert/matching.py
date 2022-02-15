@@ -12,6 +12,7 @@ import itertools
 import logging
 import re
 import yaml
+
 from typing import AnyStr, Pattern
 
 from .config import CheXpertConfig
@@ -94,9 +95,9 @@ class Matcher(object):
                 unmention_start, unmention_end = unmention_match.span(0)
                 if start < unmention_end and end > unmention_start:
                     unmention_overlap = True
-                    break  # break early if overlap is found
+                    return unmention_overlap
             if unmention_overlap:
-                break  # break early if overlap is found
+                return unmention_overlap
 
         return unmention_overlap
 
