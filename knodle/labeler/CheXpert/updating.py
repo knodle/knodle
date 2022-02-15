@@ -8,6 +8,7 @@ The original code can be found here: https://github.com/stanfordmlgroup/chexpert
 Define label updater class.
 """
 import bioc
+
 import numpy as np
 
 from .config import CheXpertConfig
