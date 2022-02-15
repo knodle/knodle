@@ -9,20 +9,22 @@ Entry-point script to label the provided reports.
 """
 import os
 import shutil
+
 import numpy as np
+
+from knodle.labeler.labeler import Labeler
 
 from .config import CheXpertConfig
 from .utils import t_matrix_fct
 from . import Preprocessor, Matcher, NegUncDetector, Updater
-from knodle.labeler.labeler import Labeler
+
 
 
 class CheXpertLabeler(Labeler):
 
-    def __init__(self, **kwargs):
-        if kwargs.get("labeler_config", None) is None:
-            kwargs["labeler_config"] = CheXpertConfig()
-        super().__init__(**kwargs)
+    def __init__(self, labeler_config=None, **kwargs):
+        labeler_config = CheXpertConfig() if labeler_config is None else labeler_config
+        super().__init__(labeler_config, **kwargs)
 
     def label(self, uncertain: int = 1, chexpert_bool: bool = True) -> None:
         """
