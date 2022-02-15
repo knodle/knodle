@@ -9,7 +9,9 @@ Define negation and uncertainty detection class.
 """
 import bioc
 import logging
+
 import networkx as nx
+
 from negbio import ngrex
 from negbio.neg import semgraph, propagator, neg_detector
 from negbio.pipeline2 import parse, lemmatize, ptb2ud, negdetect
