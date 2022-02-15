@@ -9,7 +9,9 @@ Define the report preprocessing class.
 """
 import bioc
 import re
+
 import pandas as pd
+
 from negbio import text2bioc
 from negbio.pipeline2 import ssplit
 
