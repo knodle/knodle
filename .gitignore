@@ -2,7 +2,6 @@
 .idea/
 # C extensions
 *.so
-
 # Packages
 PKG-INFO
 *.egg
@@ -56,7 +55,11 @@ launch.json
 
 # Data:
 
+examples/trainer/lightning/lightning_logs
+
+
 # Large datasets
 *.lib
+*.pbz2
 *.csv
 data_from_minio/
