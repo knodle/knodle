@@ -4,7 +4,7 @@ pathlib2==2.3.5
 typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1598376058250/work
 regex @ file:///C:/ci/regex_1602770567298/work
 more-itertools @ file:///tmp/build/80754af9/more-itertools_1605111547926/work
-numpy==1.21.4
+numpy==1.22.0
 numpydoc @ file:///tmp/build/80754af9/numpydoc_1605117425582/work
 pandas==1.2.4
 scipy @ file:///C:/ci/scipy_1604596260408/work
