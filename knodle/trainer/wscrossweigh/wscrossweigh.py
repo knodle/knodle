@@ -13,10 +13,8 @@ from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
-
-from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
+from knodle.transformation.majority import input_to_majority_vote_input
 
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
@@ -83,14 +81,21 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
-        train_labels = z_t_matrices_to_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
-        )
 
-        if self.trainer_config.filter_non_labelled:
-            self.model_input_x, train_labels, self.rule_matches_z = filter_empty_probabilities(
-                self.model_input_x, train_labels, self.rule_matches_z
-            )
+        self.model_input_x, train_labels, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
+            probability_threshold=self.trainer_config.probability_threshold,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            other_class_id=self.trainer_config.other_class_id,
+            choose_other_label_for_empties=self.trainer_config.choose_other_label_for_empties,
+            choose_random_label_for_empties=self.trainer_config.choose_random_label_for_empties,
+            preserve_non_labeled_for_empties=self.trainer_config.preserve_non_labeled_for_empties,
+            choose_random_label_for_ties=self.trainer_config.choose_random_label_for_ties,
+            choose_other_label_for_ties=self.trainer_config.choose_other_label_for_ties,
+            multi_label=self.trainer_config.multi_label,
+            multi_label_threshold=self.trainer_config.multi_label_threshold
+        )
 
         if train_labels.shape[1] != self.trainer_config.output_classes:
             raise ValueError(

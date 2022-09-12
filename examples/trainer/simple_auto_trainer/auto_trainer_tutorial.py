@@ -43,7 +43,7 @@ processed_data_dir = os.path.join(imdb_data_dir, "processed")
 os.makedirs(processed_data_dir, exist_ok=True)
 
 # Download data
-client = Minio("knodle.cc", secure=False)
+client = Minio("knodle.dm.univie.ac.at", secure=False)
 files = [
     "df_train.csv", "df_dev.csv", "df_test.csv",
     "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
@@ -52,7 +52,7 @@ files = [
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/spouse/processed/", file),
+        object_name=os.path.join("datasets/spouse/processed", file),
         file_path=os.path.join(processed_data_dir, file),
     )
 
@@ -73,9 +73,9 @@ print(f"Train avg. matches per sample: {train_rule_matches_z.sum() / train_rule_
 model_name = "distilbert-base-uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-X_train = convert_text_to_transformer_input(tokenizer, df_train["sample"].tolist())
-X_dev = convert_text_to_transformer_input(tokenizer, df_dev["sample"].tolist())
-X_test = convert_text_to_transformer_input(tokenizer, df_test["sample"].tolist())
+X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
+X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
+X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
 
 y_dev = np_array_to_tensor_dataset(df_dev['label'].values)
 y_test = np_array_to_tensor_dataset(df_test['label'].values)
@@ -111,5 +111,5 @@ trainer = AutoTrainer(
 trainer.train()
 
 # Run evaluation
-eval_dict, _ = trainer.test(X_test, y_test)
+eval_dict = trainer.test(X_test, y_test)
 print(f"Accuracy: {eval_dict.get('accuracy')}")

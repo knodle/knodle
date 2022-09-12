@@ -3,7 +3,7 @@ from typing import Dict
 import numpy as np
 from sklearn.metrics.classification import classification_report
 
-from knodle.transformation.majority import probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs
+from knodle.transformation._majority_depr import probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs
 
 
 def majority_sklearn_report(

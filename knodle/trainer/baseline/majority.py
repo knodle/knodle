@@ -1,8 +1,6 @@
 import logging
 
 import numpy as np
-
-import torch.nn as nn
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
@@ -12,7 +10,6 @@ from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
-from knodle.transformation.filter import filter_probability_threshold
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +41,16 @@ class MajorityVoteTrainer(BaseTrainer):
         self.trainer_config.optimizer = self.initialise_optimizer()
 
         self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
-            self.rule_matches_z,
-            self.mapping_rules_labels_t,
-            self.model_input_x,
-            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
-            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
             probability_threshold=self.trainer_config.probability_threshold,
+            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             other_class_id=self.trainer_config.other_class_id,
+            choose_other_label_for_empties=self.trainer_config.choose_other_label_for_empties,
+            choose_random_label_for_empties=self.trainer_config.choose_random_label_for_empties,
+            preserve_non_labeled_for_empties=self.trainer_config.preserve_non_labeled_for_empties,
+            choose_random_label_for_ties=self.trainer_config.choose_random_label_for_ties,
+            choose_other_label_for_ties=self.trainer_config.choose_other_label_for_ties,
             multi_label=self.trainer_config.multi_label,
             multi_label_threshold=self.trainer_config.multi_label_threshold
         )

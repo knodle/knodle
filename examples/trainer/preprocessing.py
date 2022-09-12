@@ -40,7 +40,7 @@ def get_tfidf_features(
     return train_transformed_data, test_transformed_data, dev_transformed_data
 
 
-def convert_text_to_transformer_input(tokenizer, texts: List[str]) -> TensorDataset:
+def convert_text_to_transformer_input(texts: List[str], tokenizer) -> TensorDataset:
     """
     Convert input data to BERT encoded features (more details could be found at
     https://huggingface.co/transformers/model_doc)

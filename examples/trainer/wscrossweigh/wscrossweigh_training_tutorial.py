@@ -34,7 +34,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     os.makedirs(processed_data_dir, exist_ok=True)
 
     # Download data
-    client = Minio("knodle.cc", secure=False)
+    client = Minio("knodle.dm.univie.ac.at", secure=False)
     files = [
         "df_train.csv", "df_dev.csv", "df_test.csv",
         "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
@@ -43,7 +43,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     for file in tqdm(files):
         client.fget_object(
             bucket_name="knodle",
-            object_name=os.path.join("datasets/imdb/processed/", file),
+            object_name=os.path.join("datasets/spam/processed", file),
             file_path=os.path.join(processed_data_dir, file),
         )
 
@@ -100,7 +100,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
         lr=parameters.get("lr"),
         grad_clipping=5,
         caching_suffix=caching_suffix,
-        saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
+        save_model_path=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
         # WSCrossWeigh specific parameters
         partitions=parameters.get("cw_partitions"),  # number of WSCrossWeigh iterations (= splitting into folds)
@@ -133,7 +133,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     # the WSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
-    clf_report, _ = trainer.test(X_test, y_test)
+    clf_report = trainer.test(X_test, y_test)
     print(clf_report)
 
 
@@ -141,7 +141,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
     parser.add_argument("--num_classes", help="Number of classes")
-
     args = parser.parse_args()
 
     train_wscrossweigh(args.path_to_data, args.num_classes)

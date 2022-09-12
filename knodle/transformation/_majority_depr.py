@@ -37,7 +37,7 @@ def probabilities_to_majority_vote(
     elif other_class_id is not None:
         return other_class_id
     else:
-        raise ValueError("Specify a way how to resolve unclear majority votes.")
+        raise ValueError("Specify how to resolve unclear majority votes.")
 
 
 def z_t_matrices_to_majority_vote_probs(

@@ -37,7 +37,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
             self, model_input_x: TensorDataset, rule_matches_z: np.ndarray
     ) -> Tuple[TensorDataset, np.ndarray]:
         """
-		Trains the generative model.
+        Trains the generative model.
         Premise:
             Snorkel can not make use of rule-unlabeled examples (no rule matches).
             The generative LabelModel assigns such examples a uniform distribution over all available labels,
@@ -80,18 +80,20 @@ class SnorkelTrainer(MajorityVoteTrainer):
             **fitting_kwargs
         )
         label_probs_gen = label_model.predict_proba(L_train)
+        model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
+        labels = label_probs_gen.argmax(axis=1)
 
-        if self.trainer_config.filter_non_labelled:
-            # filter out respective input irrevocably from all data
-            model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
-            label_probs = label_probs_gen
-        else:
-            # add "other class" labels for empty examples in model input x, that were not given to Snorkel
-            label_probs = add_labels_for_empty_examples(
-                label_probs_gen=label_probs_gen, non_zero_mask=non_empty_mask,
-                output_classes=self.trainer_config.output_classes,
-                other_class_id=self.trainer_config.other_class_id)
-        return model_input_x, label_probs
+        # if self.trainer_config.filter_non_labelled:
+        #     # filter out respective input irrevocably from all data
+        #     model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
+        #     label_probs = label_probs_gen
+        # else:
+        #     # add "other class" labels for empty examples in model input x, that were not given to Snorkel
+        #     label_probs = add_labels_for_empty_examples(
+        #         label_probs_gen=label_probs_gen, non_zero_mask=non_empty_mask,
+        #         output_classes=self.trainer_config.output_classes,
+        #         other_class_id=self.trainer_config.other_class_id)
+        return model_input_x, labels
 
     def train(
             self,
@@ -99,12 +101,15 @@ class SnorkelTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
-        self._apply_rule_reduction()
+        # self._apply_rule_reduction()
 
-        model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
+        self.dev_model_input_x = None
+        self.dev_gold_labels_y = None
+
+        model_input_x, labels = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
         # Standard training
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, labels, probs=False)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
@@ -114,6 +119,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
 class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
     """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
     """
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)
@@ -124,6 +130,7 @@ class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
+
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
         self._apply_rule_reduction()
 
@@ -132,7 +139,7 @@ class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
         model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, denoised_rule_matches_z)
 
         # Standard training
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs, probs=True)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)

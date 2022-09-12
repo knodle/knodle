@@ -1,28 +1,28 @@
-import logging
 import os
+import logging
+from typing import Dict, Tuple, Union
+
+from torch.nn.modules.loss import _Loss
+from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
-from typing import Union, Dict, Tuple, List
 
 import numpy as np
-import skorch
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from sklearn.metrics import classification_report
+
+import torch
 from torch import Tensor
 from torch.nn import Module
-from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
-from tqdm.auto import tqdm
 
-from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_to_binary
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.evaluation.plotting import draw_loss_accuracy_plot
-from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
-from knodle.trainer.utils.checks import check_other_class_id
-from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+from knodle.model.EarlyStopping import EarlyStopping
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 from knodle.transformation.rule_reduction import reduce_rule_matches
-from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
+from knodle.evaluation.plotting import draw_loss_accuracy_plot
+
+from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
+from knodle.trainer.utils.utils import log_section, accuracy_of_probs
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +92,6 @@ class BaseTrainer(Trainer):
             kwargs["trainer_config"] = BaseTrainerConfig()
         super().__init__(model, mapping_rules_labels_t, model_input_x, rule_matches_z, **kwargs)
 
-        check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
-
     def _load_train_params(
             self,
             model_input_x: TensorDataset = None, rule_matches_z: np.ndarray = None,
@@ -136,12 +134,7 @@ class BaseTrainer(Trainer):
             self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False
     ):
         log_section("Training starts", logger)
-
-        if self.trainer_config.multi_label and self.trainer_config.criterion not in [nn.BCELoss, nn.BCEWithLogitsLoss]:
-            raise ValueError(
-                "Criterion for multi-label classification should be Binary Cross-Entropy "
-                "(BCELoss or BCEWithLogitsLoss in Pytorch.) "
-            )
+        es = self.check_early_stopping()
 
         self.model.to(self.trainer_config.device)
         self.model.train()
@@ -151,9 +144,12 @@ class BaseTrainer(Trainer):
             dev_losses, dev_acc = [], []
 
         for current_epoch in range(self.trainer_config.epochs):
-            logger.info("Epoch: {}".format(current_epoch))
+            if self.trainer_config.verbose:
+                logger.info("Epoch: {}".format(current_epoch))
+
             epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
-            for batch in tqdm(feature_label_dataloader):
+
+            for batch in feature_label_dataloader:
                 input_batch, label_batch = self._load_batch(batch)
                 steps += 1
 
@@ -185,38 +181,38 @@ class BaseTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                try:
-                    if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
-                        logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
-                except ZeroDivisionError:
-                    continue
+                if self.trainer_config.verbose:
+                    try:
+                        if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
+                            logger.info(f"Train loss: {epoch_loss/steps:.3f}, Train accuracy: {epoch_acc/steps:.3f}")
+                    except ZeroDivisionError:
+                        continue
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            logger.info("Epoch train loss: {}".format(avg_loss))
-            logger.info("Epoch train accuracy: {}".format(avg_acc))
+            if self.trainer_config.verbose:
+                logger.info("Epoch train loss: {}".format(avg_loss))
+                logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x is not None:
-                dev_clf_report, dev_loss = self.test(
-                    self.dev_model_input_x, self.dev_gold_labels_y, loss_calculation=True
-                )
+                dev_clf_report, dev_loss = self.test_with_loss(self.dev_model_input_x, self.dev_gold_labels_y)
                 dev_losses.append(dev_loss)
-                if dev_clf_report["accuracy"]:
-                    dev_acc.append(dev_clf_report["accuracy"])
-                    logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
+                dev_acc.append(dev_clf_report["accuracy"])
+                logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
-            # saving model
-            if self.trainer_config.saved_models_dir is not None:
-                model_path = os.path.join(
-                    self.trainer_config.saved_models_dir,
-                    f"model_state_dict_epoch_{current_epoch}.pt"
-                )
-                torch.save(self.model.cpu().state_dict(), model_path)
-                self.model.to(self.trainer_config.device)
+                if es:
+                    es(dev_loss, self.model)
+                    if es.early_stop:
+                        logger.info("The model performance on validation training does not change -> early stopping.")
+                        break
 
+                self.model.train()
+
+        logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
+        logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
         log_section("Training done", logger)
 
         if draw_plot:
@@ -229,16 +225,23 @@ class BaseTrainer(Trainer):
 
         self.model.eval()
 
+        # load the best model for further evaluation
+        if self.trainer_config.early_stopping:
+            self.load_model(self.trainer_config.save_model_name, self.trainer_config.save_model_path)
+            logger.info("The best model on dev set will be used for evaluation. ")
+            logger.info(
+                f"The model is loaded from {self.trainer_config.save_model_name}, {self.trainer_config.save_model_path}"
+            )
+
     def _prediction_loop(
-            self, feature_label_dataloader: DataLoader, loss_calculation: str = False
-    ) -> [np.ndarray, np.ndarray]:
+            self, feature_label_dataloader: DataLoader, loss_calculation: bool = False
+    ) -> Tuple[np.ndarray, np.ndarray, float]:
 
         self.model.to(self.trainer_config.device)
         self.model.eval()
         predictions_list, label_list = [], []
         dev_loss, dev_acc = 0.0, 0.0
 
-        i = 0
         # Loop over predictions
         with torch.no_grad():
             for batch in tqdm(feature_label_dataloader):
@@ -247,10 +250,7 @@ class BaseTrainer(Trainer):
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 outputs = self.model(*input_batch)
-                if isinstance(outputs, torch.Tensor):
-                    prediction_vals = outputs
-                else:
-                    prediction_vals = outputs[0]
+                prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
 
                 if loss_calculation:
                     dev_loss += self.calculate_loss(prediction_vals, label_batch.long())
@@ -261,44 +261,76 @@ class BaseTrainer(Trainer):
                 label_list.append(label_batch.detach().cpu().numpy())
 
         predictions = np.squeeze(np.hstack(predictions_list))
+        gold_labels = np.squeeze(np.hstack(label_list))
 
-        return predictions, dev_loss
+        return predictions, gold_labels, dev_loss
 
-    def test(
-            self, features_dataset: TensorDataset, labels: Union[TensorDataset, List], loss_calculation: bool = False
-    ) -> Tuple[Dict, Union[float, None]]:
+    def test(self, features_dataset: TensorDataset, labels: TensorDataset) -> Dict:
+        """
+        The function tests the trained model on the test set and returns the classification report
+        :param features_dataset: features_dataset: TensorDataset with test samples
+        :param labels: true labels
+        :return: classification report (either with respect to other class or not)
+        """
 
-        if type(labels) is list:
-            gold_labels = encode_to_binary(labels, self.trainer_config.output_classes)
-        else:
-            gold_labels = labels.tensors[0].cpu().numpy()
+        gold_labels = labels.tensors[0].cpu().numpy()
+        feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader)
 
-        if isinstance(self.model, skorch.NeuralNetClassifier):
-            # when the pytorch model is wrapped as a sklearn model (e.g. cleanlab)
-            predictions = self.model.predict(dataset_to_numpy_input(features_dataset))
-        else:
-            feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
-            feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
-            predictions, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation)
+        clf_report = self.collect_report(predictions, gold_labels)
 
-        if self.trainer_config.multi_label:
-            clf_report = evaluate_multi_label(
-                y_true=gold_labels, y_pred=predictions, threshold=self.trainer_config.multi_label_threshold,
-                num_classes=self.trainer_config.output_classes
+        return clf_report
+
+    def test_with_loss(self, features_dataset: TensorDataset, labels: TensorDataset) -> Tuple[Dict, float]:
+        """
+        The function tests the trained model on the test set and returns the classification report and average loss.
+        :param features_dataset: TensorDataset with test samples
+        :param labels: true labels
+        :return: classification report (either with respect to other class or not) + average test loss
+        """
+
+        gold_labels = labels.tensors[0].cpu().numpy()
+
+        feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels)
+        feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
+        predictions, gold_labels, dev_loss = self._prediction_loop(feature_label_dataloader, loss_calculation=True)
+
+        clf_report = self.collect_report(predictions, gold_labels)
+        avg_los = dev_loss / len(feature_label_dataloader)
+
+        return clf_report, avg_los
+
+    def load_model(self, save_model_name: str = None, save_model_path: str = None) -> None:
+        if not save_model_name:
+            save_model_name = "checkpoint_best"
+        save_model_name = save_model_name + "_best.pt"
+
+        if not save_model_path:
+            save_model_path = "trained_models"
+
+        model_path = os.path.join(save_model_path, save_model_name)
+        try:
+            self.model.load_state_dict(torch.load(model_path))
+        except FileNotFoundError:
+            logger.info(
+                f"The saved model in {save_model_path} wasn't found.The latest trained model will be validated instead."
             )
 
-        elif self.trainer_config.evaluate_with_other_class:
-            clf_report = classification_report_other_class(
+    def collect_report(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Dict:
+        """
+        Collects the classification report (in sklearn format)
+        :param predictions: predicted labels
+        :param gold_labels: true labels
+        :return: Dictionary of format: {class 0: {prec, recall, f1}, class 1: {...}, ..., acc, macro & weighted metrics}
+        """
+        if self.trainer_config.evaluate_with_other_class:
+            return classification_report_other_class(
                 y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
                 other_class_id=self.trainer_config.other_class_id
             )
         else:
-            clf_report = classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-
-        if loss_calculation:
-            return clf_report, dev_loss / len(feature_label_dataloader)
-        else:
-            return clf_report, None
+            return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
 
     def calculate_loss_with_sample_weights(self, logits: Tensor, gold_labels: Tensor, sample_weights: Tensor) -> float:
         if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
@@ -322,7 +354,62 @@ class BaseTrainer(Trainer):
             return criterion(logits, gold_labels)
         else:
             if len(gold_labels.shape) == 1:
-                gold_labels = torch.nn.functional.one_hot(
-                    gold_labels.to(torch.int64), num_classes=self.trainer_config.output_classes
-                )
+                gold_labels = torch.nn.functional.one_hot(gold_labels.to(torch.int64))
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
+
+    # def _validate_with_cv(self, features, noisy_labels, folds: int = 10) -> Tuple[float, float, float, float, float]:
+    #
+    #     trained_model = copy.deepcopy(self.model)
+    #
+    #     arr_train_datasets, arr_test_features, arr_test_labels = \
+    #         get_val_cv_dataset(
+    #             features, self.rule_matches_z_train, noisy_labels, folds=folds, seed=self.trainer_config.seed
+    #         )
+    #
+    #     dev_acc, dev_prec, dev_rec, dev_f1, dev_losses = [], [], [], [], []
+    #
+    #     i = 1
+    #     for (train_data, test_features, test_labels) in zip(arr_train_datasets, arr_test_features, arr_test_labels):
+    #         logger.info(f"Validation run {i}")
+    #         self.model = copy.deepcopy(trained_model)
+    #         train_features = self._make_dataloader(train_data)
+    #
+    #         self._train_loop(train_features)
+    #         clf_report, dev_loss = self.test_with_loss(test_features, test_labels)
+    #
+    #         dev_acc.append(clf_report['accuracy'])
+    #         dev_prec.append(clf_report['precision'])
+    #         dev_rec.append(clf_report['recall'])
+    #         dev_f1.append(clf_report['f1'])
+    #         dev_losses.append(dev_loss)
+    #
+    #         logger.info(f"Clf_report: {clf_report}, Loss: {dev_loss}")
+    #         i += 1
+    #
+    #     avg_acc = statistics.mean(dev_acc)
+    #     avg_prec = statistics.mean(dev_prec)
+    #     avg_rec = statistics.mean(dev_rec)
+    #     avg_f1 = statistics.mean(dev_f1)
+    #     avg_loss = statistics.mean(dev_losses)
+    #
+    #     logger.info(f"Average dev accuracy: {avg_acc}")
+    #     logger.info(f"Average dev precision: {avg_prec}")
+    #     logger.info(f"Average dev recall: {avg_rec}")
+    #     logger.info(f"Average dev f1: {avg_f1}")
+    #     logger.info(f"Average dev loss: {avg_loss}")
+    #
+    #     self.model = trained_model
+    #
+    #     return avg_acc, avg_prec, avg_rec, avg_f1, avg_loss
+
+    def check_early_stopping(self) -> Union[EarlyStopping, None]:
+        if self.trainer_config.early_stopping and self.dev_model_input_x:
+            return EarlyStopping(
+                save_model_path=self.trainer_config.save_model_path,
+                save_model_name=self.trainer_config.save_model_name
+            )
+        elif self.trainer_config.early_stopping and not self.dev_model_input_x:
+            logger.info("Early stopping won't be performed since there is no dev set provided.")
+            self.trainer_config.early_stopping = False
+            return None
+

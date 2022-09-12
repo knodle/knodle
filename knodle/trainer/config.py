@@ -110,6 +110,11 @@ class BaseTrainerConfig(TrainerConfig):
     def __init__(
             self,
             filter_non_labelled: bool = True,
+            choose_other_label_for_empties: bool = False,
+            choose_random_label_for_empties: bool = False,
+            preserve_non_labeled_for_empties: bool = False,
+            choose_random_label_for_ties: bool = True,
+            choose_other_label_for_ties: bool = False,
             other_class_id: int = None,
             evaluate_with_other_class: bool = False,
             ids2labels: Dict = None,
@@ -149,3 +154,9 @@ class BaseTrainerConfig(TrainerConfig):
         self.max_rules = max_rules
         self.min_coverage = min_coverage
         self.drop_rules = drop_rules
+
+        self.choose_other_label_for_empties = choose_other_label_for_empties
+        self.choose_random_label_for_empties = choose_random_label_for_empties
+        self.preserve_non_labeled_for_empties = preserve_non_labeled_for_empties
+        self.choose_random_label_for_ties = choose_random_label_for_ties
+        self.choose_other_label_for_ties = choose_other_label_for_ties

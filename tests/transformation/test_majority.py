@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from knodle.transformation.majority import (
+from knodle.transformation._majority_depr import (
     probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, z_t_matrices_to_majority_vote_labels,
     probabilities_to_binary_multi_labels
 )
