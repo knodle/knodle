@@ -33,7 +33,8 @@ class TrainerConfig:
             caching_suffix: str = "",
             saved_models_dir: str = None,
             multi_label: bool = False,
-            multi_label_threshold: float = None
+            multi_label_threshold: float = None,
+            verbose: bool = False
     ):
         """
         A default and minimum sufficient configuration of a Trainer instance.
@@ -106,6 +107,8 @@ class TrainerConfig:
             self.multi_label_threshold = 0.5
         else:
             self.multi_label_threshold = multi_label_threshold
+
+        self.verbose = verbose
 
 
 class BaseTrainerConfig(TrainerConfig):
