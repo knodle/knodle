@@ -27,6 +27,7 @@ class TrainerConfig:
             epochs: int = 3,
             seed: int = None,
             grad_clipping: int = None,
+            early_stopping: bool = True,
             device: str = None,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
@@ -78,6 +79,7 @@ class TrainerConfig:
         self.batch_size = batch_size
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
+        self.early_stopping = early_stopping
         self.device = torch.device(device) if device is not None else check_and_return_device()
         logger.info(f"Model will be trained on {self.device}")
 
