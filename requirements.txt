@@ -20,7 +20,7 @@ matplotlib
 
 # cleanlab
 skorch
-cleanlab
+cleanlab==1.0
 
 # bugfix https://stackoverflow.com/questions/72441758/typeerror-descriptors-cannot-not-be-created-directly
 protobuf==3.20.*
