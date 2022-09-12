@@ -69,7 +69,7 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
             multi_label_threshold=self.trainer_config.multi_label_threshold
         )
 
-        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_input_y)
+        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
