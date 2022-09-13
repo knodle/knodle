@@ -1,17 +1,13 @@
 import os
-from typing import List
-
-from tqdm.auto import tqdm
 
 import joblib
-from minio import Minio
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 import scipy.sparse as sp
-
 import torch
+from minio import Minio
 from torch.utils.data import TensorDataset
+from tqdm.auto import tqdm
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
 
 from examples.trainer.preprocessing import convert_text_to_transformer_input
@@ -43,7 +39,7 @@ processed_data_dir = os.path.join(imdb_data_dir, "processed")
 os.makedirs(processed_data_dir, exist_ok=True)
 
 # Download data
-client = Minio("knodle.dm.univie.ac.at", secure=False)
+client = Minio("knodle.cc", secure=False)
 files = [
     "df_train.csv", "df_dev.csv", "df_test.csv",
     "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",

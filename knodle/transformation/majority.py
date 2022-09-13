@@ -23,7 +23,7 @@ def input_to_majority_vote_input(
         preserve_non_labeled_for_empties: bool = False,
         choose_random_label_for_ties: bool = True,      # default: a random label will be chosen for ties
         choose_other_label_for_ties: bool = False,
-        use_probabilistic_labels: bool = True,
+        use_probabilistic_labels: bool = False,
         other_class_id: int = None,
         multi_label: bool = False,
         multi_label_threshold: float = None
@@ -246,7 +246,6 @@ def probabilities_to_binary_multi_labels(
     probs: Vector of probabilities for 1 sample. Shape: classes x 1
     choose_random_label: Choose a random label, if there's no clear majority.
     other_class_id: Class ID being used, if there's no clear majority
-    multi_label: boolean value, whether the classification is multi-label
     threshold: a value for calculation the classes in case of multi-label classification: if a class has
         a probability greater than the threshold, this class will be selected as a true one
     """

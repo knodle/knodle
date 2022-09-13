@@ -142,6 +142,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]))
     parser.add_argument("--path_to_data", help="Path to the folder where all input files are stored.")
     parser.add_argument("--num_classes", help="Number of classes")
+
     args = parser.parse_args()
 
     train_wscrossweigh(args.path_to_data, args.num_classes)

@@ -4,12 +4,11 @@ import numpy as np
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
-from knodle.transformation.majority import input_to_majority_vote_input
-from knodle.transformation.torch_input import input_labels_to_tensordataset
-
-from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.config import MajorityConfig
+from knodle.trainer.trainer import BaseTrainer
+from knodle.transformation.majority import input_to_majority_vote_input
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,11 @@ class MajorityVoteTrainer(BaseTrainer):
             multi_label_threshold=self.trainer_config.multi_label_threshold
         )
 
-        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train)
+        if self.trainer_config.use_probabilistic_labels:
+            feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train, probs=True)
+        else:
+            feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train, probs=False)
+
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
