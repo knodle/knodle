@@ -1,17 +1,17 @@
 from typing import Dict
 
 import numpy as np
-from sklearn.metrics.classification import classification_report
+from sklearn.metrics import classification_report
 
-from knodle.transformation._majority_depr import probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs
+from knodle.transformation.majority import probabilities_to_majority_vote, z_t_matrices_to_probs
 
 
 def majority_sklearn_report(
         rule_matches_z: np.array, mapping_rules_labels_t: np.array, labels_y: np.array
 ) -> Dict:
-    rule_counts_probs = z_t_matrices_to_majority_vote_probs(rule_matches_z, mapping_rules_labels_t)
+    rule_counts_probs = z_t_matrices_to_probs(rule_matches_z, mapping_rules_labels_t)
 
-    kwargs = {"choose_random_label": True}
+    kwargs = {"choose_random_label": True, "choose_other_label": False}
     majority_y = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=rule_counts_probs, **kwargs)
 
     sklearn_report = classification_report(labels_y, majority_y, output_dict=True)

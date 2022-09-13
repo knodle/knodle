@@ -1,6 +1,6 @@
 import logging
-import warnings
 import random
+import warnings
 from typing import Tuple, Union
 
 import numpy as np
@@ -103,8 +103,8 @@ def input_to_majority_vote_input(
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
         kwargs = {
-            "choose_random_label_for_ties": choose_random_label_for_ties,
-            "choose_other_label_for_ties": choose_other_label_for_ties,
+            "choose_random_label": choose_random_label_for_ties,
+            "choose_other_label": choose_other_label_for_ties,
             "other_class_id": other_class_id
         }
         if multi_label:
@@ -212,7 +212,7 @@ def handle_non_labeled(
 
 
 def probabilities_to_majority_vote(
-        probs: np.ndarray, choose_random_label_for_ties: bool = True, choose_other_label_for_ties: bool = False,
+        probs: np.ndarray, choose_random_label: bool = True, choose_other_label: bool = False,
         other_class_id: int = None
 ) -> int:
     """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
@@ -220,8 +220,8 @@ def probabilities_to_majority_vote(
     the sample the other class id.
     Args:
         probs: Vector of probabilities for 1 sample. Shape: classes x 1
-        choose_random_label_for_ties: Choose a random label, if there's no clear majority.
-        choose_other_label_for_ties: Choose an other class, if there's no clear majority.
+        choose_random_label: Choose a random label, if there's no clear majority.
+        choose_other_label: Choose an other class, if there's no clear majority.
         other_class_id: Class ID being used, if there's no clear majority.
     Returns: An array of classes.
     """
@@ -230,9 +230,9 @@ def probabilities_to_majority_vote(
     num_occurrences = (row_max == probs).sum()
     if num_occurrences == 1:
         return int(np.argmax(probs))
-    elif choose_other_label_for_ties:
+    elif choose_other_label:
         return other_class_id
-    elif choose_random_label_for_ties:
+    elif choose_random_label:
         max_ids = np.where(probs == row_max)[0]
         return int(np.random.choice(max_ids))
     else:
@@ -363,8 +363,8 @@ def z_t_matrices_to_labels_multi(
     rule_counts_probs = z_t_matrices_to_probs_multi(rule_matches_z, mapping_rules_labels_t)
 
     kwargs = {
-        "choose_random_label_for_ties": choose_random_label_for_ties,
-        "choose_other_label_for_ties": choose_other_label_for_ties,
+        "choose_random_label": choose_random_label_for_ties,
+        "choose_other_label": choose_other_label_for_ties,
         "other_class_id": other_class_id
     }
 

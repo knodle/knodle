@@ -10,6 +10,7 @@ from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
+
 from examples.trainer.preprocessing import convert_text_to_transformer_input, get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
@@ -34,7 +35,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     os.makedirs(processed_data_dir, exist_ok=True)
 
     # Download data
-    client = Minio("knodle.dm.univie.ac.at", secure=False)
+    client = Minio("knodle.cc", secure=False)
     files = [
         "df_train.csv", "df_dev.csv", "df_test.csv",
         "train_rule_matches_z.lib", "dev_rule_matches_z.lib", "test_rule_matches_z.lib",
@@ -43,7 +44,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     for file in tqdm(files):
         client.fget_object(
             bucket_name="knodle",
-            object_name=os.path.join("datasets/spam/processed", file),
+            object_name=os.path.join("datasets/imdb/processed/", file),
             file_path=os.path.join(processed_data_dir, file),
         )
 
@@ -100,7 +101,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
         lr=parameters.get("lr"),
         grad_clipping=5,
         caching_suffix=caching_suffix,
-        save_model_path=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
+        saved_models_dir=os.path.join(path_to_data, "trained_models"),  # trained classifier model will be saved after each epoch
 
         # WSCrossWeigh specific parameters
         partitions=parameters.get("cw_partitions"),  # number of WSCrossWeigh iterations (= splitting into folds)

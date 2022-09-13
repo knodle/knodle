@@ -16,22 +16,19 @@ The IMDB dataset available in the Knodle collection was downloaded from [Kaggle]
 """
 
 import os
-from joblib import dump
-from tqdm import tqdm
 
-import pandas as pd 
-import numpy as np 
-from scipy.sparse import csr_matrix
-
+import numpy as np
+import pandas as pd
 from bs4 import BeautifulSoup
-from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
-
-from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
-
+from joblib import dump
 # client to access the dataset collection
 from minio import Minio
+from scipy.sparse import csr_matrix
+from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
+from tqdm import tqdm
 
 from knodle.transformation.majority import input_to_majority_vote_input
+from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
 
 client = Minio("knodle.dm.univie.ac.at", secure=False)
 
@@ -210,7 +207,7 @@ rule_matches, mapping_rules_labels = transform_snorkel_matrix_to_z_t(applied_lfs
 # 
 # Now we make a majority vote based on all rule matches. First we get the `rule_counts` by multiplying `rule_matches` with the `mapping_rules_labels`, then we divide it sumwise by the sum to get a probability value. In the end we counteract the divide with zero issue by setting all nan values to zero. All this happens in the `z_t_matrices_to_majority_vote_labels` function.
 
-# the ties are resolved randomly internally be default, so the predictions might slightly vary
+# the ties are resolved randomly internally by default, so the predictions might slightly vary
 pred_labels = input_to_majority_vote_input(rule_matches, mapping_rules_labels)
 
 # There are more positive labels predicted by the majority vote.

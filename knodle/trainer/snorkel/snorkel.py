@@ -2,16 +2,12 @@ from typing import Tuple
 
 import numpy as np
 from snorkel.labeling.model import LabelModel
-
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
-
-from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.knn_aggregation.knn import KNNAggregationTrainer
-
 from knodle.trainer.snorkel.config import SnorkelConfig, SnorkelKNNConfig
 from knodle.trainer.snorkel.utils import (
     z_t_matrix_to_snorkel_matrix,
@@ -19,6 +15,7 @@ from knodle.trainer.snorkel.utils import (
     add_labels_for_empty_examples
 )
 from knodle.transformation.filter import filter_tensor_dataset_by_indices
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 
 @AutoTrainer.register('snorkel')
@@ -80,20 +77,18 @@ class SnorkelTrainer(MajorityVoteTrainer):
             **fitting_kwargs
         )
         label_probs_gen = label_model.predict_proba(L_train)
-        model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
-        labels = label_probs_gen.argmax(axis=1)
 
-        # if self.trainer_config.filter_non_labelled:
-        #     # filter out respective input irrevocably from all data
-        #     model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
-        #     label_probs = label_probs_gen
-        # else:
-        #     # add "other class" labels for empty examples in model input x, that were not given to Snorkel
-        #     label_probs = add_labels_for_empty_examples(
-        #         label_probs_gen=label_probs_gen, non_zero_mask=non_empty_mask,
-        #         output_classes=self.trainer_config.output_classes,
-        #         other_class_id=self.trainer_config.other_class_id)
-        return model_input_x, labels
+        if self.trainer_config.filter_non_labelled:
+            # filter out respective input irrevocably from all data
+            model_input_x = filter_tensor_dataset_by_indices(dataset=model_input_x, filter_ids=non_empty_mask)
+            label_probs = label_probs_gen
+        else:
+            # add "other class" labels for empty examples in model input x, that were not given to Snorkel
+            label_probs = add_labels_for_empty_examples(
+                label_probs_gen=label_probs_gen, non_zero_mask=non_empty_mask,
+                output_classes=self.trainer_config.output_classes,
+                other_class_id=self.trainer_config.other_class_id)
+        return model_input_x, label_probs
 
     def train(
             self,
@@ -101,15 +96,12 @@ class SnorkelTrainer(MajorityVoteTrainer):
             dev_model_input_x: TensorDataset = None, dev_gold_labels_y: TensorDataset = None
     ):
         self._load_train_params(model_input_x, rule_matches_z, dev_model_input_x, dev_gold_labels_y)
-        # self._apply_rule_reduction()
+        self._apply_rule_reduction()
 
-        self.dev_model_input_x = None
-        self.dev_gold_labels_y = None
-
-        model_input_x, labels = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
+        model_input_x, label_probs = self._snorkel_denoising(self.model_input_x, self.rule_matches_z)
 
         # Standard training
-        feature_label_dataset = input_labels_to_tensordataset(model_input_x, labels, probs=False)
+        feature_label_dataset = input_labels_to_tensordataset(model_input_x, label_probs, probs=True)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)

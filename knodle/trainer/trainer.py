@@ -1,28 +1,25 @@
-import os
 import logging
+import os
+from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union
 
-from torch.nn.modules.loss import _Loss
-from tqdm.auto import tqdm
-from abc import ABC, abstractmethod
-
 import numpy as np
-from sklearn.metrics import classification_report
-
+import skorch
 import torch
+from sklearn.metrics import classification_report
 from torch import Tensor
 from torch.nn import Module
+from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
+from tqdm.auto import tqdm
 
 from knodle.evaluation.other_class_metrics import classification_report_other_class
-from knodle.model.EarlyStopping import EarlyStopping
-from knodle.transformation.torch_input import input_labels_to_tensordataset
-from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
-
+from knodle.model.EarlyStopping import EarlyStopping
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
-
+from knodle.transformation.rule_reduction import reduce_rule_matches
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +234,10 @@ class BaseTrainer(Trainer):
             self, feature_label_dataloader: DataLoader, loss_calculation: bool = False
     ) -> Tuple[np.ndarray, np.ndarray, float]:
 
-        self.model.to(self.trainer_config.device)
+        # for cleanlab : model is wrapped with Skorch -> device is set in model description
+        if not isinstance(self.model, skorch.NeuralNetClassifier):
+            self.model.to(self.trainer_config.device)
+
         self.model.eval()
         predictions_list, label_list = [], []
         dev_loss, dev_acc = 0.0, 0.0
