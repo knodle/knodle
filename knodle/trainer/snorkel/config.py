@@ -24,6 +24,7 @@ class SnorkelConfig(MajorityConfig):
         super().__init__(**kwargs)
         self.label_model_num_epochs = label_model_num_epochs
         self.label_model_log_freq = label_model_log_freq
+        self.filter_non_labelled = filter_non_labelled
 
 
 @AutoConfig.register("snorkel_knn")
