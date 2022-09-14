@@ -1,6 +1,7 @@
 from torch.nn import BCEWithLogitsLoss
 
 from knodle.trainer import MajorityVoteTrainer, MajorityConfig
+from tests.trainer.generic import std_trainer_input_1
 
 
 def test_auto_train(std_trainer_input_1):
