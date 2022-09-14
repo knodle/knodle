@@ -255,7 +255,7 @@ def check_input_validity(*inputs) -> None:
     if unmatched_strategy == "random" is not None and other_class_id is not None:
         raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
 
-    if (unmatched_strategy == "filter" is not None and model_input_x is None) or \
+    if (unmatched_strategy == "filter" and model_input_x is None) or \
             (probability_threshold is not None and model_input_x is None):
         raise ValueError("In order to filter non labeled samples, please provide X matrix.")
 
