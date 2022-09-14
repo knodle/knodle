@@ -87,7 +87,7 @@ custom_model_config = AutoConfig.create_config(
     lr=1e-4,
     batch_size=16,
     epochs=2,
-    filter_non_labelled=True
+    unmatched_strategy="filter"
 )
 
 print(custom_model_config)

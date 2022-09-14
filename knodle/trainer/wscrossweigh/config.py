@@ -16,7 +16,8 @@ class WSCrossWeighConfig(MajorityConfig):
             cw_batch_size: int = None,
             cw_optimizer: Optimizer = None,
             cw_lr: int = None,
-            cw_filter_non_labelled: bool = None,
+            cw_unmatched_strategy: str = None,
+            cw_ties_strategy: str = None,
             cw_other_class_id: int = None,
             cw_grad_clipping: int = None,
             cw_seed: int = None,
@@ -35,7 +36,8 @@ class WSCrossWeighConfig(MajorityConfig):
         :param cw_batch_size: batch size for WSCrossWeigh models training
         :param cw_optimizer: optimizer for WSCrossWeigh models training
         :param cw_lr: learning rate for WSCrossWeigh models training
-        :param cw_filter_non_labelled: whether the samples where no rule matched are to be filtered out in WSCrossWeigh
+        :param cw_unmatched_strategy: what to do with samples without matched in WSCrossWeigh
+        :param cw_ties_strategy: what to do with samples with no clear majority vote in WSCrossWeigh
         :param cw_other_class_id: id of the negative class; if set, the samples with no rule matched will be assigned to
         it in WSCrossWeigh
         :param cw_grad_clipping: if set to True, gradient norm of an iterable of parameters will be clipped in WSCrossWeigh
@@ -70,11 +72,19 @@ class WSCrossWeighConfig(MajorityConfig):
         else:
             self.cw_optimizer = self.optimizer
 
-        if cw_filter_non_labelled and cw_other_class_id:
-            self.cw_filter_non_labelled = cw_filter_non_labelled
+        if cw_unmatched_strategy:
+            self.cw_unmatched_strategy = cw_unmatched_strategy
+        else:
+            self.cw_unmatched_strategy = self.unmatched_strategy
+
+        if cw_ties_strategy:
+            self.cw_ties_strategy = cw_ties_strategy
+        else:
+            self.cw_ties_strategy = self.ties_strategy
+
+        if cw_other_class_id:
             self.cw_other_class_id = cw_other_class_id
         else:
-            self.cw_filter_non_labelled = self.filter_non_labelled
             self.cw_other_class_id = self.other_class_id
 
         if cw_lr:

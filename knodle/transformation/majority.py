@@ -17,12 +17,8 @@ def input_to_majority_vote_input(
         mapping_rules_labels_t: np.ndarray,
         model_input_x: TensorDataset = None,
         probability_threshold: int = None,
-        filter_non_labelled: bool = False,
-        choose_other_label_for_empties: bool = False,
-        choose_random_label_for_empties: bool = True,  # default: a random label will be chosen for samples w/o matches
-        preserve_non_labeled_for_empties: bool = False,
-        choose_random_label_for_ties: bool = True,      # default: a random label will be chosen for ties
-        choose_other_label_for_ties: bool = False,
+        unmatched_strategy: str = "random",  # other options: "filter", "other", "preserve"
+        ties_strategy: str = "random",  # another options: "other"
         use_probabilistic_labels: bool = False,
         other_class_id: int = None,
         multi_label: bool = False,
@@ -42,10 +38,10 @@ def input_to_majority_vote_input(
 
     (3) the samples where no labeling function matched (the samples where probabilities for all classes equal 0) will be
         handled in one of the following ways:
-            - if filter_non_labelled = True, these samples will be filtered out.
-            - if choose_other_class = True, these samples will get the 100% probability for other class
-            - if choose_random_class = True, these samples will get the 100% probability for some random class
-            - if preserve_non_labeled = True, these samples will remain unlabeled (with 0 probability vectors)
+            - if unmatched_strategy = "filter", these samples will be filtered out.
+            - if unmatched_strategy = "other", these samples will get the 100% probability for other class
+            - if unmatched_strategy = "random", these samples will get the 100% probability for some random class
+            - if unmatched_strategy = "preserve", these samples will remain unlabeled (with 0 probability vectors)
                 WARNING! It is a valid use cases only if the probabilities will be used for training a classifier.
                 If the probabilities are wished to be converted to majority labels, one of the first 3 handling
                 strategies should be chosen.
@@ -65,13 +61,9 @@ def input_to_majority_vote_input(
         model_input_x,
         other_class_id,
         probability_threshold,
-        filter_non_labelled,
-        use_probabilistic_labels,
-        choose_other_label_for_empties,
-        choose_random_label_for_empties,
-        preserve_non_labeled_for_empties,
-        choose_other_label_for_ties,
-        choose_random_label_for_ties
+        unmatched_strategy,
+        ties_strategy,
+        use_probabilistic_labels
     )
 
     normalization = "sigmoid" if multi_label else "softmax"
@@ -85,31 +77,19 @@ def input_to_majority_vote_input(
         model_input_x, noisy_y_train = filter_probability_threshold(model_input_x, noisy_y_train, probability_threshold)
 
     # (3) handling of samples without any match
-    kwargs = {
-        "filter_non_labelled": filter_non_labelled,
-        "other_class_id": other_class_id,
-        "choose_other_label_for_empties": choose_other_label_for_empties,
-        "choose_random_label_for_empties": choose_random_label_for_empties,
-        "preserve_non_labeled_for_empties": preserve_non_labeled_for_empties,
-    }
     model_input_x, noisy_y_train, rule_matches_z = handle_non_labeled(
-        model_input_x,
-        noisy_y_train,
-        rule_matches_z,
-        **kwargs
+        model_input_x, noisy_y_train, rule_matches_z, unmatched_strategy=unmatched_strategy,
+        other_class_id=other_class_id
     )
 
     # (4) turn probabilities into majority labels if relevant
     if not use_probabilistic_labels:
         # convert labels represented as a prob distribution to a single label using majority voting
-        kwargs = {
-            "choose_random_label": choose_random_label_for_ties,
-            "choose_other_label": choose_other_label_for_ties,
-            "other_class_id": other_class_id
-        }
+        kwargs = {"ties_strategy": ties_strategy, "other_class_id": other_class_id}
         if multi_label:
             kwargs["threshold"] = multi_label_threshold
-            noisy_y_train = np.apply_along_axis(probabilities_to_binary_multi_labels, axis=1, arr=noisy_y_train, **kwargs)
+            noisy_y_train = np.apply_along_axis(probabilities_to_binary_multi_labels, axis=1, arr=noisy_y_train,
+                                                **kwargs)
         else:
             noisy_y_train = np.apply_along_axis(probabilities_to_majority_vote, axis=1, arr=noisy_y_train, **kwargs)
 
@@ -124,7 +104,7 @@ def z_t_matrices_to_probs(
     Args:
         rule_matches_z: Binary encoded array of which rules matched. Shape: instances x rules
         mapping_rules_labels_t: Mapping of rules to labels, binary encoded. Shape: rules x classes
-        other_class_id: Class which is chosen, if no function is hitting.
+        normalization: how the rule counts will be normalized
     Returns: Array with majority vote probabilities. Shape: instances x classes
     """
 
@@ -153,20 +133,17 @@ def handle_non_labeled(
         input_data_x: TensorDataset,
         noisy_y_train: np.ndarray,
         rule_matches_z: np.ndarray = None,
-        filter_non_labelled: bool = True,
-        other_class_id: int = None,
-        choose_other_label_for_empties: bool = False,
-        choose_random_label_for_empties: bool = False,
-        preserve_non_labeled_for_empties: bool = False,
+        unmatched_strategy="random",
+        other_class_id=None
 ) -> Tuple[TensorDataset, np.ndarray, np.ndarray]:
     """
     This function handles the samples where no labeling function matched (the samples where probabilities for all
     classes equal 0).
     Depending on the parameter values, these samples will be:
-        - if filter_non_labelled = True, these samples will be filtered out.
-        - if choose_other_class = True, these samples will get the 100% probability for other class
-        - if choose_random_class = True, these samples will get the 100% probability for some random class
-        - if preserve_non_labeled = True, these samples will remain unlabeled (with 0 probability vectors)
+        - if unmatched_strategy = "filter", these samples will be filtered out.
+        - if unmatched_strategy = "other", these samples will get the 100% probability for other class
+        - if unmatched_strategy = "random", these samples will get the 100% probability for some random class
+        - if unmatched_strategy = "preserve", these samples will remain unlabeled (with 0 probability vectors)
     """
 
     if len(noisy_y_train.shape) != 2:
@@ -176,11 +153,11 @@ def handle_non_labeled(
     zeros = np.where(prob_sums == 0)[0]
 
     # filter these samples out
-    if filter_non_labelled:
+    if unmatched_strategy == "filter":
         logger.info("Samples with no labeling function matched will be filtered out")
         return filter_empty_probabilities(input_data_x, noisy_y_train, rule_matches_z)
 
-    elif choose_other_label_for_empties:
+    elif unmatched_strategy == "other":
         logger.info(f"Samples with no labeling function matched will be assigned to other class {other_class_id}")
 
         # other class id far from the maximal class -> change to the maximal class present in the data + 1
@@ -200,28 +177,24 @@ def handle_non_labeled(
 
         return input_data_x, noisy_y_train, rule_matches_z
 
-    elif choose_random_label_for_empties:
+    elif unmatched_strategy == "random":
         logger.info("Samples with no labeling function matched will be assigned to random class")
         for sample_id in zeros:
             noisy_y_train[sample_id, np.random.choice(noisy_y_train.shape[1])] = 1
         return input_data_x, noisy_y_train, rule_matches_z
 
-    elif preserve_non_labeled_for_empties:
+    elif unmatched_strategy == "preserve":
         logger.info("Samples with no labeling function matched will be preserved")
         return input_data_x, noisy_y_train, rule_matches_z
 
 
-def probabilities_to_majority_vote(
-        probs: np.ndarray, choose_random_label: bool = True, choose_other_label: bool = False,
-        other_class_id: int = None
-) -> int:
+def probabilities_to_majority_vote(probs: np.ndarray, ties_strategy: str = "random", other_class_id: int = None) -> int:
     """Transforms a vector of probabilities to its majority vote. If there is one class with clear majority, return it.
     If there are more than one class with equal probabilities: either select one of the classes randomly or assign to
     the sample the other class id.
     Args:
         probs: Vector of probabilities for 1 sample. Shape: classes x 1
-        choose_random_label: Choose a random label, if there's no clear majority.
-        choose_other_label: Choose an other class, if there's no clear majority.
+        ties_strategy: what to do with ties (choose a random label or an other class)
         other_class_id: Class ID being used, if there's no clear majority.
     Returns: An array of classes.
     """
@@ -230,9 +203,9 @@ def probabilities_to_majority_vote(
     num_occurrences = (row_max == probs).sum()
     if num_occurrences == 1:
         return int(np.argmax(probs))
-    elif choose_other_label:
+    elif ties_strategy == "other":
         return other_class_id
-    elif choose_random_label:
+    elif ties_strategy == "random":
         max_ids = np.where(probs == row_max)[0]
         return int(np.random.choice(max_ids))
     else:
@@ -240,7 +213,7 @@ def probabilities_to_majority_vote(
 
 
 def probabilities_to_binary_multi_labels(
-        probs: np.ndarray, choose_random_label: bool = True, other_class_id: int = None, threshold: float = 0.5
+        probs: np.ndarray, ties_strategy: str = "random", other_class_id: int = None, threshold: float = 0.5
 ) -> np.ndarray:
     """
     probs: Vector of probabilities for 1 sample. Shape: classes x 1
@@ -253,19 +226,17 @@ def probabilities_to_binary_multi_labels(
     probs[probs < threshold] = 0
 
     if np.all((probs == 0)):
-        if choose_random_label:
+        if ties_strategy == "random":
             probs[:, random.randrange(probs.shape[1])] = 1
-        elif other_class_id is not None:
+        elif ties_strategy == "other":
             probs[:, other_class_id] = 1
-
     return probs
 
 
 def check_input_validity(*inputs) -> None:
     # todo: more checks are needed here?
-    rule_matches_z, mapping_rules_labels_t, model_input_x, other_class_id, probability_threshold, filter_non_labelled, \
-        use_probabilistic_labels, choose_other_empties, choose_random_empties, preserve_non_labeled_empties, \
-        choose_other_ties, choose_random_ties = inputs
+    rule_matches_z, mapping_rules_labels_t, model_input_x, other_class_id, probability_threshold, \
+    unmatched_strategy, ties_strategy, use_probabilistic_labels = inputs
 
     # check for other_class_id validity
     if other_class_id is not None and other_class_id < 0:
@@ -278,28 +249,35 @@ def check_input_validity(*inputs) -> None:
             f"while T matrix has shape {mapping_rules_labels_t.shape}"
         )
 
-    if other_class_id is not None and filter_non_labelled:
+    if other_class_id is not None and unmatched_strategy == "filter":
         raise ValueError("You can either filter samples with no weak labels or add them to the other class.")
 
-    if choose_random_empties is not None and other_class_id is not None:
+    if unmatched_strategy == "random" is not None and other_class_id is not None:
         raise ValueError("You can either choose a random class, or transform undefined cases to an other class.")
 
-    if (filter_non_labelled is not None and model_input_x is None) or \
+    if (unmatched_strategy == "filter" is not None and model_input_x is None) or \
             (probability_threshold is not None and model_input_x is None):
         raise ValueError("In order to filter non labeled samples, please provide X matrix.")
 
-    if preserve_non_labeled_empties and not use_probabilistic_labels:
+    if unmatched_strategy == "preserve" and not use_probabilistic_labels:
         raise ValueError("The empty probabilities cannot be preserved when calculating the majority labels.")
 
-    if choose_other_ties and other_class_id is None:
+    if ties_strategy == "other" and other_class_id is None:
         raise ValueError("In order to break the ties by choosing an other class id, specify the other class id")
-
-    if not use_probabilistic_labels and not filter_non_labelled and not choose_other_empties and \
-            not choose_random_empties and not preserve_non_labeled_empties:
-        raise ValueError("Specify what to do with unlabeled instances for converting probs to labels.")
 
     if other_class_id is not None and other_class_id < mapping_rules_labels_t.shape[1] - 1:
         warnings.warn(f"Negative class {other_class_id} is already present in data")
+
+    try:
+        (unmatched_strategy in ["filter", "other", "preserve", "random"])
+    except ValueError:
+        logger.info("Unsupported strategy for dealing with samples without any rule matched.")
+
+    if use_probabilistic_labels:
+        try:
+            (ties_strategy in ["other", "random"])
+        except ValueError:
+            logger.info("Unsupported strategy for dealing with samples without clear majority vote.")
 
 
 def z_matrix_row_to_rule_idx(
@@ -410,7 +388,8 @@ def z_t_matrices_to_probs_multi(
             rule_counts_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
         elif normalization == "sigmoid":
             rule_counts_probs = 1 / (1 + np.exp(-rule_counts))
-            zeros = np.where(rule_counts == 0)  # the values that were 0s (= no LF from this class matched) should remain 0s
+            zeros = np.where(
+                rule_counts == 0)  # the values that were 0s (= no LF from this class matched) should remain 0s
             rule_counts_probs[zeros] = rule_counts[zeros]
         else:
             raise ValueError(

@@ -85,14 +85,10 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         self.model_input_x, train_labels, self.rule_matches_z = input_to_majority_vote_input(
             self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
             probability_threshold=self.trainer_config.probability_threshold,
-            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            unmatched_strategy=self.trainer_config.unmatched_strategy,
+            ties_strategy=self.trainer_config.ties_strategy,
             use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             other_class_id=self.trainer_config.other_class_id,
-            choose_other_label_for_empties=self.trainer_config.choose_other_label_for_empties,
-            choose_random_label_for_empties=self.trainer_config.choose_random_label_for_empties,
-            preserve_non_labeled_for_empties=self.trainer_config.preserve_non_labeled_for_empties,
-            choose_random_label_for_ties=self.trainer_config.choose_random_label_for_ties,
-            choose_other_label_for_ties=self.trainer_config.choose_other_label_for_ties,
             multi_label=self.trainer_config.multi_label,
             multi_label_threshold=self.trainer_config.multi_label_threshold
         )
@@ -135,7 +131,8 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
         weights_calculation_config.lr = self.trainer_config.cw_lr
         weights_calculation_config.batch_size = self.trainer_config.cw_batch_size
-        weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
+        weights_calculation_config.unmatched_strategy = self.trainer_config.cw_unmatched_strategy,
+        weights_calculation_config.ties_strategy = self.trainer_config.cw_ties_strategy,
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
         weights_calculation_config.seed = self.trainer_config.cw_seed

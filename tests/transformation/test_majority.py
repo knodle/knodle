@@ -50,15 +50,14 @@ def test_probabilities_to_majority_vote_random():
 def test_probabilities_to_majority_vote_other():
     probs = np.array([0.5, 0, 0, 0.5, 0, 0, 0, 0])
     true_label = 7
-    label = probabilities_to_majority_vote(
-        probs, choose_random_label=False, choose_other_label=True, other_class_id=7)
+    label = probabilities_to_majority_vote(probs, ties_strategy="other", other_class_id=7)
     assert label == true_label
 
 
 def test_probabilities_to_majority_vote_error():
     probs = np.array([0.5, 0, 0, 0.5, 0, 0, 0, 0])
     with pytest.raises(ValueError, match='Specify how to resolve unclear majority votes.'):
-        probabilities_to_majority_vote(probs, choose_random_label=False, choose_other_label=False)
+        probabilities_to_majority_vote(probs, ties_strategy=None)
 
 
 def test_handle_non_labeled_error():
@@ -94,10 +93,7 @@ def test_handle_non_labeled_other():
         input_data_x=None,
         noisy_y_train=noisy_y_train,
         rule_matches_z=None,
-        filter_non_labelled=False,
-        choose_other_label_for_empties=True,
-        choose_random_label_for_empties=False,
-        preserve_non_labeled_for_empties=False,
+        unmatched_strategy="other",
         other_class_id=0
     )
 
@@ -116,11 +112,8 @@ def test_handle_non_labeled_random():
         input_data_x=None,
         noisy_y_train=noisy_y_train,
         rule_matches_z=None,
-        filter_non_labelled=False,
+        unmatched_strategy="random",
         other_class_id=0,
-        choose_other_label_for_empties=False,
-        choose_random_label_for_empties=True,
-        preserve_non_labeled_for_empties=False,
     )
 
     # assert np.any(y_pred in y_pred_gold)
@@ -134,11 +127,8 @@ def test_handle_non_labeled_preserve():
         input_data_x=None,
         noisy_y_train=noisy_y_train,
         rule_matches_z=None,
-        filter_non_labelled=False,
-        other_class_id=0,
-        choose_other_label_for_empties=False,
-        choose_random_label_for_empties=False,
-        preserve_non_labeled_for_empties=True,
+        unmatched_strategy="preserve",
+        other_class_id=0
     )
 
     # assert np.any(y_pred in y_pred_gold)

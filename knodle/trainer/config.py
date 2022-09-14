@@ -114,12 +114,8 @@ class TrainerConfig:
 class BaseTrainerConfig(TrainerConfig):
     def __init__(
             self,
-            filter_non_labelled: bool = True,
-            choose_other_label_for_empties: bool = False,
-            choose_random_label_for_empties: bool = False,
-            preserve_non_labeled_for_empties: bool = False,
-            choose_random_label_for_ties: bool = True,
-            choose_other_label_for_ties: bool = False,
+            unmatched_strategy: str = "random",
+            ties_strategy: str = "random",
             other_class_id: int = None,
             evaluate_with_other_class: bool = False,
             ids2labels: Dict = None,
@@ -132,19 +128,21 @@ class BaseTrainerConfig(TrainerConfig):
         Additionally provided parameters needed for handling the cases where there are data samples with no rule
         matched (filtering OR introducing the other class + training & evaluation with other class).
 
-        :param filter_non_labelled: if True, the samples with no rule matched will be filtered out from the dataset
+        :param unmatched_strategy: how to handle the samples without matches ("filter", "other", "preserve", "random")
+        :param ties_strategy: how to handle the samples with ties when converting to majority votes ("random", "other")
         :param other_class_id: id of the negative class; if set, the samples with no rule matched will be assigned to it
         :param evaluate_with_other_class: if set to True, the evaluation will be done with respect to the negative class
         (for more details please see knodle/evaluation/other_class_metrics.py file)
         :param ids2labels: dictionary {label id: label}, which is needed to perform evaluation with the negative class
         """
         super().__init__(**kwargs)
-        self.filter_non_labelled = filter_non_labelled
+        self.unmatched_strategy = unmatched_strategy
+        self.ties_strategy = ties_strategy
         self.other_class_id = other_class_id
         self.evaluate_with_other_class = evaluate_with_other_class
         self.ids2labels = ids2labels
 
-        if self.other_class_id is not None and self.filter_non_labelled:
+        if self.other_class_id is not None and self.unmatched_strategy == "filter":
             raise ValueError("You can either filter samples with no weak labels or add them to 'other_class_id'")
 
         logger.debug(f"{self.evaluate_with_other_class} and {self.ids2labels}")
@@ -159,9 +157,3 @@ class BaseTrainerConfig(TrainerConfig):
         self.max_rules = max_rules
         self.min_coverage = min_coverage
         self.drop_rules = drop_rules
-
-        self.choose_other_label_for_empties = choose_other_label_for_empties
-        self.choose_random_label_for_empties = choose_random_label_for_empties
-        self.preserve_non_labeled_for_empties = preserve_non_labeled_for_empties
-        self.choose_random_label_for_ties = choose_random_label_for_ties
-        self.choose_other_label_for_ties = choose_other_label_for_ties

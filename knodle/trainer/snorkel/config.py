@@ -13,11 +13,13 @@ class SnorkelConfig(MajorityConfig):
             self,
             label_model_num_epochs: int = 5000,
             label_model_log_freq: int = 500,
+            filter_non_labelled: bool = True,
             **kwargs
     ):
         """
         :param label_model_num_epochs: Number of epochs to train the Label model, which computes P(Y, Z, T).
         :param label_model_log_freq: Logging frequency.
+        :param filter_non_labelled: Filter samples without any rule matched.
         """
         super().__init__(**kwargs)
         self.label_model_num_epochs = label_model_num_epochs
