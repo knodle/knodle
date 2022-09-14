@@ -16,7 +16,7 @@ def test_dscw_base_test(std_trainer_input_2):
     )
 
     trainer.train()
-    clf_report = trainer.test(test_dataset, test_labels)
+    clf_report, _ = trainer.test(test_dataset, test_labels)
 
     # Check that this runs without error
     assert True

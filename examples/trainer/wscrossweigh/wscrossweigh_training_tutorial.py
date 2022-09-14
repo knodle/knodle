@@ -134,7 +134,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     # the WSCrossWeighTrainer is trained
     trainer.train()
     # the trained model is tested on the test set
-    clf_report = trainer.test(X_test, y_test)
+    clf_report, _ = trainer.test(X_test, y_test)
     print(clf_report)
 
 

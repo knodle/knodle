@@ -99,6 +99,6 @@ trainer = MultiTrainer(
 trainer.train()
 
 # Run evaluation
-metrics = trainer.test(X_test_tfidf_dataset, y_test)
+metrics, _ = trainer.test(X_test_tfidf_dataset, y_test)
 for trainer, metric in metrics.items():
     print(f"Trainer: {trainer}, accuracy: {metric[0].get('accuracy')}")
