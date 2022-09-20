@@ -21,7 +21,7 @@ def test_auto_train(std_trainer_input_1):
             )
 
             trainer.train()
-            metrics, _ = trainer.test(model_input_x, y_labels)
+            metrics = trainer.test(model_input_x, y_labels)
 
             # Check whether the code ran up to here
             assert 2 == 2

@@ -148,9 +148,7 @@ class BaseTrainer(Trainer):
             dev_losses, dev_acc = [], []
 
         for current_epoch in range(self.trainer_config.epochs):
-            if self.trainer_config.verbose:
-                logger.info("Epoch: {}".format(current_epoch))
-
+            logger.info("Epoch: {}".format(current_epoch))
             epoch_loss, epoch_acc, steps = 0.0, 0.0, 0
             for batch in tqdm(feature_label_dataloader):
                 input_batch, label_batch = self._load_batch(batch)
@@ -249,7 +247,10 @@ class BaseTrainer(Trainer):
                 # forward pass
                 self.trainer_config.optimizer.zero_grad()
                 outputs = self.model(*input_batch)
-                prediction_vals = outputs[0] if not isinstance(outputs, torch.Tensor) else outputs
+                if isinstance(outputs, torch.Tensor):
+                    prediction_vals = outputs
+                else:
+                    prediction_vals = outputs[0]
 
                 if loss_calculation:
                     dev_loss += self.calculate_loss(prediction_vals, label_batch.long())

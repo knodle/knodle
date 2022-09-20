@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Union, Tuple
 
-import pandas as pd
 import spacy
+import pandas as pd
 from pandas import DataFrame
 
 ARG1 = "$ARG1"
