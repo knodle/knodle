@@ -16,20 +16,21 @@ The IMDB dataset available in the Knodle collection was downloaded from [Kaggle]
 """
 
 import os
-
-import numpy as np
-import pandas as pd
-from bs4 import BeautifulSoup
 from joblib import dump
-# client to access the dataset collection
-from minio import Minio
-from scipy.sparse import csr_matrix
-from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
 from tqdm import tqdm
 
-from knodle.transformation.majority import input_to_majority_vote_input
-from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
+import pandas as pd
+import numpy as np
+from scipy.sparse import csr_matrix
 
+from bs4 import BeautifulSoup
+from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
+
+from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
+from knodle.transformation.majority import input_to_majority_vote_input
+
+# client to access the dataset collection
+from minio import Minio
 client = Minio("knodle.dm.univie.ac.at", secure=False)
 
 # init pandas parameters

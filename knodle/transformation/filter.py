@@ -28,9 +28,9 @@ def filter_empty_probabilities(
 ) -> Union[Tuple[TensorDataset, np.ndarray, np.ndarray], Tuple[TensorDataset, np.ndarray]]:
     """Delete rows of TensorDataset's where the cumulative probability equals 0.
     Args:
-        input_data_x: a TensorDataset serving as input to a model
-        class_probas_y: array, holding class probabilities, shape=num_samples, num_classes
-        rule_matches_z_train: optional array with rules matched in samples. If given, will also be filtered
+        input_data_x: A TensorDataset serving as input to a model
+        class_probas_y: Array, holding class probabilities, shape=num_samples, num_classes
+        rule_matches_z: optional array with rules matched in samples. If given, will also be filtered
     :return: Modified TensorDataset's
     """
     if len(class_probas_y.shape) != 2:
@@ -62,26 +62,3 @@ def filter_probability_threshold(
         return new_x, class_probas_y[conclusive_idx], rule_matches_z[conclusive_idx]
 
     return new_x, class_probas_y[conclusive_idx]
-
-
-def get_pruned_input(
-        rule_matches_z: np.ndarray, model_input_x: np.ndarray, x_mask, noisy_labels
-) -> Tuple[Union[np.ndarray, TensorDataset], np.ndarray, np.ndarray]:
-
-    noisy_labels_pruned = noisy_labels[x_mask]
-    rule_matches_z_pruned = rule_matches_z[x_mask]
-
-    if isinstance(model_input_x, np.ndarray):
-        return model_input_x[x_mask], noisy_labels_pruned, rule_matches_z_pruned
-
-    elif isinstance(model_input_x, TensorDataset):
-        # todo: write tests
-        model_input_x_pruned_subset = [data for data in Subset(model_input_x, np.where(x_mask)[0])]
-        model_input_x_pruned = TensorDataset(*[
-            torch.stack(([tensor[i] for tensor in model_input_x_pruned_subset]))
-            for i in range(len(model_input_x.tensors))
-        ])
-        return model_input_x_pruned, noisy_labels_pruned, rule_matches_z_pruned
-
-    else:
-        raise ValueError("Unknown input format")
