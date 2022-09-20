@@ -399,3 +399,49 @@ def z_t_matrices_to_probs_multi(
         rule_probs[i] = rule_counts_probs
 
     return rule_probs
+
+
+def seq_input_to_majority_vote_input(
+        rule_matches_z: np.ndarray,
+        mapping_rules_labels_t: np.ndarray,
+        other_class_id: int = None,
+) -> np.array:
+    """
+    Majority voting, from labeling function (lf) matches (multi-hot) to labels (normalized multi-hot).
+    Works also for sequences, where each position has its own vector (the last dimension of the array)
+    counting labeling function matches.
+    You can specify a OTHER_ID, positions with no matches are mapped to this output label.
+    If OTHER_ID is set to None, it is required that every position has at least one matching labeling function.
+    (This can be ensured by, e.g., filtering out those positions in a pre-processing step).
+
+    Args:
+        rule_matches_z: Multi-dimensional numpy array, the last dimension is a vector with one dimension per LF.
+        mapping_rules_labels_t: 2-dimensional numpy array #LFs x #classes. A cell in row r and column c
+    contains the value 1 if the LF with LF_id==r corresponds to the label with label_id==c (other cells are 0).
+        other_class_id: Label id to which instances / positions with no lf are mapped to.
+
+    Output:
+        Multi-dimensional numpy array, the last dimension is a vector with a probability distribution over all
+    labels.
+    """
+    # todo: currently works only when every position has at least one matching labeling function -> adjust
+    ws_labels = rule_matches_z.dot(mapping_rules_labels_t)
+    num_labels = mapping_rules_labels_t.shape[1]
+
+    # Count all lf matches
+    mv_vector = np.ones(num_labels)
+
+    if other_class_id is None:
+        lf_match = ws_labels.dot(mv_vector)
+        assert ((lf_match >= 1).all())
+    else:
+        assert (other_class_id >= 0)
+        assert (other_class_id < num_labels)
+        mv_vector[other_class_id] = 0
+        lf_match = ws_labels.dot(mv_vector)
+        # If no lf-match, assign OTHER class
+        ws_labels[lf_match == 0, other_class_id] = 1
+
+    # Divide by total count (last axis)
+    ws_labels = ws_labels / ws_labels.sum(axis=-1)[..., None]
+    return ws_labels

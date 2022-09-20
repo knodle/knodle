@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
+from knodle.trainer.baseline.utils import SeqDataset
+
 
 def input_labels_to_tensordataset(
         model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False
@@ -15,6 +17,16 @@ def input_labels_to_tensordataset(
         return TensorDataset(*model_tensors, torch.from_numpy(labels).float())
     else:
         return TensorDataset(*model_tensors, torch.from_numpy(labels).long())
+
+
+def input_seq_labels_to_tensordataset(
+        model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False
+) -> TensorDataset:
+    model_tensors = model_input_x.tensors
+    if probs:
+        return SeqDataset(*model_tensors, torch.from_numpy(labels).float())
+    else:
+        return SeqDataset(*model_tensors, torch.from_numpy(labels).long())
 
 
 def input_info_labels_to_tensordataset(
