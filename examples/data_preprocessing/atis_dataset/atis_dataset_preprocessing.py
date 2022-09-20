@@ -1,4 +1,6 @@
 import os
+from typing import Dict, Tuple, List
+
 import numpy as np
 import json
 import math
@@ -7,39 +9,15 @@ from keras.utils import to_categorical, pad_sequences
 from knodle.transformation.majority import seq_input_to_majority_vote_input
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 MAX_LENGTH = 20
+UNK_TOKEN = "<UNK>"
+PAD_TOKEN = "<PAD>"
+OTHER_ID = 0
+OTHER_LABEL = "O"
 
 
-def switch_idx(sents, i, j):
-    D = {i: j, j: i}
-    return [[D.get(word, word) for word in sent] for sent in sents]
-
-
-def do_padding(sequences, length=MAX_LENGTH):
-    return pad_sequences(sequences, maxlen=length)
-
-
-def read_atis(atis_fn: str = "atis.json"):
-    with open(os.path.join(__location__, atis_fn), "rb") as input_file:
-        data = json.load(input_file)
-
-    train_dev_sents = data["train_sents"]  # list of lists
-    train_dev_lfs = data["train_labels"]  # list of lists
-    num_train = math.floor(0.8 * len(train_dev_sents))
-    train_sents = train_dev_sents[:num_train]
-    train_lfs = train_dev_lfs[:num_train]
-    dev_sents = train_dev_sents[num_train:]
-    dev_lfs = train_dev_lfs[num_train:]
-    test_sents = data["test_sents"]
-    test_lfs = data["test_labels"]
-    word_to_id = data["vocab"]
-    lf_to_id = data["label_dict"]
-    UNK_TOKEN = "<UNK>"
-    PAD_TOKEN = "<PAD>"
-    NUM_LFs = len(lf_to_id)
-
-    #  We reorganize the data so that "<PAD>" has id 0, "<UNK>" has id 1, and the label 'O' has id 0 (and all words
-    #  are still represented). Make sure to also change word_to_id and label_to_id.
+def reassign_unk_pad(train_sents, dev_sents, test_sents, train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id):
     id_to_word = {word_to_id[word]: word for word in word_to_id}
     id_to_lf = {lf_to_id[lf]: lf for lf in lf_to_id}
 
@@ -59,28 +37,72 @@ def read_atis(atis_fn: str = "atis.json"):
     word_to_id[UNK_TOKEN] = 1
     id_to_word = {word_to_id[word]: word for word in word_to_id}
     id_to_lf = {lf_to_id[label]: label for label in lf_to_id}
+    return train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id, id_to_word, id_to_lf
 
+
+def switch_idx(sents, i, j):
+    D = {i: j, j: i}
+    return [[D.get(word, word) for word in sent] for sent in sents]
+
+
+def do_padding(sequences, length=MAX_LENGTH):
+    return pad_sequences(sequences, maxlen=length)
+
+
+def get_train_dev_test_data(data: Dict) -> Tuple[List, List, List, List, List, List]:
+    train_dev_sents = data["train_sents"]  # list of lists
+    train_dev_lfs = data["train_labels"]  # list of lists
+
+    num_train = math.floor(0.8 * len(train_dev_sents))
+    train_sents = train_dev_sents[:num_train]
+    train_lfs = train_dev_lfs[:num_train]
+    dev_sents = train_dev_sents[num_train:]
+    dev_lfs = train_dev_lfs[num_train:]
+    test_sents = data["test_sents"]
+    test_lfs = data["test_labels"]
+
+    return train_sents, train_lfs, dev_sents, dev_lfs, test_sents, test_lfs
+
+
+def read_atis(path_to_atis: str = None):
+
+    if path_to_atis is None:
+        path_to_atis = os.path.join(__location__, "atis.json")
+
+    with open(path_to_atis, "rb") as input_file:
+        data = json.load(input_file)
+
+    # get the samples and LFs
+    train_sents, train_lfs, dev_sents, dev_lfs, test_sents, test_lfs = get_train_dev_test_data(data)
+
+    word_to_id = data["vocab"]
+    lf_to_id = data["label_dict"]
+    num_lfs = len(lf_to_id)
+
+    #  We reorganize the data so that "<PAD>" has id 0, "<UNK>" has id 1, and the label 'O' has id 0 (and all words
+    #  are still represented). Make sure to also change word_to_id and label_to_id.
+    train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id, id_to_word, id_to_lf = reassign_unk_pad(
+        train_sents, dev_sents, test_sents, train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id
+    )
+
+    # pad sentences
     train_sents_padded = do_padding(train_sents)
     dev_sents_padded = do_padding(dev_sents)
     test_sents_padded = do_padding(test_sents)
 
-    lf_to_newlabel = dict()
-    for oldlabel in lf_to_id.keys():
-        newlabel = oldlabel.split(".")[0].split("-")[-1]
-        lf_to_newlabel[oldlabel] = newlabel
+    # extract pure labels
+    new_labels = [oldlabel.split(".")[0].split("-")[-1] for oldlabel in lf_to_id.keys()]
+    lf_to_newlabel = dict(zip(lf_to_id.keys(), new_labels))
     del lf_to_newlabel["O"]
 
     # 1. use original labels, without "O" to represent Z-matrix
-    train_lfs_padded = to_categorical(do_padding(train_lfs), NUM_LFs)[:, :, 1:]
-    dev_lfs_padded = to_categorical(do_padding(dev_lfs), NUM_LFs)[:, :, 1:]
-    test_lfs_padded = to_categorical(do_padding(test_lfs), NUM_LFs)[:, :, 1:]
+    train_lfs_padded = to_categorical(do_padding(train_lfs), num_lfs)[:, :, 1:]
+    dev_lfs_padded = to_categorical(do_padding(dev_lfs), num_lfs)[:, :, 1:]
+    test_lfs_padded = to_categorical(do_padding(test_lfs), num_lfs)[:, :, 1:]
 
-    newlabel_to_id = dict()
-    OTHER_ID = 0
-    OTHER_LABEL = "O"
-    newlabel_to_id[OTHER_LABEL] = OTHER_ID
-    for i, nl in enumerate(set(lf_to_newlabel.values())):
-        newlabel_to_id[nl] = i + 1
+    # create dict with cleaned labels to label ids
+    new_labels = list(set(lf_to_newlabel.values()))
+    newlabel_to_id = {**{OTHER_LABEL: OTHER_ID}, **{new_labels[i]: i + 1 for i in range(0, len(new_labels))}}
 
     lfid_to_nlid = dict()
     for lf_id in id_to_lf:
