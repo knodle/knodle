@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Union, List, Tuple
 
-import numpy as np
 import pandas as pd
+import numpy as np
 from joblib import load
 
 logger = logging.getLogger(__name__)

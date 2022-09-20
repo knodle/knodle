@@ -54,7 +54,7 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
 
         self._knn_denoise_rule_matches()
 
-        self.model_input_x, noisy_y_train, self.rule_matches_z = input_to_majority_vote_input(
+        self.model_input_x, noisy_input_y, self.rule_matches_z = input_to_majority_vote_input(
             self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
             probability_threshold=self.trainer_config.probability_threshold,
             unmatched_strategy=self.trainer_config.unmatched_strategy,
@@ -65,7 +65,7 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
             multi_label_threshold=self.trainer_config.multi_label_threshold
         )
 
-        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_y_train)
+        feature_label_dataset = input_labels_to_tensordataset(self.model_input_x, noisy_input_y)
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)

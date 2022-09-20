@@ -4,11 +4,12 @@ import numpy as np
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.auto_trainer import AutoTrainer
-from knodle.trainer.baseline.config import MajorityConfig
-from knodle.trainer.trainer import BaseTrainer
 from knodle.transformation.majority import input_to_majority_vote_input
 from knodle.transformation.torch_input import input_labels_to_tensordataset
+
+from knodle.trainer.trainer import BaseTrainer
+from knodle.trainer.auto_trainer import AutoTrainer
+from knodle.trainer.baseline.config import MajorityConfig
 
 logger = logging.getLogger(__name__)
 

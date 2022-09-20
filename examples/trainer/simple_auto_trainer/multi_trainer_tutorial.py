@@ -12,14 +12,16 @@ from tqdm.auto import tqdm
 from transformers import AdamW
 
 from examples.trainer.preprocessing import get_tfidf_features
-from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer import MajorityConfig, KNNConfig, SnorkelConfig, SnorkelKNNConfig
-# Define some functions
-from knodle.trainer.multi_trainer import MultiTrainer
-from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
+from knodle.model.logistic_regression_model import LogisticRegressionModel
 
 # This python script contains rarely any explanation. For more description, we refer to the corresponding
 # jupyter notebook. There the steps are explained in more detail
+
+
+# Define some functions
+from knodle.trainer.multi_trainer import MultiTrainer
+from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 
 
 # Define constants
@@ -99,6 +101,6 @@ trainer = MultiTrainer(
 trainer.train()
 
 # Run evaluation
-metrics, _ = trainer.test(X_test_tfidf_dataset, y_test)
+metrics = trainer.test(X_test_tfidf_dataset, y_test)
 for trainer, metric in metrics.items():
     print(f"Trainer: {trainer}, accuracy: {metric[0].get('accuracy')}")

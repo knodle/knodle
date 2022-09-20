@@ -1,17 +1,18 @@
 import logging
 import os
 
-from examples.ImdbDataset.utils import init_logger
-from knodle.data.download import MinioConnector
 from torch import Tensor
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
-from examples.trainer.preprocessing import get_tfidf_features
-from examples.utils import read_train_dev_test
+from knodle.data.download import MinioConnector
 from knodle.model.logistic_regression_model import (
     LogisticRegressionModel,
 )
+
+from examples.ImdbDataset.utils import init_logger
+from examples.utils import read_train_dev_test
+from examples.trainer.preprocessing import get_tfidf_features
 from knodle.trainer import TrainerConfig
 from knodle.trainer.trainer import BaseTrainer
 
@@ -27,7 +28,7 @@ def train_simple_ds_model():
     init_logger()
     if not not os.path.exists('data/imdb/mapping_rules_labels_t.lib'):
         minio_connect = MinioConnector()
-        minio_connect.download_dir("datasets/imdb/processed", TARGET_PATH)
+        minio_connect.download_dir("datasets/imdb/processed/", TARGET_PATH)
 
     train_df, dev_df, test_df, train_rule_matches_z, dev_rule_matches_z, test_rule_matches_z, imdb_dataset, \
     mapping_rules_labels_t = \
@@ -71,7 +72,7 @@ def train_simple_ds_model():
     y_test = y_test.to(custom_model_config.device)
     y_test = TensorDataset(y_test)
 
-    clf_report = trainer.test(test_tfidf, y_test)
+    clf_report, _ = trainer.test(test_tfidf, y_test)
     print(clf_report)
 
 

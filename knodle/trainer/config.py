@@ -27,14 +27,12 @@ class TrainerConfig:
             epochs: int = 3,
             seed: int = None,
             grad_clipping: int = None,
-            early_stopping: bool = True,
             device: str = None,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
             saved_models_dir: str = None,
             multi_label: bool = False,
-            multi_label_threshold: float = None,
-            verbose: bool = False
+            multi_label_threshold: float = None
     ):
         """
         A default and minimum sufficient configuration of a Trainer instance.
@@ -80,7 +78,6 @@ class TrainerConfig:
         self.batch_size = batch_size
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
-        self.early_stopping = early_stopping
         self.device = torch.device(device) if device is not None else check_and_return_device()
         logger.info(f"Model will be trained on {self.device}")
 
@@ -107,8 +104,6 @@ class TrainerConfig:
             self.multi_label_threshold = 0.5
         else:
             self.multi_label_threshold = multi_label_threshold
-
-        self.verbose = verbose
 
 
 class BaseTrainerConfig(TrainerConfig):

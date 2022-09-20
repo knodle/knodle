@@ -10,7 +10,6 @@ from torch.optim import Adam
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, AdamW
-
 from examples.trainer.preprocessing import convert_text_to_transformer_input, get_tfidf_features
 from knodle.model.logistic_regression_model import LogisticRegressionModel
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig

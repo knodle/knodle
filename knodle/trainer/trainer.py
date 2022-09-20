@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, List
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
 import skorch
@@ -15,10 +15,9 @@ from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm.auto import tqdm
 
-from knodle.evaluation.multi_label_metrics import encode_to_binary, evaluate_multi_label
+from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_to_binary
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
-from knodle.model.EarlyStopping import EarlyStopping
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.transformation.rule_reduction import reduce_rule_matches
@@ -134,7 +133,6 @@ class BaseTrainer(Trainer):
             self, feature_label_dataloader: DataLoader, use_sample_weights: bool = False, draw_plot: bool = False
     ):
         log_section("Training starts", logger)
-        es = self.check_early_stopping()
 
         if self.trainer_config.multi_label and self.trainer_config.criterion not in [nn.BCELoss, nn.BCEWithLogitsLoss]:
             raise ValueError(
@@ -186,21 +184,19 @@ class BaseTrainer(Trainer):
                 epoch_acc += acc.item()
 
                 # print epoch loss and accuracy after each 10% of training is done
-                if self.trainer_config.verbose:
-                    try:
-                        if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
-                            logger.info(f"Train loss: {epoch_loss/steps:.3f}, Train accuracy: {epoch_acc/steps:.3f}")
-                    except ZeroDivisionError:
-                        continue
+                try:
+                    if steps % (int(round(len(feature_label_dataloader) / 10))) == 0:
+                        logger.info(f"Train loss: {epoch_loss / steps:.3f}, Train accuracy: {epoch_acc / steps:.3f}")
+                except ZeroDivisionError:
+                    continue
 
             avg_loss = epoch_loss / len(feature_label_dataloader)
             avg_acc = epoch_acc / len(feature_label_dataloader)
             train_losses.append(avg_loss)
             train_acc.append(avg_acc)
 
-            if self.trainer_config.verbose:
-                logger.info("Epoch train loss: {}".format(avg_loss))
-                logger.info("Epoch train accuracy: {}".format(avg_acc))
+            logger.info("Epoch train loss: {}".format(avg_loss))
+            logger.info("Epoch train accuracy: {}".format(avg_acc))
 
             if self.dev_model_input_x is not None:
                 dev_clf_report, dev_loss = self.test(
@@ -211,12 +207,6 @@ class BaseTrainer(Trainer):
                     dev_acc.append(dev_clf_report["accuracy"])
                     logger.info("Epoch development accuracy: {}".format(dev_clf_report["accuracy"]))
 
-                if es:
-                    es(dev_loss, self.model)
-                    if es.early_stop:
-                        logger.info("The model performance on validation training does not change -> early stopping.")
-                        break
-
             # saving model
             if self.trainer_config.saved_models_dir is not None:
                 model_path = os.path.join(
@@ -226,10 +216,6 @@ class BaseTrainer(Trainer):
                 torch.save(self.model.cpu().state_dict(), model_path)
                 self.model.to(self.trainer_config.device)
 
-                self.model.train()
-
-        logger.info("Train avg loss: {}".format(sum(train_losses)/len(train_losses)))
-        logger.info("Train avg accuracy: {}".format(sum(train_acc)/len(train_acc)))
         log_section("Training done", logger)
 
         if draw_plot:
@@ -241,14 +227,6 @@ class BaseTrainer(Trainer):
                 draw_loss_accuracy_plot({"train loss": train_losses, "train acc": train_acc})
 
         self.model.eval()
-
-        # load the best model for further evaluation
-        if self.trainer_config.early_stopping:
-            self.load_model(self.trainer_config.save_model_name, self.trainer_config.save_model_path)
-            logger.info("The best model on dev set will be used for evaluation. ")
-            logger.info(
-                f"The model is loaded from {self.trainer_config.save_model_name}, {self.trainer_config.save_model_path}"
-            )
 
     def _prediction_loop(
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
@@ -262,6 +240,7 @@ class BaseTrainer(Trainer):
         predictions_list, label_list = [], []
         dev_loss, dev_acc = 0.0, 0.0
 
+        i = 0
         # Loop over predictions
         with torch.no_grad():
             for batch in tqdm(feature_label_dataloader):
@@ -327,37 +306,6 @@ class BaseTrainer(Trainer):
         else:
             return clf_report, None
 
-    def load_model(self, save_model_name: str = None, save_model_path: str = None) -> None:
-        if not save_model_name:
-            save_model_name = "checkpoint_best"
-        save_model_name = save_model_name + "_best.pt"
-
-        if not save_model_path:
-            save_model_path = "trained_models"
-
-        model_path = os.path.join(save_model_path, save_model_name)
-        try:
-            self.model.load_state_dict(torch.load(model_path))
-        except FileNotFoundError:
-            logger.info(
-                f"The saved model in {save_model_path} wasn't found.The latest trained model will be validated instead."
-            )
-
-    def collect_report(self, predictions: np.ndarray, gold_labels: np.ndarray) -> Dict:
-        """
-        Collects the classification report (in sklearn format)
-        :param predictions: predicted labels
-        :param gold_labels: true labels
-        :return: Dictionary of format: {class 0: {prec, recall, f1}, class 1: {...}, ..., acc, macro & weighted metrics}
-        """
-        if self.trainer_config.evaluate_with_other_class:
-            return classification_report_other_class(
-                y_true=gold_labels, y_pred=predictions, ids2labels=self.trainer_config.ids2labels,
-                other_class_id=self.trainer_config.other_class_id
-            )
-        else:
-            return classification_report(y_true=gold_labels, y_pred=predictions, output_dict=True)
-
     def calculate_loss_with_sample_weights(self, logits: Tensor, gold_labels: Tensor, sample_weights: Tensor) -> float:
         if isinstance(self.trainer_config.criterion, type) and issubclass(self.trainer_config.criterion, _Loss):
             criterion = self.trainer_config.criterion(
@@ -384,15 +332,3 @@ class BaseTrainer(Trainer):
                     gold_labels.to(torch.int64), num_classes=self.trainer_config.output_classes
                 )
             return self.trainer_config.criterion(logits, gold_labels, weight=self.trainer_config.class_weights)
-
-    def check_early_stopping(self) -> Union[EarlyStopping, None]:
-        if self.trainer_config.early_stopping and self.dev_model_input_x:
-            return EarlyStopping(
-                save_model_path=self.trainer_config.save_model_path,
-                save_model_name=self.trainer_config.save_model_name
-            )
-        elif self.trainer_config.early_stopping and not self.dev_model_input_x:
-            logger.info("Early stopping won't be performed since there is no dev set provided.")
-            self.trainer_config.early_stopping = False
-            return None
-
