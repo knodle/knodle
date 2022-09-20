@@ -1,14 +1,16 @@
 import os
+from torch import Tensor
+from tqdm.auto import tqdm
 
 import joblib
-import numpy as np
-import pandas as pd
-import scipy.sparse as sp
-import torch
 from minio import Minio
-from torch import Tensor
+
+import pandas as pd
+import numpy as np
+import scipy.sparse as sp
+
+import torch
 from torch.utils.data import TensorDataset
-from tqdm.auto import tqdm
 from transformers import AdamW
 
 from examples.trainer.preprocessing import get_tfidf_features

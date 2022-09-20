@@ -1,12 +1,9 @@
-import logging
 import os
 from typing import Union, List, Tuple
 
 import pandas as pd
 import numpy as np
 from joblib import load
-
-logger = logging.getLogger(__name__)
 
 
 def read_train_dev_test(
