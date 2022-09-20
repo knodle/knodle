@@ -1,9 +1,7 @@
 from typing import Tuple, Union, List
 
 import numpy as np
-import torch
 from torch.utils.data import TensorDataset
-from torch.utils.data.dataset import Subset
 
 
 def filter_tensor_dataset_by_indices(dataset: TensorDataset, filter_ids: Union[np.ndarray, List[int]]) -> TensorDataset:
