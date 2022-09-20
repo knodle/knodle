@@ -16,7 +16,7 @@ def reduce_rule_matches(
 
     """
     This is the main function to be used for reduction of rules.
-    It finds the less effective rules by coverage in the train rule_matches_z_train and reduces them in the match matrix.
+    It finds the less effective rules by coverage in the train rule_matches_z and reduces them in the match matrix.
     The reduction is either done by dropping the rules (if drop_rules is True), or by creating one merged rule per label
     from the excessive rules selected for reduction (drop_rules is False).
     The mapping_rules_labels_t matrix is adjusted accordingly. At least one of the criteria [max_rules, min_coverage]

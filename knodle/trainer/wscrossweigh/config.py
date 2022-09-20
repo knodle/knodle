@@ -52,45 +52,45 @@ class WSCrossWeighConfig(MajorityConfig):
         self.weight_reducing_rate = weight_reducing_rate
         self.samples_start_weights = samples_start_weights
 
-        if cw_grad_clipping:
-            self.cw_grad_clipping = cw_grad_clipping
-        else:
+        if cw_grad_clipping is None:
             self.cw_grad_clipping = self.grad_clipping
-
-        if cw_epochs:
-            self.cw_epochs = cw_epochs
         else:
+            self.cw_grad_clipping = cw_grad_clipping
+
+        if cw_epochs is None:
             self.cw_epochs = self.epochs
-
-        if cw_batch_size:
-            self.cw_batch_size = cw_batch_size
         else:
+            self.cw_epochs = cw_epochs
+
+        if cw_batch_size is None:
             self.cw_batch_size = self.batch_size
-
-        if cw_optimizer:
-            self.cw_optimizer = cw_optimizer
         else:
+            self.cw_batch_size = cw_batch_size
+
+        if cw_optimizer is None:
             self.cw_optimizer = self.optimizer
-
-        if cw_unmatched_strategy:
-            self.cw_unmatched_strategy = cw_unmatched_strategy
         else:
+            self.cw_optimizer = cw_optimizer
+
+        if cw_unmatched_strategy is None:
             self.cw_unmatched_strategy = self.unmatched_strategy
-
-        if cw_ties_strategy:
-            self.cw_ties_strategy = cw_ties_strategy
         else:
+            self.cw_unmatched_strategy = cw_unmatched_strategy
+
+        if cw_ties_strategy is None:
             self.cw_ties_strategy = self.ties_strategy
-
-        if cw_other_class_id:
-            self.cw_other_class_id = cw_other_class_id
         else:
+            self.cw_ties_strategy = cw_ties_strategy
+
+        if cw_other_class_id is None:
             self.cw_other_class_id = self.other_class_id
-
-        if cw_lr:
-            self.cw_lr = cw_lr
         else:
+            self.cw_other_class_id = cw_other_class_id
+
+        if cw_lr is None:
             self.cw_lr = self.lr
+        else:
+            self.cw_lr = cw_lr
 
         self.cw_seed = cw_seed
 

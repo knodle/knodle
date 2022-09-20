@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, List
+from typing import Union, Dict, Tuple, List
 
 import numpy as np
 import skorch
@@ -15,7 +15,7 @@ from torch.nn.modules.loss import _Loss
 from torch.utils.data import TensorDataset, DataLoader
 from tqdm.auto import tqdm
 
-from knodle.evaluation.multi_label_metrics import encode_to_binary, evaluate_multi_label
+from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_to_binary
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.model.EarlyStopping import EarlyStopping

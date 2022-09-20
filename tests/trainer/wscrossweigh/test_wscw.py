@@ -1,5 +1,7 @@
-from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
 from tests.trainer.generic import std_trainer_input_2
+
+from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
+
 
 def test_dscw_base_test(std_trainer_input_2):
     (
