@@ -21,7 +21,7 @@ def input_labels_to_tensordataset(
 
 def input_seq_labels_to_tensordataset(
         model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False
-) -> TensorDataset:
+) -> SeqDataset:
     model_tensors = model_input_x.tensors
     if probs:
         return SeqDataset(*model_tensors, torch.from_numpy(labels).float())

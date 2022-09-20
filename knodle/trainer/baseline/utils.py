@@ -15,7 +15,7 @@ class SeqDataset(Dataset):
 
 
 def accuracy_padded(predicted, gold, mask):
-    # Expects label ids, NOT 1-hot encodings.
+    # Expects label ids, NOT 1-hot encodings
     return sum(sum((predicted == gold) * mask)) / sum(sum(mask))
 
 

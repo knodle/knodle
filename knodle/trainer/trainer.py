@@ -82,10 +82,10 @@ class BaseTrainer(Trainer):
 
     def __init__(
             self,
-            model: Module,
-            mapping_rules_labels_t: np.ndarray,
-            model_input_x: TensorDataset,
-            rule_matches_z: np.ndarray,
+            model: Module = None,
+            mapping_rules_labels_t: np.ndarray = None,
+            model_input_x: TensorDataset = None,
+            rule_matches_z: np.ndarray = None,
             **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = BaseTrainerConfig()
