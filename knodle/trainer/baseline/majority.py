@@ -12,7 +12,7 @@ from knodle.trainer.baseline.utils import accuracy_padded
 from knodle.trainer.trainer import BaseTrainer
 from knodle.trainer.utils import log_section
 from knodle.transformation.majority import input_to_majority_vote_input, seq_input_to_majority_vote_input
-from knodle.transformation.torch_input import input_labels_to_tensordataset, input_seq_labels_to_tensordataset
+from knodle.transformation.torch_input import input_labels_to_tensordataset
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,9 @@ class MajorityVoteSeqTrainer(BaseTrainer):
             rule_matches_z, self.mapping_rules_labels_t, other_class_id=self.trainer_config.other_class_id
         ).argmax(axis=2)
 
-        feature_label_dataset = input_seq_labels_to_tensordataset(self.model_input_x, noisy_y_train, probs=False)
+        feature_label_dataset = input_labels_to_tensordataset(
+            self.model_input_x, noisy_y_train, probs=False, dataset="sequence"
+        )
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
         self._train_loop(feature_label_dataloader)
@@ -126,8 +128,9 @@ class MajorityVoteSeqTrainer(BaseTrainer):
     def test(
             self, features_dataset: TensorDataset, labels: TensorDataset, loss_calculation: bool = False
     ) -> Tuple[float, float]:
+        # todo: add other metrics (= have metric as a parameter)
         gold_labels = labels.tensors[0].cpu().numpy()
-        feature_label_dataset = input_seq_labels_to_tensordataset(features_dataset, gold_labels)
+        feature_label_dataset = input_labels_to_tensordataset(features_dataset, gold_labels, dataset="sequence")
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
 
         self.model.eval()
