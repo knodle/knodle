@@ -1,0 +1,39 @@
+Department of Admissions: Admission; Admissions; Admitting Department
+Department of Anaesthesia, Intensive Care Medicine and Pain Medicine: Anesthetics; Anesthesiology
+Department of Blood Group Serology and Transfusion Medicine: Serology; Transfusion Medicine
+Department of Cardiac Surgery: Cardiology
+Department of Clinical Pathology: Clinical Pathology; Medical Laboratory
+Department of Dermatology: Dermatology
+Department of Ear, Nose and Throat Diseases: Otolaryngology; ENT Department; Ear, Nose and Throat Diseases 
+Department of Emergency Medicine: Accident and emergency; A&E; Casualty Department
+Department of Gastroenterology: Gastroenterology
+Department of General Surgery: General Surgery; Surgery
+Department of Geriatry: Geriatric Department; Geriatrics
+Department of Haematology: Haematology
+Department of Hospital Hygiene and Infection Control: Central Sterile Services Department; CSSD; Sterile Processing Department; SPD; Sterile Processing; Infection Control
+Department of Medicine: Pharmacy, Medicine Department
+Department of Neurology: Neurology
+Department of Nursing: Nursing Department
+Department of Nutrition and Dietetics: Nutrition Department; Dietetics
+Department of Obstetrics and Gynaecology: Gynaecology; Gynecology; Obstetrics
+Department of Ophthalmology and Optometry: Ophthalmology; Optometry
+Department of Oral and Maxillofacial Surgery: Oral Surgery; Maxillofacial Surgery
+Department of Orthopedics: Orthopedics; Orthopaedics
+Department of Pediatrics: Pediatrics; Paediatrics
+Department of Plastic, Reconstructive and Aesthetic Surgery: Plastic Surgery Department; Aesthetic Surgery Department; Reconstructive Surgery Department
+Department of Physical Medicine, Rehabilitation and Occupational Medicine: Physiotherapy; Rehab; Rehabilitation Department
+Department of Psychiatry: Psychiatry
+Department of Psychoanalysis and Psychotherapy: Psychotherapy; Psychoanalysis
+Department of Radiation Oncology: X-Ray Department; Diagnostic Imaging; Oncology; Radiology; Oncology
+Department of Thoracic Surgery: Thoracic Surgery Department
+Department of Urology: Urology
+Clinic of Dentistry: Dentistry
+Critical Care: Critical Care; Intensive Care, Intensive Care Unit, ICU; Critical Care Unit; CCU; Intensive Treatment Unit; ITU; Intensive Therapy Unit
+Operating Theatre: Operating Theatre; OT; Operating Room; Operating Suite; Operation Suite
+Inpatient Department: IPD; Inpatient Department
+Outpatient Department: OPD; Outpatient Department
+
+Sources:
+https://www.meduniwien.ac.at/web/en/health-clinics/departments-of-the-medical-university-of-vienna/
+https://www.disabled-world.com/definitions/hospital-departments.php
+https://www.nursesclass.com/2021/08/departments-in-a-hospital.html
