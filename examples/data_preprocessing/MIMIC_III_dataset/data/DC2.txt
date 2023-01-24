@@ -1,0 +1,23 @@
+infantnewborn disease
+pathology process
+cancer
+eye disease
+cardiovascular disease
+musculoskeletal disease
+occupational disease
+metabolic disease
+nan
+blood disease
+earnosethroat disease
+skin disease
+lymphatic disease
+pregnancy complication
+mental disorder
+parasitic disease
+nutrition disorder
+viral disease
+substancerelated disorder
+mouth disease
+fetal disease
+congenital abnormality
+animal disease
