@@ -8,6 +8,7 @@ class SeqDataset(Dataset):
         self.data_size = len(self.tokens)
 
     def __getitem__(self, i):
+        """ Return one training/test sample at once """
         return self.tokens[i], self.labels[i]
 
     def __len__(self):

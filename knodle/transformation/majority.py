@@ -66,21 +66,24 @@ def input_to_majority_vote_input(
         use_probabilistic_labels
     )
 
-    normalization = "sigmoid" if multi_label else "softmax"
+    normalization = "sigmoid" if multi_label else "standard"
     logger.info(f"{normalization} normalization will be used.")
 
     # (1) multiplication of Z and T matrices
     noisy_y_train = z_t_matrices_to_probs(rule_matches_z, mapping_rules_labels_t, normalization)
+    # todo: add logging
 
     # (2) filter out samples where all probabilities are below the threshold
     if probability_threshold is not None:
         model_input_x, noisy_y_train = filter_probability_threshold(model_input_x, noisy_y_train, probability_threshold)
+        # todo: add logging
 
     # (3) handling of samples without any match
     model_input_x, noisy_y_train, rule_matches_z = handle_non_labeled(
         model_input_x, noisy_y_train, rule_matches_z, unmatched_strategy=unmatched_strategy,
         other_class_id=other_class_id
     )
+    # todo: add logging
 
     # (4) turn probabilities into majority labels if relevant
     if not use_probabilistic_labels:
@@ -410,22 +413,24 @@ def seq_input_to_majority_vote_input(
     Majority voting, from labeling function (lf) matches (multi-hot) to labels (normalized multi-hot).
     Works also for sequences, where each position has its own vector (the last dimension of the array)
     counting labeling function matches.
-    You can specify a OTHER_ID, positions with no matches are mapped to this output label.
+    You can specify an OTHER_ID, positions with no matches are mapped to this output label.
     If OTHER_ID is set to None, it is required that every position has at least one matching labeling function.
     (This can be ensured by, e.g., filtering out those positions in a pre-processing step).
 
     Args:
-        rule_matches_z: Multi-dimensional numpy array, the last dimension is a vector with one dimension per LF.
+        rule_matches_z: Multi-dimensional numpy array #number of samples x #tokens in sample x #LFs
         mapping_rules_labels_t: 2-dimensional numpy array #LFs x #classes. A cell in row r and column c
-    contains the value 1 if the LF with LF_id==r corresponds to the label with label_id==c (other cells are 0).
+            contains the value 1 if the LF with LF_id==r corresponds to the label with label_id==c (other cells are 0).
         other_class_id: Label id to which instances / positions with no lf are mapped to.
+
+    _deprecated: rule_matches_z: Multi-dimensional numpy array, the last dimension is a vector with one dimension per LF.
 
     Output:
         Multi-dimensional numpy array, the last dimension is a vector with a probability distribution over all
     labels.
     """
     # todo: currently works only when every position has at least one matching labeling function -> adjust
-    ws_labels = rule_matches_z.dot(mapping_rules_labels_t)
+    ws_labels = rule_matches_z.dot(mapping_rules_labels_t)      # #number of samples x #tokens in sample x #classes
     num_labels = mapping_rules_labels_t.shape[1]
 
     # Count all lf matches
@@ -433,7 +438,8 @@ def seq_input_to_majority_vote_input(
 
     if other_class_id is None:
         lf_match = ws_labels.dot(mv_vector)
-        # assert ((lf_match >= 1).all())            todo: currently fails for atis, but should work
+        # assert ((lf_match >= 1).all())            todo: OLD VERSION: currently fails for atis, but should work
+        assert ((lf_match >= 1).any())
     else:
         assert (other_class_id >= 0)
         assert (other_class_id < num_labels)
@@ -442,6 +448,6 @@ def seq_input_to_majority_vote_input(
         # If no lf-match, assign OTHER class
         ws_labels[lf_match == 0, other_class_id] = 1
 
-    # Divide by total count (last axis)
+    # Divide by total count (last axis) - TODO whyyyyy?
     ws_labels = ws_labels / ws_labels.sum(axis=-1)[..., None]
     return ws_labels

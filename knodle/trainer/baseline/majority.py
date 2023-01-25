@@ -3,6 +3,7 @@ from typing import Tuple
 
 import numpy as np
 import torch
+from torch import Tensor
 from torch.optim import SGD
 from torch.utils.data import TensorDataset
 
@@ -91,7 +92,7 @@ class MajorityVoteSeqTrainer(BaseTrainer):
         ).argmax(axis=2)
 
         feature_label_dataset = input_labels_to_tensordataset(
-            self.model_input_x, noisy_y_train, probs=False, dataset="sequence"
+            TensorDataset(Tensor(self.model_input_x)), noisy_y_train, probs=False, dataset="sequence"
         )
         feature_label_dataloader = self._make_dataloader(feature_label_dataset)
 
@@ -108,7 +109,7 @@ class MajorityVoteSeqTrainer(BaseTrainer):
 
             for num_batch, batch in enumerate(feature_label_dataloader):
                 tokens, labels = self._load_batch(batch)
-                logits = self.model(tokens).permute(0, 2, 1)
+                logits = self.model(tokens[0].to(torch.int64)).permute(0, 2, 1)
                 loss = self.calculate_loss(logits, labels)
                 self.trainer_config.optimizer.zero_grad()
                 loss.backward()
@@ -134,19 +135,20 @@ class MajorityVoteSeqTrainer(BaseTrainer):
         feature_label_dataloader = self._make_dataloader(feature_label_dataset, shuffle=False)
 
         self.model.eval()
-        dev_loss, dev_acc = 0, 0
+        dev_loss, dev_acc, avg_acc = 0, 0, 0
 
         with torch.no_grad():
             for i, batch in enumerate(feature_label_dataloader):
                 tokens, labels = self._load_batch(batch)
 
                 self.trainer_config.optimizer.zero_grad()
-                outputs = self.model(tokens).argmax(axis=2)
+                tokens_tensor = tokens[0].to(torch.int64)
+                outputs = self.model(tokens_tensor).argmax(axis=2)
 
                 if loss_calculation:
                     dev_loss += self.calculate_loss(outputs, labels.long())
 
-                mask = (tokens != 0)
+                mask = (tokens[0] != 0)
                 acc = accuracy_padded(predicted=outputs, gold=labels, mask=mask)
                 avg_acc = (avg_acc * i + acc) / (i + 1)
         return avg_acc, dev_loss

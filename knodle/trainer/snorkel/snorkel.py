@@ -114,6 +114,7 @@ class SnorkelTrainer(MajorityVoteTrainer):
 class SnorkelKNNAggregationTrainer(SnorkelTrainer, KNNAggregationTrainer):
     """Calls k-NN denoising, before the Snorkel generative and discriminative training is started.
     """
+
     def __init__(self, **kwargs):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = SnorkelKNNConfig(optimizer=SGD, lr=0.001)

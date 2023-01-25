@@ -10,14 +10,12 @@ from knodle.transformation.majority import seq_input_to_majority_vote_input
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-MAX_LENGTH = 20
 UNK_TOKEN = "<UNK>"
 PAD_TOKEN = "<PAD>"
-OTHER_ID = 0
-OTHER_LABEL = "O"
 
 
-def reassign_unk_pad(train_sents, dev_sents, test_sents, train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id):
+def reassign_unk_pad(train_sents, dev_sents, test_sents, train_lfs, dev_lfs, test_lfs, word_to_id, lf_to_id,
+                     other_class_label: str = "O"):
     id_to_word = {word_to_id[word]: word for word in word_to_id}
     id_to_lf = {lf_to_id[lf]: lf for lf in lf_to_id}
 
@@ -26,13 +24,13 @@ def reassign_unk_pad(train_sents, dev_sents, test_sents, train_lfs, dev_lfs, tes
         dev_sents = switch_idx(dev_sents, i, j)
         test_sents = switch_idx(test_sents, i, j)
 
-    train_lfs = switch_idx(train_lfs, lf_to_id["O"], 0)
-    dev_lfs = switch_idx(dev_lfs, lf_to_id["O"], 0)
-    test_lfs = switch_idx(test_lfs, lf_to_id["O"], 0)
+    train_lfs = switch_idx(train_lfs, lf_to_id[other_class_label], 0)
+    dev_lfs = switch_idx(dev_lfs, lf_to_id[other_class_label], 0)
+    test_lfs = switch_idx(test_lfs, lf_to_id[other_class_label], 0)
     word_to_id[id_to_word[0]] = word_to_id[PAD_TOKEN]
     word_to_id[id_to_word[1]] = word_to_id[UNK_TOKEN]
-    lf_to_id[id_to_lf[0]] = lf_to_id["O"]
-    lf_to_id["O"] = 0
+    lf_to_id[id_to_lf[0]] = lf_to_id[other_class_label]
+    lf_to_id[other_class_label] = 0
     word_to_id[PAD_TOKEN] = 0
     word_to_id[UNK_TOKEN] = 1
     id_to_word = {word_to_id[word]: word for word in word_to_id}
@@ -45,8 +43,8 @@ def switch_idx(sents, i, j):
     return [[D.get(word, word) for word in sent] for sent in sents]
 
 
-def do_padding(sequences, length=MAX_LENGTH):
-    return pad_sequences(sequences, maxlen=length)
+def do_padding(sequences, max_length: int = 20):
+    return pad_sequences(sequences, maxlen=max_length)
 
 
 def get_train_dev_test_data(data: Dict) -> Tuple[List, List, List, List, List, List]:
@@ -64,8 +62,7 @@ def get_train_dev_test_data(data: Dict) -> Tuple[List, List, List, List, List, L
     return train_sents, train_lfs, dev_sents, dev_lfs, test_sents, test_lfs
 
 
-def read_atis(path_to_atis: str = None):
-
+def read_atis(path_to_atis: str = None, other_class_label: str = "O", other_class_id: int = 0):
     if path_to_atis is None:
         path_to_atis = os.path.join(__location__, "atis.json")
 
@@ -86,9 +83,9 @@ def read_atis(path_to_atis: str = None):
     )
 
     # pad sentences
-    train_sents_padded = do_padding(train_sents)
-    dev_sents_padded = do_padding(dev_sents)
-    test_sents_padded = do_padding(test_sents)
+    train_sents_padded = do_padding(train_sents, max_length=20)
+    dev_sents_padded = do_padding(dev_sents, max_length=20)
+    test_sents_padded = do_padding(test_sents, max_length=20)
 
     # extract pure labels
     new_labels = [oldlabel.split(".")[0].split("-")[-1] for oldlabel in lf_to_id.keys()]
@@ -96,13 +93,15 @@ def read_atis(path_to_atis: str = None):
     del lf_to_newlabel["O"]
 
     # 1. use original labels, without "O" to represent Z-matrix
-    train_lfs_padded = to_categorical(do_padding(train_lfs), num_lfs)[:, :, 1:]
-    dev_lfs_padded = to_categorical(do_padding(dev_lfs), num_lfs)[:, :, 1:]
-    test_lfs_padded = to_categorical(do_padding(test_lfs), num_lfs)[:, :, 1:]
+    # Dimensions of XXX_lfs_padded: #samples x #tokens in each sample x #LFs
+    train_lfs_padded = to_categorical(do_padding(train_lfs, max_length=20), num_lfs)[:, :, 1:]
+    dev_lfs_padded = to_categorical(do_padding(dev_lfs, max_length=20), num_lfs)[:, :, 1:]
+    test_lfs_padded = to_categorical(do_padding(test_lfs, max_length=20), num_lfs)[:, :, 1:]
 
     # create dict with cleaned labels to label ids
-    new_labels = list(set(lf_to_newlabel.values()))
-    newlabel_to_id = {**{OTHER_LABEL: OTHER_ID}, **{new_labels[i]: i + 1 for i in range(0, len(new_labels))}}
+    new_labels = list(set(lf_to_newlabel.values()))  # cut the BIO schema
+    newlabel_to_id = {**{other_class_label: other_class_id},
+                      **{new_labels[i]: i + 1 for i in range(0, len(new_labels))}}
 
     lfid_to_nlid = dict()
     for lf_id in id_to_lf:
