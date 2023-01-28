@@ -1,0 +1,1087 @@
+
+8808605|t|Somatic-cell selection is a major determinant of the blood-cell phenotype in heterozygotes for glucose-6-phosphate dehydrogenase mutations causing severe enzyme deficiency.
+8808605|a|X-chromosome inactivation in mammals is regarded as an essentially random process, but the resulting somatic-cell mosaicism creates the opportunity for cell selection. In most people with red-blood-cell glucose-6-phosphate dehydrogenase (G6PD) deficiency, the enzyme-deficient phenotype is only moderately expressed in nucleated cells. However, in a small subset of hemizygous males who suffer from chronic nonspherocytic hemolytic anemia, the underlying mutations (designated class I) cause more-severe G6PD deficiency, and this might provide an opportunity for selection in heterozygous females during development. In order to test this possibility we have analyzed four heterozygotes for class I G6PD mutations  two with G6PD Portici (1178G-- > A) and two with G6PD Bari (1187C-- > T). We found that in fractionated blood cell types (including erythroid, myeloid, and lymphoid cell lineages) there was a significant excess of G6PD-normal cells. The significant concordance that we have observed in the degree of imbalance in the different blood-cell lineages indicates that a selective mechanism is likely to operate at the level of pluripotent blood stem cells. Thus, it appears that severe G6PD deficiency affects adversely the proliferation or the survival of nucleated blood cells and that this phenotypic characteristic is critical during hematopoiesis.. 
+8808605	154	171	enzyme deficiency	DiseaseClass	 D008661
+8808605	376	427	glucose-6-phosphate dehydrogenase (G6PD) deficiency	SpecificDisease	D005955
+8808605	572	611	chronic nonspherocytic hemolytic anemia	SpecificDisease	D000746
+8808605	677	692	G6PD deficiency	SpecificDisease	D005955
+8808605	1368	1383	G6PD deficiency	SpecificDisease	D005955
+
+9050866|t|The ataxia-telangiectasia gene product, a constitutively expressed nuclear protein that is not up-regulated following genome damage.
+9050866|a|The product of the ataxia-telangiectasia gene (ATM) was identified by using an antiserum developed to a peptide corresponding to the deduced amino acid sequence. The ATM protein is a single, high-molecular weight protein predominantly confined to the nucleus of human fibroblasts, but is present in both nuclear and microsomal fractions from human lymphoblast cells and peripheral blood lymphocytes. ATM protein levels and localization remain constant throughout all stages of the cell cycle. Truncated ATM protein was not detected in lymphoblasts from ataxia-telangiectasia patients homozygous for mutations leading to premature protein termination. Exposure of normal human cells to gamma-irradiation and the radiomimetic drug neocarzinostatin had no effect on ATM protein levels, in contrast to a noted rise in p53 levels over the same time interval. These findings are consistent with a role for the ATM protein in ensuring the fidelity of DNA repair and cell cycle regulation following genome damage.. 
+9050866	4	25	ataxia-telangiectasia	Modifier	D001260
+9050866	152	173	ataxia-telangiectasia	Modifier	D001260
+9050866	686	707	ataxia-telangiectasia	Modifier	D001260
+
+9012409|t|Molecular basis for Duarte and Los Angeles variant galactosemia.
+9012409|a|Human orythrocytes that are homozygous for the Duarte enzyme variant of galactosemia (D/D) have a characteristic isoform on isoelectric focusing and 50% reduction in galactose-1-phosphate uridyltransferase (GALT) enzyme activity. The Duarte biochemical phenotype has a molecular genotype of N314D/N314D. The characteristic Duarte isoform is also associated with a variant called the " Los Angeles (LA) phenotype, " which has increased GALT enzyme activity. We evaluated GALT enzyme activity and screened the GALT genes of 145 patients with one or more N314D-containing alleles. We found seven with the LA biochemical phenotype, and all had a 1721C-- > T transition in exon 7 in cis with the N314D missense mutation. The 1721C-- > T transition is a neutral polymorphism for leucine at amino acid 218 (L218L). In pedigree analyses, this 1721C-- > T transition segregated with the LA phenotype of increased GALT activity in three different biochemical phenotypes (LA/N, LA/G, and LA/D). To determine the mechanism for increased activity of the LA variant, we compared GALT mRNA, protein abundance, and enzyme thermal stability in lymphoblast cell lines of D and LA phenotypes with comparable genotypes. GALT protein abundance was increased in LA compared to D alleles, but mRNA was similar among all genotypes. When LA/D and D/D GALT biochemical phenotypes were compared to N/N GALT phenotypes, both had 50%, as compared to 21%, reduction in GALT activity in the wild type (N/N) after exposure at identical initial enzyme activity to 50 degrees C for 15 min. We conclude that the codon change N314D in cis with the base-pair transition 1721C-- > T produces the LA variant of galactosemia and that this nucleotide change increases GALT activity by increasing GALT protein abundance without increasing transcription or decreasing thermal lability. A favorable codon bias for the mutated codon with consequently increased translation rates is postulated as the mechanism.. 
+9012409	20	63	Duarte and Los Angeles variant galactosemia	CompositeMention	D005693
+9012409	112	149	Duarte enzyme variant of galactosemia	SpecificDisease	D005693
+9012409	1723	1749	LA variant of galactosemia	SpecificDisease	D005693
+
+8755645|t|An intronic mutation in a lariat branchpoint sequence is a direct cause of an inherited human disorder (fish-eye disease).
+8755645|a|The first step in the splicing of an intron from nuclear precursors of mRNA results in the formation of a lariat structure. A distinct intronic nucleotide sequence, known as the branchpoint region, plays a central role in this process. We here describe a point mutation in such a sequence. Three sisters were shown to suffer from fish-eye disease (FED), a disorder which is caused by mutations in the gene coding for lecithin  cholesterol acyltransferase (LCAT). Sequencing of the LCAT gene of all three probands revealed compound heterozygosity for a missense mutation in exon 4 which is reported to underlie the FED phenotype, and a point mutation located in intron 4 (IVS4  T-22C). By performing in vitro expression of LCAT minigenes and reverse transcriptase PCR on mRNA isolated from leukocytes of the patient, this gene defect was shown to cause a null allele as the result of complete intron retention. In conclusion, we demonstrated that a point mutation in a lariat branchpoint consensus sequence causes a null allele in a patient with FED. In addition, our finding illustrates the importance of this sequence for normal human mRNA processing. Finally, this report provides a widely applicable strategy which ensures fast and effective screening for intronic defects that underlie differential gene expression.. 
+8755645	78	102	inherited human disorder	DiseaseClass	D030342
+8755645	104	120	fish-eye disease	SpecificDisease	D007863
+8755645	453	469	fish-eye disease	SpecificDisease	D007863
+8755645	471	474	FED	SpecificDisease	D007863
+8755645	737	740	FED	Modifier	D007863
+8755645	1168	1171	FED	SpecificDisease	D007863
+
+8751855|t|Genetic heterogeneity in hereditary breast cancer: role of BRCA1 and BRCA2.
+8751855|a|The common hereditary forms of breast cancer have been largely attributed to the inheritance of mutations in the BRCA1 or BRCA2 genes. However, it is not yet clear what proportion of hereditary breast cancer is explained by BRCA1 and BRCA2 or by some other unidentified susceptibility gene (s). We describe the proportion of hereditary breast cancer explained by BRCA1 or BRCA2 in a sample of North American hereditary breast cancers and assess the evidence for additional susceptibility genes that may confer hereditary breast or ovarian cancer risk. Twenty-three families were identified through two high-risk breast cancer research programs. Genetic analysis was undertaken to establish linkage between the breast or ovarian cancer cases and markers on chromosomes 17q (BRCA1) and 13q (BRCA2). Mutation analysis in the BRCA1 and BRCA2 genes was also undertaken in all families. The pattern of hereditary cancer in 14 (61%) of the 23 families studied was attributed to BRCA1 by a combination of linkage and mutation analyses. No families were attributed to BRCA2. Five families (22%) provided evidence against linkage to both BRCA1 and BRCA2. No BRCA1 or BRCA2 mutations were detected in these five families. The BRCA1 or BRCA2 status of four families (17%) could not be determined. BRCA1 and BRCA2 probably explain the majority of hereditary breast cancer that exists in the North American population. However, one or more additional genes may yet be found that explain some proportion of hereditary breast cancer.. 
+8751855	25	49	hereditary breast cancer	SpecificDisease	D061325
+8751855	107	120	breast cancer	SpecificDisease	D001943
+8751855	259	283	hereditary breast cancer	SpecificDisease	D061325
+8751855	401	425	hereditary breast cancer	SpecificDisease	D061325
+8751855	484	509	hereditary breast cancers	SpecificDisease	D061325
+8751855	586	621	hereditary breast or ovarian cancer	Modifier	D061325
+8751855	688	701	breast cancer	Modifier	D001943
+8751855	786	810	breast or ovarian cancer	Modifier	D001943|D010051
+8751855	972	989	hereditary cancer	DiseaseClass	D009386
+8751855	1410	1434	hereditary breast cancer	SpecificDisease	D061325
+8751855	1568	1592	hereditary breast cancer	SpecificDisease	D061325
+
+8674108|t|The tumor suppressor gene Brca1 is required for embryonic cellular proliferation in the mouse.
+8674108|a|Mutations of the BRCA1 gone in humans are associated with predisposition to breast and ovarian cancers. We show here that Brca1 +/- mice are normal and fertile and lack tumors by age eleven months. Homozygous Brca1 (5-6) mutant mice die before day 7. 5 of embryogenesis. Mutant embryos are poorly developed, with no evidence of mesoderm formation. The extraembryonic region is abnormal, but aggregation with wild-type tetraploid embryos does not rescue the lethality. In vivo, mutant embryos do not exhibit increased apoptosis but show reduced cell proliferation accompanied by decreased expression of cyclin E and mdm-2, a regulator of p53 activity. The expression of cyclin-dependent kinase inhibitor p21 is dramatically increased in the mutant embryos. Buttressing these in vivo observations is the fact that mutant blastocyst growth is grossly impaired in vitro. Thus, the death of Brca1 (5-6) mutant embryos prior to gastrulation may be due to a failure of the proliferative burst required for the development of the different germ layers. 
+8674108	4	9	tumor	Modifier	D009369
+8674108	171	197	breast and ovarian cancers	CompositeMention	D001943|D010051
+8674108	264	270	tumors	DiseaseClass	D009369
+
+9223312|t|Fusion genes resulting from alternative chromosomal translocations are overexpressed by gene-specific mechanisms in alveolar rhabdomyosarcoma.
+9223312|a|Chromosomal translocations identified in hematopoietic and solid tumors result in deregulated expression of protooncogenes or creation of chimeric proteins with tumorigenic potential. In the pediatric solid tumor alveolar rhabdomyosarcoma, a consistent t (2; 13) (q35; q14) or variant t (1; 13) (p36; q14) translocation generates PAX3-FKHR or PAX7-FKHR fusion proteins, respectively. In this report, we demonstrate that in addition to functional alterations these translocations are associated with fusion product overexpression. Furthermore, PAX3-FKHR and PAX7-FKHR overexpression occurs by distinct mechanisms. Transcription of PAX3-FKHR is increased relative to wild-type PAX3 by a copy number-independent process. In contrast, PAX7-FKHR overexpression results from fusion gene amplification. Thus, gene-specific mechanisms were selected to overexpress PAX3-FKHR and PAX7-FKHR in alveolar rhabdomyosarcoma, presumably due to differences in regulation between the wild-type loci. We postulate that these overexpression mechanisms ensure a critical level of gene product for the oncogenic effects of these fusions.. 
+9223312	116	141	alveolar rhabdomyosarcoma	SpecificDisease	D018232
+9223312	184	214	hematopoietic and solid tumors	CompositeMention	D019337
+9223312	344	355	solid tumor	DiseaseClass	D009369
+9223312	356	381	alveolar rhabdomyosarcoma	SpecificDisease	D018232
+9223312	1026	1051	alveolar rhabdomyosarcoma	SpecificDisease	D018232
+
+8917548|t|Pleiotropic defects in ataxia-telangiectasia protein-deficient mice.
+8917548|a|We have generated a mouse model for ataxia-telangiectasia by using gene targeting to generate mice that do not express the Atm protein. Atm-deficient mice are retarded in growth, do not produce mature sperm, and exhibit severe defects in T cell maturation while going on to develop thymomas. Atm-deficient fibroblasts grow poorly in culture and display a high level of double-stranded chromosome breaks. Atm-deficient thymocytes undergo spontaneous apoptosis in vitro significantly more than controls. Atm-deficient mice then exhibit many of the same symptoms found in ataxia-telangiectasia patients and in cells derived from them. Furthermore, we demonstrate that the Atm protein exists as two discrete molecular species, and that loss of one or of both of these can lead to the development of the disease.. 
+8917548	23	44	ataxia-telangiectasia	Modifier	D001260
+8917548	105	126	ataxia-telangiectasia	SpecificDisease	D001260
+8917548	351	359	thymomas	SpecificDisease	D013945
+8917548	638	659	ataxia-telangiectasia	Modifier	D001260
+
+8825599|t|Muscle expression of glucose-6-phosphate dehydrogenase deficiency in different variants.
+8825599|a|Muscle expression of G6PD deficiency has been investigated in Mediterranean, Seattle-like and A-variants. G6PD activity was detected in samples obtained from biopsies on the quadriceps muscle of seven males and one female. The type of genetic variant was determined by molecular analysis of DNA, extracted from blood samples. All variants showed the enzyme defect in muscle. A statistically significant relationship was found in the activity of G6PD between erythrocytes and muscle of the male subjects (r = 0. 968; p = 0. 00008). The equation for the best fit line was  Y = 0. 390X + 0. 198 198. The results suggest that, for a given variant, the extent of the enzyme defect in muscle may be determined, using this equation, from the G6PD activity of erythrocytes 
+8825599	21	65	glucose-6-phosphate dehydrogenase deficiency	SpecificDisease	D005955
+8825599	110	125	G6PD deficiency	SpecificDisease	D005955
+
+9072974|t|PTEN, a putative protein tyrosine phosphatase gene mutated in human brain, breast, and prostate cancer.
+9072974|a|Mapping of homozygous deletions on human chromosome 10q23 has led to the isolation of a candidate tumor suppressor gene, PTEN, that appears to be mutated at considerable frequency in human cancers. In preliminary screens, mutations of PTEN were detected in 31% (13/42) of glioblastoma cell lines and xenografts, 100% (4/4) of prostate cancer cell lines, 6% (4/65) of breast cancer cell lines and xenografts, and 17% (3/18) of primary glioblastomas. The predicted PTEN product has a protein tyrosine phosphatase domain and extensive homology to tensin, a protein that interacts with actin filaments at focal adhesions. These homologies suggest that PTEN may suppress tumor cell growth by antagonizing protein tyrosine kinases and may regulate tumor cell invasion and metastasis through interactions at focal adhesions.. 
+9072974	68	102	brain, breast, and prostate cancer	CompositeMention	D001932|D001943|D011471
+9072974	202	207	tumor	Modifier	D009369
+9072974	293	300	cancers	DiseaseClass	D009369
+9072974	376	388	glioblastoma	Modifier	D005909
+9072974	430	445	prostate cancer	Modifier	D011471
+9072974	471	484	breast cancer	Modifier	D001943
+9072974	530	551	primary glioblastomas	SpecificDisease	D005909
+9072974	770	775	tumor	Modifier	D009369
+9072974	846	851	tumor	Modifier	D009369
+9072974	870	880	metastasis	DiseaseClass	D009362
+
+8898652|t|Somatic alterations of the DPC4 gene in human colorectal cancers in vivo.
+8898652|a|BACKGROUND & AIMS  The chromosome region 18q21 has been shown to be frequently deleted in colorectal cancers, and such frequent allelic loss is a hallmark of the presence of a tumor-suppressor gene. The DPC4 gene, which is located at 18q21, has been identified as a tumor-suppressor gene from examination of pancreatic cancers. The aim of the present study was to determine if it might also be altered in colorectal cancers. METHODS  Mutation analyses of the DPC4 gene were performed on complementary DNA samples from 31 primary colorectal cancer specimens using a combination of polymerase chain reaction, single-strand conformation polymorphism, and DNA sequencing. RESULTS  Four missense mutations producing amino acid substitutions and a somatic 12-base pair deletion in the coding region of the DPC4 gene were detected in the 31 cancers (16%; 5 of 31). CONCLUSIONS  The DPC4 gene may play a role as a tumor-suppressor gene in a fraction of colorectal cancers; however, while allelic loss at 18q21 is very often seen in colorectal cancers, only a minority show DPC4 mutations, suggesting that there might be another tumor-suppressor gene in this chromosome region.. 
+8898652	46	64	colorectal cancers	SpecificDisease	D015179
+8898652	164	182	colorectal cancers	SpecificDisease	D015179
+8898652	382	400	pancreatic cancers	SpecificDisease	D010190
+8898652	479	497	colorectal cancers	SpecificDisease	D015179
+8898652	603	620	colorectal cancer	Modifier	D015179
+8898652	908	915	cancers	DiseaseClass	D009369
+8898652	1019	1037	colorectal cancers	SpecificDisease	D015179
+8898652	1098	1116	colorectal cancers	SpecificDisease	D015179
+
+8938427|t|Complete genomic sequence and analysis of 117 kb of human DNA containing the gene BRCA1.
+8938427|a|Over 100 distinct disease-associated mutations have been identified in the breast-ovarian cancer susceptibility gene BRCA1. Loss of the wild-type allele in > 90% of tumors from patients with inherited BRCA1 mutations indicates tumor suppressive function. The low incidence of somatic mutations suggests that BRCA1 inactivation in sporadic tumors occurs by alternative mechanisms, such as interstitial chromosomal deletion or reduced transcription. To identify possible features of the BRCA1 genomic region that may contribute to chromosomal instability as well as potential transcriptional regulatory elements, a 117, 143-bp DNA sequence encompassing BRCA1 was obtained by random sequencing of four cosmids identified from a human chromosome 17 specific library. The 24 exons of BRCA1 span an 81-kb region that has an unusually high density of Alu repetitive DNA (41. 5%), but relatively low density (4. 8%) of other repetitive sequences. BRCA1 intron lengths range in size from 403 bp to 9. 2 kb and contain the intragenic microsatellite markers D17S1323, D17S1322, and D17S855, which localize to introns 12, 19, and 20, respectively. In addition to BRCA1, the contig contains two complete genes  Rho7, a member of the rho family of GTP binding proteins, and VAT1, an abundant membrane protein of cholinergic synaptic vesicles. Partial sequences of the 1A1-3B B-box protein pseudogene and IFP 35, an interferon induced leucine zipper protein, reside within the contig. An L21 ribosomal protein pseudogene is embedded in BRCA1 intron 13. The order of genes on the chromosome is  centromere-1FP 35-VAT1-Rho7-BRCA1-1A1-3B-telomere 
+8938427	164	185	breast-ovarian cancer	Modifier	D061325
+8938427	254	260	tumors	DiseaseClass	D009369
+8938427	316	321	tumor	Modifier	D009369
+8938427	428	434	tumors	DiseaseClass	D009369
+
+8621452|t|Type II human complement C2 deficiency. Allele-specific amino acid substitutions (Ser189 --> Phe; Gly444 --> Arg) cause impaired C2 secretion.
+8621452|a|Type II complement protein C2 deficiency is characterized by a selective block in C2 secretion. The Type II C2 null allele (C2Q0) is linked to two major histocompatibility haplotypes (MHC) that differ from the MHC of the more common Type I C2 deficiency. To determine the molecular basis of Type II deficiency the two Type II C2Q0 genes were isolated and transfected separately into L-cells. Subsequent molecular biology, biosynthetic, and immunofluorescence studies demonstrated that C2 secretion is impaired in Type II C2 deficiency because of different missense mutations at highly conserved residues in each of the C2Q0 alleles. One is in exon 5 (nucleotide C566 -- > T; Ser189 -- > Phe) of the C2Q0 gene linked to the MHC haplotype A11, B35, DRw1, BFS, C4A0B1. The other is in exon 11 (G1930 -- > A; Gly444 -- > Arg) of the C2Q0 gene linked to the MHC haplotype A2, B5, DRw4, BFS, C4A3B1. Each mutant C2 gene product is retained early in the secretory pathway. These mutants provide models for elucidating the C2 secretory pathway.. 
+8621452	0	38	Type II human complement C2 deficiency	SpecificDisease	OMIM:217000
+8621452	143	183	Type II complement protein C2 deficiency	SpecificDisease	OMIM:217000
+8621452	376	396	Type I C2 deficiency	SpecificDisease	OMIM:217000
+8621452	434	452	Type II deficiency	SpecificDisease	OMIM:217000
+8621452	656	677	Type II C2 deficiency	SpecificDisease	OMIM:217000
+
+8843194|t|Targeted disruption of ATM leads to growth retardation, chromosomal fragmentation during meiosis, immune defects, and thymic lymphoma.
+8843194|a|ATM, the gene mutated in the inherited human disease ataxia-telangiectasia, is a member of a family of kinases involved in DNA metabolism and cell-cycle checkpoint control. To help clarify the physiological roles of the ATM protein, we disrupted the ATM gene in mice through homologous recombination. Initial evaluation of the ATM knockout animals indicates that inactivation of the mouse ATM gene recreates much of the phenotype of ataxia-telangiectasia. The homozygous mutant (ATM-/-) mice are viable, growth-retarded, and infertile. The infertility of ATM-/- mice results from meiotic failure. Meiosis is arrested at the zygotene/pachytene stage of prophase I as a result of abnormal chromosomal synapsis and subsequent chromosome fragmentation. Immune defects also are evident in ATM-/- mice, including reduced numbers of B220 + CD43- pre-B cells, thymocytes, and peripheral T cells, as well as functional impairment of T-cell-dependent immune responses. The cerebella of ATM-/- mice appear normal by histologic examination at 3 to 4 months and the mice have no gross behavioral abnormalities. The majority of mutant mice rapidly develop thymic lymphomas and die before 4 months of age. These findings indicate that the ATM gene product plays an essential role in a diverse group of cellular processes, including meiosis, the normal growth of somatic tissues, immune development, and tumor suppression.. 
+8843194	36	54	growth retardation	DiseaseClass	D006130
+8843194	56	96	chromosomal fragmentation during meiosis	SpecificDisease	D048629
+8843194	98	112	immune defects	DiseaseClass	D007154
+8843194	118	133	thymic lymphoma	SpecificDisease	D013953
+8843194	164	187	inherited human disease	DiseaseClass	D030342
+8843194	188	209	ataxia-telangiectasia	SpecificDisease	D001260
+8843194	568	589	ataxia-telangiectasia	SpecificDisease	D001260
+8843194	675	686	infertility	SpecificDisease	D007246
+8843194	884	898	Immune defects	DiseaseClass	D007154
+8843194	1207	1231	behavioral abnormalities	DiseaseClass	D001523
+8843194	1277	1293	thymic lymphomas	SpecificDisease	D008223
+8843194	1523	1528	tumor	Modifier	D009369
+
+8700509|t|The 5' end of the BRCA1 gene lies within a duplicated region of human chromosome 17q21.
+8700509|a|To begin to address the hypothesis that abnormal regulation of the breast/ovarian cancer susceptibility gene BRCA1 is a critical step in sporadic breast/ovarian tumorigenesis, we have determined the detailed structure of the BRCA1 genomic region. We show that this region of the genome contains a tandem duplication of approximately 30 kilobases, which results in two copies of BRCA1 exons 1 and 2, of exons 1 and 3 of the adjacent 1A1-3B gene and of the previously reported 295 base pair intergenic region. Sequence analysis of the duplicated exons of BRCA1 and 1A1-3B and flanking genomic DNA reveals maintenance of the intron-exon structure and a high degree of nucleotide sequence identity, suggesting that these are non-processed pseudogenes and that the duplication is a recent event in evolutionary terms. We also show that a processed pseudogene of the acidic ribosomal phosphoprotein P1 (ARPP1) is inserted directly upstream of pseudo-BRCA1 exon 1A. We believe that these findings could not only confound BRCA1 mutation analysis, but could have implications for the normal and abnormal regulation of BRCA1 transcription, translation and function.. 
+8700509	155	176	breast/ovarian cancer	Modifier	D061325
+
+9241281|t|atm and p53 cooperate in apoptosis and suppression of tumorigenesis, but not in resistance to acute radiation toxicity.
+9241281|a|Mutations in atm and p53 cause the human cancer-associated diseases ataxia-telangiectasia and Li-Fraumeni syndrome, respectively. The two genes are believed to interact in a number of pathways, including regulation of DNA damage-induced cell-cycle checkpoints, apoptosis and radiation sensitivity, and cellular proliferation. Atm-null mice, as well as those null for p53, develop mainly T-cell lymphomas, supporting the view that these genes have similar roles in thymocyte development. To study the interactions of these two genes on an organismal level, we bred mice heterozygous for null alleles of both atm and p53 to produce all genotypic combinations. Mice doubly null for atm and p53 exhibited a dramatic acceleration of tumour formation relative to singly null mice, indicating that both genes collaborate in a significant manner to prevent tumorigenesis. With respect to their roles in apoptosis, loss of atm rendered thymocytes only partly resistant to irradiation-induced apoptosis, whereas additional loss of p53 engendered complete resistance. This implies that the irradiation-induced atm and p53 apoptotic pathways are not completely congruent. Finally-and in contrast to prior predictions-atm and p53 do not appear to interact in acute radiation toxicity, suggesting a separate atm effector pathway for this DNA damage response and having implications for the prognosis and treatment of human tumours.. 
+9241281	94	118	acute radiation toxicity	SpecificDisease	D054508
+9241281	161	187	cancer-associated diseases	DiseaseClass	D009369
+9241281	188	209	ataxia-telangiectasia	SpecificDisease	D001260
+9241281	214	234	Li-Fraumeni syndrome	SpecificDisease	D016864
+9241281	507	523	T-cell lymphomas	SpecificDisease	D016399
+9241281	848	854	tumour	Modifier	D009369
+9241281	1366	1390	acute radiation toxicity	SpecificDisease	D054508
+9241281	1529	1536	tumours	DiseaseClass	D009369
+
+9218625|t|Molecular bases of C7 deficiency: three different defects.
+9218625|a|The molecular basis of C7 deficiency has been investigated in two Irish families and a number of Israeli families of Moroccan Sephardic Jewish origin. Exon PCR and sequencing revealed a heterozygous point mutation at the 3 splice acceptor site of intron 1 in one Irish family. In the other Irish family, exons 7 and 8 failed to amplify and they were shown to be deleted. Marker haplotype studies of the C6 and C7 gene region and Southern blots show that the Irish family with the splice defect also segregate for the deletion, which is not easily detected in heterozygotes. The Israeli C7-deficient cases all share a C7 haplotype and are homozygous for a mis-sense mutation in exon 9. However, one individual is heterozygous for markers at adjacent C6 loci, showing that there has been an intergenic recombination and suggesting that the deficiency mutation is of appreciable antiquity.. 
+9218625	19	32	C7 deficiency	SpecificDisease	OMIM:610102
+9218625	82	95	C7 deficiency	SpecificDisease	OMIM:610102
+9218625	645	657	C7-deficient	Modifier	OMIM:610102
+
+8931701|t|Identification of WASP mutations, mutation hotspots and genotype-phenotype disparities in 24 patients with the Wiskott-Aldrich syndrome.
+8931701|a|The Wiskott-Aldrich syndrome (WAS), an X-linked immunodeficiency disease caused by mutation in the recently isolated gene encoding WAS protein (WASP), is known to be associated with extensive clinical heterogeneity. Cumulative mutation data have revealed that WASP genotypes are also highly variable among WAS patients, but the relationship of phenotype with genotype in this disease remains unclear. To address this issue we characterized WASP mutations in 24 unrelated WAS patients, including 18 boys with severe classical WAS and 6 boys expressing mild forms of the disease, and then examined the degree of correlation of these as well as all previously published WASP mutations with disease severity. By analysis of these compiled mutation data, we demonstrated clustering of WASP mutations within the four most N-terminal exons of the gene and also identified several sites within this region as hotspots for WASP mutation. These characteristics were observed, however, in both severe and mild cases of the disease. Similarly, while the cumulative data revealed a predominance of missense mutations among the WASP gene lesions observed in boys with isolated thrombocytopenia, missense mutations were not exclusively associated with milder WAS phenotypes, but also comprised a substantial portion (38%) of the WASP gene defects found in patients with severe disease. These findings, as well as the detection of identical WASP mutations in patients with disparate phenotypes, reveal a lack of phenotype concordance with genotype in WAS and thus imply that phenotypic outcome in this disease cannot be reliably predicted solely on the basis of WASP genotypes.. 
+8931701	111	135	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+8931701	141	165	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+8931701	167	170	WAS	SpecificDisease	D014923
+8931701	176	209	X-linked immunodeficiency disease	DiseaseClass	D007153+D040181
+8931701	268	271	WAS	Modifier	D014923
+8931701	443	446	WAS	Modifier	D014923
+8931701	608	611	WAS	Modifier	D014923
+8931701	662	665	WAS	SpecificDisease	D014923
+8931701	1291	1316	isolated thrombocytopenia	SpecificDisease	D013921
+8931701	1381	1384	WAS	Modifier	D014923
+8931701	1672	1675	WAS	SpecificDisease	D014923
+
+8661102|t|Identification and chromosomal localization of Atm, the mouse homolog of the ataxia-telangiectasia gene.
+8661102|a|Atm, the mouse homolog of the human ATM gene defective in ataxia-telangiectasia (A-T), has been identified. The entire coding sequence of the Atm transcript was cloned and found to contain an open reading frame encoding a protein of 3066 amino acids with 84% overall identity and 91% similarity to the human ATM protein. Variable levels of expression of Atm were observed in different tissues. Fluorescence in situ hybridization and linkage analysis located the Atm gene on mouse chromosome 9, band 9C, in a region homologous to the ATM region on human chromosome 11q22-q23.. 
+8661102	77	98	ataxia-telangiectasia	Modifier	D001260
+8661102	163	184	ataxia-telangiectasia	SpecificDisease	D001260
+8661102	186	189	A-T	SpecificDisease	D001260
+
+8782829|t|Mutation of MSH3 in endometrial cancer and evidence for its functional role in heteroduplex repair.
+8782829|a|Many human tumours have length alterations in repetitive sequence elements. Although this microsatellite instability has been attributed to mutations in four DNA mismatch repair genes in hereditary nonpolyposis colorectal cancer (HNPCC) kindreds, many sporadic tumours exhibit instability but no detectable mutations in these genes. It is therefore of interest to identify other genes that contribute to this instability. In yeast, mutations in several genes, including RTH and MSH3, cause microsatellite instability. Thus, we screened 16 endometrial carcinomas with microsatellite instability for alterations in FEN1 (the human homolog of RTH) and in MSH3 (refs 12-14). Although we found no FEN1 mutations, a frameshift mutation in MSH3 was observed in an endometrial carcinoma and in an endometrial carcinoma cell line. Extracts of the cell line were deficient in repair of DNA substrates containing mismatches or extra nucleotides. Introducing chromosome 5, encoding the MSH3 gene, into the mutant cell line increased the stability of some but not all microsatellites. Extracts of these cells repaired certain substrates containing extra nucleotides, but were deficient in repair of those containing mismatches or other extra nucleotides. A subsequent search revealed a second gene mutation in HHUA cells, a missense mutation in the MSH6 gene. Together the data suggest that the MSH3 gene encodes a product that functions in repair of some but not all pre-mutational intermediates, its mutation in tumours can result in genomic instability and, as in yeast, MSH3 and MSH6 are partially redundant for mismatch repair.. 
+8782829	20	38	endometrial cancer	SpecificDisease	D016889
+8782829	111	118	tumours	DiseaseClass	D009369
+8782829	190	216	microsatellite instability	SpecificDisease	D053842
+8782829	287	328	hereditary nonpolyposis colorectal cancer	Modifier	D003123
+8782829	330	335	HNPCC	Modifier	D003123
+8782829	352	368	sporadic tumours	DiseaseClass	D009369
+8782829	639	661	endometrial carcinomas	SpecificDisease	D016889
+8782829	857	878	endometrial carcinoma	SpecificDisease	D016889
+8782829	889	910	endometrial carcinoma	Modifier	D016889
+8782829	1601	1608	tumours	DiseaseClass	D009369
+
+9066888|t|Kniest dysplasia: Dr. W. Kniest, his patient, the molecular defect.
+9066888|a|Kniest dysplasia is a severe chondrodysplasia caused by the defective formation of type II collagen. We report about Dr. Kniest, who first described the condition in 1952, and his patient, who, at the age of 50 years is severely handicapped with short stature, restricted joint mobility, and blindness but is mentally alert and leads an active life. Molecular analysis of the patients DNA showed a single base (G) deletion involving the GT dinucleotide at the start of intron 18 destroying a splice site of the COL2A1 gene. This is in accordance with molecular findings in other patients with Kniest dysplasia and confirms, in the original patient, that the disorder is caused by small inframe deletions often due to exon skipping as a result of COL2A1 splice site mutations.. 
+9066888	0	16	Kniest dysplasia	SpecificDisease	C537207
+9066888	68	84	Kniest dysplasia	SpecificDisease	C537207
+9066888	97	113	chondrodysplasia	DiseaseClass	D010009
+9066888	128	167	defective formation of type II collagen	DiseaseClass	D003095
+9066888	288	308	severely handicapped	DiseaseClass	D008607
+9066888	314	327	short stature	DiseaseClass	D006130
+9066888	329	354	restricted joint mobility	DiseaseClass	D007592
+9066888	360	369	blindness	DiseaseClass	D001766
+9066888	661	677	Kniest dysplasia	SpecificDisease	C537207
+
+8841191|t|Ashkenazi Jewish population frequencies for common mutations in BRCA1 and BRCA2.
+8841191|a|BRCA1 and BRCA2 are the two major identified causes of inherited breast cancer, with mutations in either gene conferring up to 80-90% lifetime risk of breast cancer in carrier females. Mutations in BRCA1 account for approximately 45% of familial breast cancer and 90% of inherited breast/ovarian cancer, whereas mutations in BRCA2 account for a comparable percentage of inherited breast cancer cases. Over 85 distinct BRCA1 mutations and a growing list of BRCA2 mutations have been identified, with the majority resulting in protein truncation. A specific BRCA1 mutation, 185delAG, has a reported increased carrier frequency of approximately 0. 9% in the Ashkenazi Jewish population, but is also found in rare non-Jewish patients with a different haplotype. The 6174delT mutation in BRCA2 was recently identified as a frequent mutation in 8 out of 107 Ashkenazi Jewish women diagnosed with breast cancer by age 50 (ref. 8), as well as in three Ashkenazi male breast cancer patients. We have conducted a large-scale population study to investigate the prevalence of specific BRCA1 and BRCA2 mutations in Ashkenazi Jewish individuals who were unselected for breast cancer. BRCA1 mutation screening on approximately 3, 000 Ashkenazi Jewish samples determined a carrier frequency of 1. 09% for the 185delAG mutation and 0. 13% for the 5382insC mutation. BRCA2 analysis on 3, 085 individuals from the same population showed a carrier frequency of 1. 52% for the 6174delT mutation. This expanded population-based study confirms that the BRCA1 185delAG mutation and the BRCA2 6174delT mutation constitute the two most frequent mutation alleles predisposing to hereditary breast cancer among the Ashkenazim, and suggests a relatively lower penetrance for the 6174delT mutation in BRCA2 
+8841191	136	159	inherited breast cancer	SpecificDisease	D001943
+8841191	232	245	breast cancer	SpecificDisease	D001943
+8841191	318	340	familial breast cancer	SpecificDisease	D001943
+8841191	352	383	inherited breast/ovarian cancer	CompositeMention	D061325
+8841191	451	474	inherited breast cancer	Modifier	D001943
+8841191	971	984	breast cancer	SpecificDisease	D001943
+8841191	1035	1053	male breast cancer	Modifier	D018567
+8841191	1237	1250	breast cancer	SpecificDisease	D001943
+8841191	1734	1758	hereditary breast cancer	SpecificDisease	D001943
+
+8678979|t|Mapping the homolog of the human Rb1 gene to chromosome 14 of higher primates.
+8678979|a|The Rb1 gene has been implicated with retinoblastoma and is located on human Chromosome (Chr) 13q14. 2 2. A unique sequence human Rb1 cosmid DNA probe has been used to localize this region on apes Chr 14 by the FISH technique. The conservation of the Rb1 gene in higher primates at the corresponding equivalent chromosome locus (14q14) of the human may serve as a phylogenetic marker to further trace the evolutionary pathway of human descent. 
+8678979	117	131	retinoblastoma	SpecificDisease	D012175
+
+9182899|t|Difficulties in the ascertainment of C9 deficiency: lessons to be drawn from a compound heterozygote C9-deficient subject.
+9182899|a|A group of patients with long-surviving mismatched kidney allografts were investigated for complement function using haemolytic assays in agarose gels. One patient was found to have no alternative pathway activity but a low normal classical pathway. Surprisingly, investigation revealed that the patients complement was normal for all components except C9, which was functionally absent. The patient was shown to be heterozygous for DNA markers in the C6, C7 and C9 region of chromosome 5 and therefore appears to be a compound heterozygote for two uncharacterized C9 deficiency genes. Serological analysis by ELISA revealed that he has trace concentrations of a non-functional C9 molecule. Western blot analysis was not sufficiently sensitive to permit detection of this molecule. We hypothesize that the patient is heterozygous for a complete deficiency of C9 and for a gene directing hyposynthesis of a defective C9. We also suggest that C9 deficiency may be more common among Caucasians than has been reported.. 
+9182899	37	50	C9 deficiency	SpecificDisease	OMIM:613825
+9182899	101	113	C9-deficient	Modifier	OMIM:613825
+9182899	688	701	C9 deficiency	Modifier	OMIM:613825
+9182899	959	984	complete deficiency of C9	SpecificDisease	OMIM:613825
+9182899	1064	1077	C9 deficiency	SpecificDisease	OMIM:613825
+
+9020847|t|Moderate intergenerational and somatic instability of a 55-CTG repeat in transgenic mice.
+9020847|a|Myotonic dystrophy (DM) is associated with the expansion of a (CTG) n trinucleotide repeat in the 3 untranslated region (UTR) of the DM protein kinase gene (DMPK). The (CTG) n repeat is polymorphic and varies in size between 5 and 37 repeats in unaffected individuals whereas in affected patients there are between 50 and 4, 000 CTGs. The size of the (CTG) n repeat, which increases through generations, generally correlates with clinical severity and age of onset. The instability of the CTG repeat appears to depend on its size as well as on the sex of the transmitting parent. Moreover, mitotic instability analysis of different human DM tissues shows length mosaicism between different cell lineages. The molecular mechanisms of triplet instability remain elusive. To investigate the role of genomic sequences in instability, we produced transgenic mice containing a 45-kb genomic segment with a 55-CTG repeat cloned from a mildly affected patient. In contrast to other mouse models containing CAG repeats within cDNAs, these mice showed both intergenerational and somatic repeat instability.. 
+9020847	90	108	Myotonic dystrophy	SpecificDisease	D009223
+9020847	110	112	DM	SpecificDisease	D009223
+9020847	223	225	DM	Modifier	D009223
+9020847	728	730	DM	Modifier	D009223
+
+9174057|t|Mutations in the arginine-rich protein gene (ARP) in pancreatic cancer.
+9174057|a|The ARP gene encodes a highly conserved arginine-rich protein from chromosomal band 3p21. 1 1. At the cytogenetic level this region is frequently deleted in a variety of different solid tumors, although not in pancreatic cancer. We have reported the presence of a specific mutation (ATG50-- > AGG) or deletion of codon 50 of the ARP gene in different tumor types (Shridhar et al., 1996, 1996a). In the present study, we have observed mutations involving codon 50 in 11 of 37 pancreatic tumors. The frequency of codon 50 mutation is roughly the same in pancreatic tumors as in the other types of tumors previously examined. In addition, we have detected mutations at codon 51 in multiple PCR subclones in two other pancreatic tumors. Mutations in the ARP gene are thus commonly observed in pancreatic cancer, as well as many other cancers.
+9174057	53	70	pancreatic cancer	SpecificDisease	D010190
+9174057	252	264	solid tumors	DiseaseClass	D009369
+9174057	282	299	pancreatic cancer	SpecificDisease	D010190
+9174057	423	434	tumor types	DiseaseClass	D009369
+9174057	547	564	pancreatic tumors	SpecificDisease	D010190
+9174057	624	641	pancreatic tumors	SpecificDisease	D010190
+9174057	667	673	tumors	DiseaseClass	D009369
+9174057	786	803	pancreatic tumors	SpecificDisease	D010190
+9174057	861	878	pancreatic cancer	SpecificDisease	D010190
+9174057	902	909	cancers	DiseaseClass	D009369
+
+9083764|t|Heterogeneity in Schwartz-Jampel chondrodystrophic myotonia.
+9083764|a|The Schwartz-Jampel syndrome (SJS; chondrodystrophic myotonia; McK 255, 800) is a recessively inherited condition defined by myotonia, short stature, and bone dysplasia. Genetic linkage between SJS and chromosomal region 1q36-34 has been observed in several families, but the gene has not yet been identified. We studied the clinical and radiological features in 81 patients from the literature and 5 own patients trying to identify distinct subgroups. In addition, we tested genetic linkage to the SJS locus on chromosome 1 in one family with two affected sibs. We found that a group of patients have mild skeletal changes which may be secondary consequences of myotonia, while another group of patients appear to have primary bone dysplasia with myotonia. Within this latter group, there are differences in age of manifestation, clinical course and pattern of bone changes. We tentatively isolate three different types of SJS  type 1A, usually recognized in childhood, with moderate bone dysplasia, corresponding to the original descriptions of Schwartz, Jampel and Aberfeld; type 1B, similar to type 1A but recognizable at birth, with more pronounced bone dysplasia resembling Kniest dysplasia; and type 2, manifest at birth, with increased mortality and bone dysplasia resembling Pyle disease. Genetic analysis of the family with two sibs affected by SJS type 2 showed evidence against linkage to chromosome 1p36-34. CONCLUSIONS  SJS is clinically and radiologically heterogeneous. The causes of heterogeneity are not known yet but are likely to include both different mutations at the SJS locus on chromosome 1 and the presence of a second SJS locus. A tentative clinico-radiological classification can be useful for the characterization of patients and the development of genotype-phenotype correlations.. 
+9083764	17	59	Schwartz-Jampel chondrodystrophic myotonia	SpecificDisease	OMIM:255800
+9083764	65	89	Schwartz-Jampel syndrome	SpecificDisease	OMIM:255800
+9083764	91	94	SJS	SpecificDisease	OMIM:255800
+9083764	96	122	chondrodystrophic myotonia	SpecificDisease	OMIM:255800
+9083764	143	174	recessively inherited condition	DiseaseClass	D030342
+9083764	186	194	myotonia	DiseaseClass	D009222
+9083764	196	209	short stature	DiseaseClass	D006130
+9083764	215	229	bone dysplasia	DiseaseClass	D001848
+9083764	255	258	SJS	SpecificDisease	OMIM:255800
+9083764	560	563	SJS	Modifier	OMIM:255800
+9083764	724	732	myotonia	DiseaseClass	D009222
+9083764	789	803	bone dysplasia	DiseaseClass	D001848
+9083764	809	817	myotonia	DiseaseClass	D009222
+9083764	985	997	SJS  type 1A	SpecificDisease	OMIM:255800
+9083764	1046	1060	bone dysplasia	DiseaseClass	D001848
+9083764	1215	1229	bone dysplasia	DiseaseClass	D001848
+9083764	1241	1257	Kniest dysplasia	SpecificDisease	C537207
+9083764	1319	1333	bone dysplasia	DiseaseClass	D001848
+9083764	1345	1357	Pyle disease	SpecificDisease	C536252
+9083764	1416	1426	SJS type 2	SpecificDisease	C537502
+9083764	1495	1498	SJS	SpecificDisease	OMIM:255800
+9083764	1651	1654	SJS	Modifier	OMIM:255800
+9083764	1706	1709	SJS	Modifier	OMIM:255800
+
+8636252|t|X-linked adrenoleukodystrophy is a frequent cause of idiopathic Addison's disease in young adult male patients.
+8636252|a|X-Linked adrenoleukodystrophy (ALD) is a genetic disease associated with demyelination of the central nervous system, adrenal insufficiency, and accumulation of very long chain fatty acids in tissue and body fluids. ALD is due to mutation of a gene located in Xq28 that encodes a peroxisomal transporter protein of unknown function. The most common phenotype of ALD is the cerebral form (45%) that develops in boys between 5-12 yr. Adrenomyeloneuropathy (AMN) involves the spinal cord and peripheral nerves in young adults (35%). Adrenal insufficiency (Addisons disease) is frequently associated with AMN or cerebral ALD and may remain the only clinical expression of ALD (8% of cases). The prevalence of ALD among adults with Addisons disease remains unknown. To evaluate this prevalence, we performed biochemical analysis of very long chain fatty acids in 14 male patients (age ranging from 12-45 yr at diagnosis) previously diagnosed as having primary idiopathic adrenocortical insufficiency. In 5 of 14 patients (35%), elevated plasma concentrations of very long chain fatty acids were detected. None of these patients had adrenocortical antibodies. By electrophysiological tests and magnetic resonance imaging it was determined that two patients had cerebral ALD, one had adrenomyeloneuropathy with cerebral involvement, and two had preclinical AMN. Our data support the hypothesis that ALD is a frequent cause of idiopathic Addisons disease in children and adults.. 
+8636252	0	29	X-linked adrenoleukodystrophy	SpecificDisease	D000326
+8636252	64	81	Addison's disease	SpecificDisease	D000224
+8636252	112	141	X-Linked adrenoleukodystrophy	SpecificDisease	D000326
+8636252	143	146	ALD	SpecificDisease	D000326
+8636252	153	168	genetic disease	DiseaseClass	D030342
+8636252	185	228	demyelination of the central nervous system	DiseaseClass	D020279
+8636252	230	251	adrenal insufficiency	DiseaseClass	D000309
+8636252	328	331	ALD	SpecificDisease	D000326
+8636252	474	477	ALD	SpecificDisease	D000326
+8636252	544	565	Adrenomyeloneuropathy	SpecificDisease	D000326
+8636252	567	570	AMN	SpecificDisease	D000326
+8636252	642	663	Adrenal insufficiency	DiseaseClass	D000309
+8636252	665	681	Addisons disease	SpecificDisease	D000224
+8636252	713	716	AMN	SpecificDisease	D000326
+8636252	720	732	cerebral ALD	SpecificDisease	D000326
+8636252	780	783	ALD	SpecificDisease	D000326
+8636252	817	820	ALD	SpecificDisease	D000326
+8636252	839	855	Addisons disease	SpecificDisease	D000224
+8636252	1078	1106	adrenocortical insufficiency	DiseaseClass	D000224
+8636252	1367	1379	cerebral ALD	SpecificDisease	D000326
+8636252	1389	1410	adrenomyeloneuropathy	SpecificDisease	D000326
+8636252	1462	1465	AMN	SpecificDisease	D000326
+8636252	1504	1507	ALD	SpecificDisease	D000326
+8636252	1542	1558	Addisons disease	SpecificDisease	D000224
+
+8640236|t|Low incidence of BRCA2 mutations in breast carcinoma and other cancers.
+8640236|a|Inherited mutant alleles of familial tumour suppressor genes predispose individuals to particular types of cancer. In addition to an involvement in inherited susceptibility to cancer, these tumour suppressor genes are targets for somatic mutations in sporadic cancers of the same type found in the familial forms. An exception is BRCA1, which contributes to a significant fraction of familial breast and ovarian cancer, but undergoes mutation at very low rates in sporadic breast and ovarian cancers. This finding suggests that other genes may be the principal targets for somatic mutation in breast carcinoma. A second, recently identified familial breast cancer gene, BRCA2 (refs 5-8), accounts for a proportion of breast cancer roughly equal to BRCA1. Like BRCA1, BRCA2 behaves as a dominantly inherited tumour suppressor gene. Individuals who inherit one mutant allele are at increased risk for breast cancer, and the tumours they develop lose the wild-type allele by heterozygous deletion. The BRCA2 coding sequence is huge, composed of 26 exons that span 10, 443 bp. Here we investigate the rate of BRCA2 mutation in sporadic breast cancers and in a set of cell lines that represent twelve other tumour types. Surprisingly, mutations in BRCA2 are infrequent in cancers including breast carcinoma. However, a probable germline mutation in a pancreatic tumour cell line suggests a role for BRCA2 in susceptibility to pancreatic cancer.. 
+8640236	36	52	breast carcinoma	SpecificDisease	D001943
+8640236	63	70	cancers	DiseaseClass	D009369
+8640236	109	115	tumour	Modifier	D009369
+8640236	179	185	cancer	DiseaseClass	D009369
+8640236	248	254	cancer	DiseaseClass	D009369
+8640236	262	268	tumour	Modifier	D009369
+8640236	323	339	sporadic cancers	DiseaseClass	D009369
+8640236	456	490	familial breast and ovarian cancer	CompositeMention	D061325
+8640236	536	571	sporadic breast and ovarian cancers	CompositeMention	D001943|D010051
+8640236	665	681	breast carcinoma	SpecificDisease	D001943
+8640236	713	735	familial breast cancer	Modifier	D001943
+8640236	789	802	breast cancer	SpecificDisease	D001943
+8640236	879	885	tumour	Modifier	D009369
+8640236	971	984	breast cancer	SpecificDisease	D001943
+8640236	994	1001	tumours	DiseaseClass	D009369
+8640236	1195	1218	sporadic breast cancers	SpecificDisease	D001943
+8640236	1274	1280	tumour	Modifier	D009369
+8640236	1339	1346	cancers	DiseaseClass	D009369
+8640236	1357	1373	breast carcinoma	SpecificDisease	D001943
+8640236	1418	1435	pancreatic tumour	Modifier	D010190
+8640236	1493	1510	pancreatic cancer	SpecificDisease	D010190
+
+9050868|t|Type III collagen is crucial for collagen I fibrillogenesis and for normal cardiovascular development.
+9050868|a|Type III collagen is a fibrillar forming collagen comprising three alpha1 (III) chains and is expressed in early embryos and throughout embryogenesis. In the adult, type III collagen is a major component of the extracellular matrix in a variety of internal organs and skin. Mutations in the COL3A1 gene have been implicated as a cause of type IV Ehlers-Danlos syndrome, a disease leading to aortic rupture in early adult life. To directly study the role of Col3a1 in development and disease, we have inactivated the Col3a1 gene in embryonic stem cells by homologous recombination. The mutated allele was transmitted through the mouse germ line and homozygous mutant animals were derived from heterozygous intercrosses. About 10% of the homozygous mutant animals survived to adulthood but have a much shorter life span compared with wild-type mice. The major cause of death of mutant mice was rupture of the major blood vessels, similar to patients with type IV Ehlers-Danlos syndrome. Ultrastructural analysis of tissues from mutant mice revealed that type III collagen is essential for normal collagen I fibrillogenesis in the cardiovascular system and other organs.. 
+9050868	441	471	type IV Ehlers-Danlos syndrome	SpecificDisease	D004535
+9050868	494	508	aortic rupture	SpecificDisease	D001019
+9050868	1056	1086	type IV Ehlers-Danlos syndrome	SpecificDisease	D004535
+
+9138149|t|The incidence of PAX6 mutation in patients with simple aniridia: an evaluation of mutation detection in 12 cases.
+9138149|a|Twelve aniridia patients, five with a family history and seven presumed to be sporadic, were exhaustively screened in order to test what proportion of people with aniridia, uncomplicated by associated anomalies, carry mutations in the human PAX6 gene. Mutations were detected in 90% of the cases. Three mutation detection techniques were used to determine if one method was superior for this gene. The protein truncation test (PTT) was used on RT-PCR products, SSCP on genomic PCR amplifications, and chemical cleavage of mismatch on both RT-PCR and genomic amplifications. For RT-PCR products, only the translated portion of the gene was screened. On genomic products exons 1 to 13 (including 740 bp of the 3 untranslated sequence and all intron/exon boundaries) were screened, as was a neuroretina specific enhancer in intron 4. Ten of the possible 12 mutations in the five familial cases and five of the sporadic patients were found, all of which conformed to a functional outcome of haploinsufficiency. Five were splice site mutations (one in the donor site of intron 4, two in the donor site of intron 6, one in each of the acceptor sites of introns 8 and 9) and five were nonsense mutations in exons 8, 9, 10, 11, and 12. SSCP analysis of individually amplified exons, with which nine of the 10 mutations were seen, was the most useful detection method for PAX6.. 
+9138149	55	63	aniridia	SpecificDisease	D015783
+9138149	121	129	aniridia	Modifier	D015783
+9138149	277	285	aniridia	SpecificDisease	D015783
+
+8931709|t|Germline mutations in the 3' part of APC exon 15 do not result in truncated proteins and are associated with attenuated adenomatous polyposis coli.
+8931709|a|Familial adenomatous polyposis (FAP) is an inherited predisposition to colorectal cancer characterized by the development of numerous adenomatous polyps predominantly in the colorectal region. Germline mutations in the adenomatous polyposis coli (APC) gene are responsible for most cases of FAP. Mutations at the 5 end of APC are known to be associated with a relatively mild form of the disease, called attenuated adenomatous polyposis coli (AAPC). We identified a frameshift mutation in the 3 part of exon 15, resulting in a stop codon at 1862, in a large Dutch kindred with AAPC. Western blot analysis of lymphoblastoid cell lines derived from affected family members from this kindred, as well as from a previously reported Swiss family carrying a frameshift mutation at codon 1987 and displaying a similar attenuated phenotype, showed only the wild-type APC protein. Our study indicates that chain-terminating mutations located in the 3 part of APC do not result in detectable truncated polypeptides and we hypothesize that this is likely to be the basis for the observed AAPC phenotype.. 
+8931709	37	40	APC	Modifier	D011125
+8931709	120	146	adenomatous polyposis coli	SpecificDisease	D011125
+8931709	148	178	Familial adenomatous polyposis	SpecificDisease	D011125
+8931709	180	183	FAP	SpecificDisease	D011125
+8931709	219	236	colorectal cancer	SpecificDisease	D015179
+8931709	282	300	adenomatous polyps	DiseaseClass	D018256
+8931709	367	393	adenomatous polyposis coli	Modifier	D011125
+8931709	395	398	APC	Modifier	D011125
+8931709	439	442	FAP	SpecificDisease	D011125
+8931709	470	473	APC	SpecificDisease	D011125
+8931709	552	589	attenuated adenomatous polyposis coli	SpecificDisease	C538265
+8931709	591	595	AAPC	SpecificDisease	C538265
+8931709	725	729	AAPC	SpecificDisease	C538265
+8931709	1007	1010	APC	Modifier	D011125
+8931709	1098	1101	APC	SpecificDisease	D011125
+8931709	1225	1229	AAPC	Modifier	C538265
+
+8824873|t|Absence of disease phenotype and intergenerational stability of the CAG repeat in transgenic mice expressing the human Huntington disease transcript.
+8824873|a|The mutation underlying Huntington disease (HD) is CAG expansion in the first exon of the HD gene. In order to investigate the role of CAG expansion in the pathogenesis of HD, we have produced transgenic mice containing the full length human HD cDNA with 44 CAG repeats. By 1 year, these mice have no behavioral abnormalities and morphometric analysis at 6 (one animal) and 9 (two animals) months age revealed no changes. Despite high levels of mRNA expression, there was no evidence of the HD gene product in any of these transgenic mice. In vitro transfection studies indicated that the inclusion of 120 bp of the 5 UTR in the cDNA construct and the presence of a frameshift mutation at nucleotide 2349 prevented expression of the HD cDNA. These findings suggest that the pathogenesis of HD is not mediated through DNA-protein interaction and that presence of the RNA transcript with an expanded CAG repeat is insufficient to cause the disease. Rather, translation of the CAG is crucial for the pathogenesis of HD. In contrast to that seen in humans, the CAG repeat in these mice was remarkably stable in 97 meioses. This suggests that genomic sequences may play a critical role in influencing repeat instability.. 
+8824873	119	137	Huntington disease	Modifier	D006816
+8824873	174	192	Huntington disease	SpecificDisease	D006816
+8824873	194	196	HD	SpecificDisease	D006816
+8824873	240	242	HD	Modifier	D006816
+8824873	322	324	HD	SpecificDisease	D006816
+8824873	392	394	HD	Modifier	D006816
+8824873	451	475	behavioral abnormalities	DiseaseClass	D001523
+8824873	641	643	HD	Modifier	D006816
+8824873	883	885	HD	Modifier	D006816
+8824873	940	942	HD	SpecificDisease	D006816
+8824873	1163	1165	HD	SpecificDisease	D006816
+
+8944024|t|Detection of heterozygous mutations in BRCA1 using high density oligonucleotide arrays and two-colour fluorescence analysis.
+8944024|a|The ability to scan a large gene rapidly and accurately for all possible heterozygous mutations in large numbers of patient samples will be critical for the future of medicine. We have designed high-density arrays consisting of over 96, 600 oligonucleotides 20-nucleotides (nt) in length to screen for a wide range of heterozygous mutations in the 3. 45-kilobases (kb) exon 11 of the hereditary breast and ovarian cancer gene BRCA1. Reference and test samples were co-hybridized to these arrays and differences in hybridization patterns quantitated by two-colour analysis. Fourteen of fifteen patient samples with known mutations were accurately diagnosed, and no false positive mutations were identified in 20 control samples. Eight single nucleotide polymorphisms were also readily detected. DNA chip-based assays may provide a valuable new technology for high-throughput cost-efficient detection of genetic alterations. 
+8944024	509	545	hereditary breast and ovarian cancer	Modifier	D061325
+
+8670333|t|Colchicine in breast milk of patients with familial Mediterranean fever.
+8670333|a|OBJECTIVE. To clarify whether colchicine is excreted in breast milk, and to compare its concentrations in the serum and breast milk of lactating women who have familial Mediterranean fever (FMF). METHODS. Using a specific radioimmunoassay, we determined colchicine concentrations in the serum and breast milk of 4 patients at various time points, following oral administration of the drug. The study evaluated 4 patients with FMF who had been taking colchicine on a long-term basis. RESULTS. Colchicine was found to be excreted in breast milk. Its levels ranged between 1. 9 and 8. 6 ng/ml, which were similar to those found in the serum (parallel concentration time curves). However, there appeared to be a considerable variation in colchicine milk concentration among the different patients, which might be related to individual breast milk composition and, possibly, to other nutritional or metabolic factors. CONCLUSION. The extensive peripheral tissue binding and relatively low concentration of colchicine in breast milk suggests that the amount ingested by the infant is small. Furthermore, based on our clinical experience, nursing appears to be safe for lactating women with FMF who continue to take colchicine.
+8670333	43	71	familial Mediterranean fever	SpecificDisease	D010505
+8670333	233	261	familial Mediterranean fever	SpecificDisease	D010505
+8670333	263	266	FMF	SpecificDisease	D010505
+8670333	499	502	FMF	SpecificDisease	D010505
+8670333	1257	1260	FMF	SpecificDisease	D010505
+
+9144525|t|The human complement C9 gene: identification of two mutations causing deficiency and revision of the gene structure.
+9144525|a|The ninth component of human complement (C9) is the last of the terminal complement components creating the membrane attack complex. C9 is a single-chain serum protein that is encoded by a gene located on chromosome 5p. Deficiency of terminal complement components is generally associated with recurrent neisseria infections. We studied a previously described Swiss family with inherited C9 deficiency. To identify the genetic basis of C9 deficiency, we developed an approach using exon-specific PCR and direct DNA sequencing. As a cause of C9 deficiency , we found two different point mutations, both generating TGA stop codons in the coding sequence. One mutation, a C to A exchange, was detected in exon 2 at cDNA position 166, the other, a C to T exchange, was located in exon 4 (cDNA position 464). In family studies of three first-degree relatives with heterozygous C9 deficiency, we demonstrated that the two mutations are segregating independently. Therefore, these mutations are sufficient to explain the complete deficiency of both the probands studied. DNA sequencing of the exon-intron junctions revealed a number of revisions regarding the boundaries between exons 4, 5, and 6 as well as between exons 10 and 11. No additional introns were detected in exons 6 and 10. Furthermore, DNA marker studies were conducted using known polymorphisms of the C6, C7, and C9 genes, confirming the linkage of the observed C9 mutations with defined haplotypes.. 
+9144525	337	381	Deficiency of terminal complement components	SpecificDisease	D007153
+9144525	421	441	neisseria infections	SpecificDisease	D016870
+9144525	495	518	inherited C9 deficiency	SpecificDisease	OMIM:613825
+9144525	553	566	C9 deficiency	SpecificDisease	OMIM:613825
+9144525	658	671	C9 deficiency	SpecificDisease	OMIM:613825
+9144525	989	1002	C9 deficiency	SpecificDisease	OMIM:613825
+
+9222760|t|Molecular heterogeneity of classical and Duarte galactosemia: mutation analysis by denaturing gradient gel electrophoresis.
+9222760|a|Classical galactosemia is caused by one common missense mutation (Q188R) and by several rare mutations in the galactose-1-phosphate uridyltransferase (GALT) gene. The most common variant of GALT, the Duarte variant, occurs as two types, Duarte-1 (D-1) and Duarte-2 (D-2), both of which carry the sequence change N314D. D-1 increases, whereas D-2 decreases GALT activity. To study the molecular genetics of classical and Duarte galactosemia, we analyzed the GALT mutations in 30 families with classical galactosemia, in 10 families with the D-2 variant and in 3 individuals carrying the D-1 allele by denaturing gradient gel electrophoresis (DGGE). DGGE detected 59 of the 60 classical galactosemia alleles. Q188R accounted for 60%, K285N accounted for 28% of these alleles. Eight novel candidate galactosemia mutations were found. On all D-2 alleles N314D occurred in cis with two intronic sequence changes, on the D-1 alleles in cis with a neutral mutation in exon 7. We conclude that the mutations causing galactosemia are highly heterogeneous and that K285N is a second common galactosemia mutation in our population.. 
+9222760	27	60	classical and Duarte galactosemia	CompositeMention	D005693
+9222760	124	146	Classical galactosemia	SpecificDisease	D005693
+9222760	530	563	classical and Duarte galactosemia	CompositeMention	D005693
+9222760	616	638	classical galactosemia	SpecificDisease	D005693
+9222760	809	821	galactosemia	Modifier	D005693
+9222760	920	932	galactosemia	Modifier	D005693
+9222760	1132	1144	galactosemia	SpecificDisease	D005693
+9222760	1204	1216	galactosemia	Modifier	D005693
+
+9056547|t|Nonsense mutation in exon 3 of the proteolipid protein gene (PLP) in a family with an unusual form of Pelizaeus-Merzbacher disease.
+9056547|a|We report a G-- > A transition at nucleotide 431 of the proteolipid protein gene (PLP) results in a nonsense codon in a family with an unusual form of Pelizaeus-Merzbacher disease (PMD). The mutation, which creates a second AluI restriction site, results in a nonsense mutation in PLP. The clinical picture resembles somewhat that of X-linked spastic paraplegia (SPG). It differs from this and both the classical and connatal forms of PMD in that it is relatively mild in form, onset is delayed beyond age 2 years, nystagmus is absent, tremors are prominent, mental retardation is not severe, some patients show dementia or personality disorders, the disease is progressive rather than static in some, and several females show signs of disease. The nonsense mutation, which is in exon 3B, should block the synthesis of normal PLP but spare DM20, the isoform whose persistence has been associated with mild forms of PLP-associated disease in both humans and mice.. 
+9056547	102	130	Pelizaeus-Merzbacher disease	SpecificDisease	OMIM:312080
+9056547	283	311	Pelizaeus-Merzbacher disease	SpecificDisease	OMIM:312080
+9056547	313	316	PMD	SpecificDisease	OMIM:312080
+9056547	466	493	X-linked spastic paraplegia	SpecificDisease	OMIM:312920
+9056547	495	498	SPG	SpecificDisease	OMIM:312920
+9056547	567	570	PMD	SpecificDisease	OMIM:312080
+9056547	647	656	nystagmus	DiseaseClass	D020417
+9056547	668	675	tremors	DiseaseClass	D014202
+9056547	691	709	mental retardation	DiseaseClass	D008607
+9056547	744	752	dementia	DiseaseClass	D003704
+9056547	756	777	personality disorders	DiseaseClass	D010554
+9056547	1047	1069	PLP-associated disease	DiseaseClass	OMIM:312080+OMIM:312920
+
+8790412|t|The hybrid PAX3-FKHR fusion protein of alveolar rhabdomyosarcoma transforms fibroblasts in culture.
+8790412|a|Pediatric alveolar rhabdomyosarcoma is characterized by a chromosomal translocation that fuses parts of the PAX3 and FKHR genes. PAX3 codes for a transcriptional regulator that controls developmental programs, and FKHR codes for a forkhead-winged helix protein, also a likely transcription factor. The PAX3-FKHR fusion product retains the DNA binding domains of the PAX3 protein and the putative activator domain of the FKHR protein. The PAX3-FKHR protein has been shown to function as a transcriptional activator. Using the RCAS retroviral vector, we have introduced the PAX3-FKHR gene into chicken embryo fibroblasts. Expression of the PAX3-FKHR protein in these cells leads to transformation  the cells become enlarged, grow tightly packed and in multiple layers, and acquire the ability for anchorage-independent growth. This cellular transformation in vitro will facilitate studies on the mechanism of PAX3-FKHR-induced oncogenesis.. 
+8790412	39	64	alveolar rhabdomyosarcoma	SpecificDisease	D018232
+8790412	100	135	Pediatric alveolar rhabdomyosarcoma	SpecificDisease	D018232
+
+9090524|t|A clinical overview of WT1 gene mutations.
+9090524|a|Mutations in the WT1 gene were anticipated to explain the genetic basis of the childhood kidney cancer, Wilms tumour (WT). Six years on, we review 100 reports of intragenic WT1 mutations and examine the accompanying clinical phenotypes. While only 5% of sporadic Wilms tumours have intragenic WT1 mutations, > 90% of patients with the Denys-Drash syndrome (renal nephropathy, gonadal anomaly, predisposition to WT) carry constitutional intragenic WT1 mutations. WT1 mutations have also been reported in juvenile granulosa cell tumour, non-asbestos related mesothelioma, desmoplastic small round cell tumour and, most recently, acute myeloid leukemia.. 
+9090524	132	145	kidney cancer	SpecificDisease	D007680
+9090524	147	159	Wilms tumour	SpecificDisease	D009396
+9090524	161	163	WT	SpecificDisease	D009396
+9090524	297	319	sporadic Wilms tumours	SpecificDisease	D009396
+9090524	378	398	Denys-Drash syndrome	SpecificDisease	D030321
+9090524	400	417	renal nephropathy	DiseaseClass	D007674
+9090524	419	434	gonadal anomaly	DiseaseClass	D006059
+9090524	436	456	predisposition to WT	DiseaseClass	D020022
+9090524	546	576	juvenile granulosa cell tumour	SpecificDisease	D006106
+9090524	578	611	non-asbestos related mesothelioma	SpecificDisease	D008654
+9090524	613	649	desmoplastic small round cell tumour	SpecificDisease	D058405
+9090524	670	692	acute myeloid leukemia	SpecificDisease	D015470
+
+8843193|t|Dual roles of ATM in the cellular response to radiation and in cell growth control.
+8843193|a|The gene mutated in ataxia-telangiectasia (AT) patients, denoted ATM, encodes a putative protein or lipid kinase. To elucidate the functions of ATM, we disrupted the mouse ATM gene through homologous recombination in mice. Consistent with cellular defects of AT patients, the ATM-/- cells are hypersensitive to gamma-irradiation and defective in cell-cycle arrest following radiation, correlating with a defective up-regulation of p53. In addition, ATM-/- mouse thymocytes are more resistant to apoptosis induced by gamma-irradiation than normal thymocytes. ATM-/- fibroblasts are inefficient in G1 to S-phase progression following serum stimulation and senesce after only a few passages in culture. They have an increased constitutive level of p21CP1/WAF1. The ATM protein is therefore critical both for cellular responses to ionizing radiation and for normal cell-cycle progression. ATM +/- fibroblasts and thymocytes showed intermediately defective responses to irradiation but no growth defect, suggesting that the increased cancer risk of AT heterozygotes could be attributable to poor checkpoint function.. 
+8843193	104	125	ataxia-telangiectasia	Modifier	D001260
+8843193	127	129	AT	Modifier	D001260
+8843193	343	345	AT	Modifier	D001260
+8843193	1113	1119	cancer	Modifier	D009369
+8843193	1128	1130	AT	Modifier	D001260
+
+8659549|t|Identification and expression of eight novel mutations among non-Jewish patients with Canavan disease.
+8659549|a|Canavan disease is inherited as an autosomal recessive trait that is caused by the deficiency of aspartoacylase (ASPA). The majority of patients with Canavan disease are from an Ashkenazi Jewish background. Mutations in ASPA that lead to loss of enzymatic activity have been identified, and E285A and Y231X are the two predominant mutations that account for 97% of the mutant chromosomes in Ashkenazi Jewish patients. The current study was aimed at finding the molecular basis of Canavan disease in 25 independent patients of non-Jewish background. Eight novel and three previously characterized mutations accounted for 80% (40/50) of mutant chromosomes. The A305E missense mutation accounted for 48% (24/50) of mutant chromosomes in patients of western European descent, while the two predominant Jewish mutations each accounted for a single mutant chromosome. The eight novel mutations identified included 1- and 4-bp deletions (32 deltaT and 876 deltaAGAA, respectively) and I16T, G27R, D114E, G123E, C152Y, and R168C missense mutations. The homozygous 32 deltaT deletion was identified in the only known patient of African-American origin with Canavan disease. The heterozygosity for 876 deltaAGAA mutation was identified in three independent patients from England. Six single-base changes leading to missense mutations were identified in patients from Turkey (D114E, R168C), The Netherlands (I16T), Germany (G27R), Ireland (C152Y), and Canada (G123E). A PCR-based protocol is described that was used to introduce mutations in wild-type cDNA. In vitro expression of mutant cDNA clones demonstrated that all of these mutations led to a deficiency of ASPA and should therefore result in Canavan disease.. 
+8659549	86	101	Canavan disease	SpecificDisease	D017825
+8659549	103	118	Canavan disease	SpecificDisease	D017825
+8659549	186	214	deficiency of aspartoacylase	SpecificDisease	D017825
+8659549	253	268	Canavan disease	SpecificDisease	D017825
+8659549	583	598	Canavan disease	SpecificDisease	D017825
+8659549	1251	1266	Canavan disease	SpecificDisease	D017825
+8659549	1742	1760	deficiency of ASPA	SpecificDisease	D017825
+8659549	1792	1807	Canavan disease	SpecificDisease	D017825
+
+9145677|t|BRCA1 mutations in women attending clinics that evaluate the risk of breast cancer.
+9145677|a|BACKGROUND  To define the incidence of BRCA1 mutations among patients seen in clinics that evaluate the risk of breast cancer, we analyzed DNA samples from women seen in this setting and constructed probability tables to provide estimates of the likelihood of finding a BRCA1 mutation in individual families. METHODS  Clinical information, family histories, and blood for DNA analysis were obtained from 263 women with breast cancer. Conformation-sensitive gel electrophoresis and DNA sequencing were used to identify BRCA1 mutations. RESULTS  BRCA1 mutations were identified in 16 percent of women with a family history of breast cancer. Only 7 percent of women from families with a history of breast cancer but not ovarian cancer had BRCA1 mutations. The rates were higher among women from families with a history of both breast and ovarian cancer. Among family members, an average age of less than 55 years at the diagnosis of breast cancer, the presence of ovarian cancer, the presence of breast and ovarian cancer in the same woman, and Ashkenazi Jewish ancestry were all associated with an increased risk of detecting a BRCA1 mutation. No association was found between the presence of bilateral breast cancer or the number of breast cancers in a family and the detection of a BRCA1 mutation, or between the position of the mutation in the BRCA1 gene and the presence of ovarian cancer in a family. CONCLUSIONS  Among women with breast cancer and a family history of the disease, the percentage with BRCA1 coding-region mutations is less than the 45 percent predicted by genetic-linkage analysis. These results suggest that even in a referral clinic specializing in screening women from high-risk families, the majority of tests for BRCA1 mutations will be negative and therefore uninformative.. 
+9145677	69	82	breast cancer	SpecificDisease	D001943
+9145677	196	209	breast cancer	SpecificDisease	D001943
+9145677	503	516	breast cancer	SpecificDisease	D001943
+9145677	708	721	breast cancer	SpecificDisease	D001943
+9145677	779	792	breast cancer	SpecificDisease	D001943
+9145677	801	815	ovarian cancer	SpecificDisease	D010051
+9145677	908	933	breast and ovarian cancer	CompositeMention	D001943|D010051
+9145677	1014	1027	breast cancer	SpecificDisease	D001943
+9145677	1045	1059	ovarian cancer	SpecificDisease	D010051
+9145677	1077	1102	breast and ovarian cancer	CompositeMention	D001943|D010051
+9145677	1285	1298	breast cancer	SpecificDisease	D001943
+9145677	1316	1330	breast cancers	SpecificDisease	D001943
+9145677	1460	1474	ovarian cancer	SpecificDisease	D010051
+9145677	1518	1531	breast cancer	SpecificDisease	D001943
+
+9271438|t|The von Hippel-Lindau tumor suppressor gene product interacts with Sp1 to repress vascular endothelial growth factor promoter activity.
+9271438|a|The von Hippel-Lindau tumor suppressor gene (VHL) has a critical role in the pathogenesis of clear-cell renal cell carcinoma (RCC), as VHL mutations have been found in both von Hippel-Lindau disease-associated and sporadic RCCs. Recent studies suggest that vascular endothelial growth factor (VEGF) mRNA is upregulated in RCC- and von Hippel-Lindau disease-associated tumors. We have therefore assessed the effect of the VHL gene product on VEGF expression. VEGF promoter-luciferase constructs were transiently cotransfected with a wild-type VHL (wt-VHL) vector in several cell lines, including 293 embryonic kidney and RCC cell lines. wt-VHL protein inhibited VEGF promoter activity in a dose-dependent manner up to 5- to 10-fold. Deletion analysis defined a 144-bp region of the VEGF promoter necessary for VHL repression. This VHL-responsive element is GC rich and specifically binds the transcription factor Sp1 in crude nuclear extracts. In Drosophila cells, cotransfected VHL represses Sp1-mediated activation but not basal activity of the VEGF promoter. We next demonstrated in coimmunoprecipitates that VHL and Sp1 were part of the same complex and, by using a glutathione-S-transferase-VHL fusion protein and purified Sp1, that VHL and Sp1 directly interact. Furthermore, endogenous VEGF mRNA levels were suppressed in permanent RCC cell lines expressing wt-VHL, and nuclear run-on studies indicated that VHL regulation of VEGF occurs at least partly at the transcriptional level. These observations support a new mechanism for VHL-mediated transcriptional repression via a direct inhibitory action on Sp1 and suggest that loss of Sp1 inhibition may be important in the pathogenesis of von Hippel-Lindau disease and RCC.. 
+9271438	4	27	von Hippel-Lindau tumor	Modifier	D006623
+9271438	140	163	von Hippel-Lindau tumor	Modifier	D006623
+9271438	229	260	clear-cell renal cell carcinoma	SpecificDisease	C538445
+9271438	262	265	RCC	SpecificDisease	D002292
+9271438	309	363	von Hippel-Lindau disease-associated and sporadic RCCs	CompositeMention	D006623
+9271438	458	510	RCC- and von Hippel-Lindau disease-associated tumors	CompositeMention	D006623
+9271438	756	759	RCC	Modifier	D002292
+9271438	1474	1477	RCC	Modifier	D002292
+9271438	1831	1856	von Hippel-Lindau disease	SpecificDisease	D006623
+9271438	1861	1864	RCC	SpecificDisease	D002292
+
+8605116|t|Germline mutations in the RB1 gene in patients with hereditary retinoblastoma.
+8605116|a|We have analyzed the 27 exons and the promoter region of the RB1 gene in familial or sporadic bilateral retinoblastoma by using single-strand conformation polymorphism analysis. For improvement over previous studies, a new set of primers has been designed, which allow for amplification of the coding and splicing sequences only. The positioning of the polymerase chain reaction (PCR) primers was such that the resulting PCR products were of different sizes, which enabled us to analyze two different exons simultaneously and still distinguish between the banding profiles for both (biplex analysis). By using this approach, we were able to identify mutation in 22 new patients, but the overall efficiency of the procedure when we used a single-pass regimen was only 48%. The mutations were small insertions and deletions and point mutations in roughly equal proportions.. 
+8605116	52	77	hereditary retinoblastoma	SpecificDisease	D012175
+8605116	152	197	familial or sporadic bilateral retinoblastoma	CompositeMention	D012175
+
+8723064|t|Deletion of small nuclear ribonucleoprotein polypeptide N (SNRPN) in Prader-Willi syndrome detected by fluorescence in situ hybridization: two sibs with the typical phenotype without a cytogenetic deletion in chromosome 15q.
+8723064|a|The small nuclear ribonucleoprotein polypeptide N (SNRPN) gene is regarded as one of the candidates for Prader-Willi syndrome (PWS). We describe two sibs with typical PWS presenting deletion of SNRPN detected by fluorescence in situ hybridization (FISH). Neither a cytogenetically detectable 15q12 deletion nor a deletion for the D15S11, D15S10, and GABRB3 cosmid probes were found in either patient. This implies a smaller deletion limited to the PWS critical region. FISH with a SNRPN probe will permit analysis of PWS patients with limited deletions not detectable with other probes.. 
+8723064	69	90	Prader-Willi syndrome	SpecificDisease	D011218
+8723064	329	350	Prader-Willi syndrome	SpecificDisease	D011218
+8723064	352	355	PWS	SpecificDisease	D011218
+8723064	392	395	PWS	SpecificDisease	D011218
+8723064	673	676	PWS	Modifier	D011218
+8723064	742	745	PWS	Modifier	D011218
+
+8666397|t|The mouse homolog of the Wiskott-Aldrich syndrome protein (WASP) gene is highly conserved and maps near the scurfy (sf) mutation on the X chromosome.
+8666397|a|The mouse WASP gene, the homolog of the gene mutated in Wiskott-Aldrich syndrome, has been isolated and sequenced. the predicted amino acid sequence is 86% identical to the human WASP sequence. A distinct feature of the mouse gene is an expanded polymorphic GGA trinucleotide repeat that codes for polyglycine and varies from 15 to 17 triplets in different Mus musculus strains. The genomic structure of the mouse WASP gene is expressed as an approximately 2. 4-kb mRNA in thymus and spleen. Chromosomal mapping in an interspecific M. Musculus/M. spretus backcross placed the Wasp locus near the centromere of the mouse X chromosome, inseparable from Gata1, Tcfe3, and scurfy (sf). This localization makes Wasp a candidate for involvement in scurfy, a T cell-mediated fatal lymphoreticular disease of mice that has previously been proposed as a mouse homolog of Wiskott-Aldrich syndrome. Northern analysis of sf tissue samples indicated the presence of WASP mRNA in liver and skin, presumably as a consequence of lymphocytic infiltration, but non abnormalities in the amount or size of mRNA present. 
+8666397	25	49	Wiskott-Aldrich syndrome	Modifier	D014923
+8666397	206	230	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+8666397	918	947	fatal lymphoreticular disease	DiseaseClass	D008206
+8666397	1012	1036	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+
+8789439|t|An animal model for Norrie disease (ND): gene targeting of the mouse ND gene.
+8789439|a|In order to elucidate the cellular and molecular processes which are involved in Norrie disease (ND), we have used gene targeting technology to generate ND mutant mice. The murine homologue of the ND gene was cloned and shown to encode a polypeptide that shares 94% of the amino acid sequence with its human counterpart. RNA in situ hybridization revealed expression in retina, brain and the olfactory bulb and epithelium of 2 week old mice. Hemizygous mice carrying a replacement mutation in exon 2 of the ND gene developed retrolental structures in the vitreous body and showed an overall disorganization of the retinal ganglion cell layer. The outer plexiform layer disappears occasionally, resulting in a juxtaposed inner and outer nuclear layer. At the same regions, the outer segments of the photoreceptor cell layer are no longer present. These ocular findings are consistent with observations in ND patients and the generated mouse line provides a faithful model for study of early pathogenic events in this severe X-linked recessive neurological disorder.. 
+8789439	20	34	Norrie disease	SpecificDisease	C537849
+8789439	36	38	ND	SpecificDisease	C537849
+8789439	69	71	ND	Modifier	C537849
+8789439	159	173	Norrie disease	SpecificDisease	C537849
+8789439	175	177	ND	SpecificDisease	C537849
+8789439	231	233	ND	Modifier	C537849
+8789439	275	277	ND	Modifier	C537849
+8789439	585	587	ND	Modifier	C537849
+8789439	982	984	ND	Modifier	C537849
+8789439	1101	1141	X-linked recessive neurological disorder	DiseaseClass	D020271
+
+8659522|t|Phenotypic characterization of individuals with 30-40 CAG repeats in the Huntington disease (HD) gene reveals HD cases with 36 repeats and apparently normal elderly individuals with 36-39 repeats.
+8659522|a|Abnormal CAG expansions in the IT-15 gene are associated with Huntington disease (HD). In the diagnostic setting it is necessary to define the limits of the CAG size ranges on normal and HD-associated chromosomes. Most large analyses that defined the limits of the normal and pathological size ranges employed PCR assays, which included the CAG repeats and a CCG repeat tract that was thought to be invariant. Many of these experiments found an overlap between the normal and disease size ranges. Subsequent findings that the CCG repeats vary by 8 trinucleotide lengths suggested that the limits of the normal and disease size ranges should be reevaluated with assays that exclude the CCG polymorphism. Since patients with between 30 and 40 repeats are rare, a consortium was assembled to collect such individuals. All 178 samples were reanalyzed in Cambridge by using assays specific for the CAG repeats. We have optimized methods for reliable sizing of CAG repeats and show cases that demonstrate the dangers of using PCR assays that include both the CAG and CCG polymorphisms. Seven HD patients had 36 repeats, which confirms that this allele is associated with disease. Individuals without apparent symptoms or signs of HD were found at 36 repeats (aged 74, 78, 79, and 87 years), 37 repeats (aged 69 years), 38 repeats (aged 69 and 90 years), and 39 repeats (aged 67, 90, and 95 years). The detailed case histories of an exceptional case from this series will be presented  a 95-year-old man with 39 repeats who did not have classical features of HD. The apparently healthy survival into old age of some individuals with 36-39 repeats suggests that the HD mutation may not always be fully penetrant.. 
+8659522	73	91	Huntington disease	Modifier	D006816
+8659522	93	95	HD	Modifier	D006816
+8659522	110	112	HD	Modifier	D006816
+8659522	259	277	Huntington disease	SpecificDisease	D006816
+8659522	279	281	HD	SpecificDisease	D006816
+8659522	384	386	HD	Modifier	D006816
+8659522	1283	1285	HD	Modifier	D006816
+8659522	1421	1423	HD	SpecificDisease	D006816
+8659522	1749	1751	HD	SpecificDisease	D006816
+8659522	1855	1857	HD	Modifier	D006816
+
+8894695|t|HPRT-APRT-deficient mice are not a model for lesch-nyhan syndrome.
+8894695|a|Complete hypoxanthine-guanine phosphoribosyl-transferase (HPRT) deficiency in humans results in the Lesch-Nyhan syndrome which is characterized, among other features, by compulsive self-injurious behavior. HPRT-deficient mice generated using mouse embryonic stem cells exhibit none of the behavioral symptoms associated with the Lesch-Nyhan syndrome. Administration of drugs that inhibit adenine phosphoribosyltransferase (APRT) in HPRT-deficient mice has produced the suggestion that deficiency of APRT in combination with HPRT-deficiency in mice may lead to self-mutilation behavior [C. L. Wu and D. W. Melton (1993) Nature Genet. 3, 235-240]. To test this proposition, we bred HPRT-APRT-deficient mice. Although the doubly-deficient mice excrete adenine and its highly insoluble derivative, 2, 8-dihydroxyadenine, which are also associated with human APRT deficiency, additional abnormalities or any self-injurious behavior were not detected. Thus, APRT-HPRT-deficient mice, which are devoid of any purine salvage pathways, show no novel phenotype and are not a model for the behavioral abnormalities associated with the Lesch-Nyhan syndrome as previously suggested 
+8894695	0	19	HPRT-APRT-deficient	Modifier	OMIM:300322+OMIM:102600
+8894695	45	65	lesch-nyhan syndrome	SpecificDisease	D007926
+8894695	67	141	Complete hypoxanthine-guanine phosphoribosyl-transferase (HPRT) deficiency	SpecificDisease	D007926
+8894695	167	187	Lesch-Nyhan syndrome	SpecificDisease	D007926
+8894695	273	287	HPRT-deficient	Modifier	D007926
+8894695	396	416	Lesch-Nyhan syndrome	SpecificDisease	D007926
+8894695	499	513	HPRT-deficient	Modifier	D007926
+8894695	552	570	deficiency of APRT	SpecificDisease	OMIM:102600
+8894695	591	606	HPRT-deficiency	SpecificDisease	D007926
+8894695	747	766	HPRT-APRT-deficient	Modifier	OMIM:300322+OMIM:102600
+8894695	921	936	APRT deficiency	SpecificDisease	OMIM:102600
+8894695	1019	1038	APRT-HPRT-deficient	Modifier	OMIM:300322+OMIM:102600
+8894695	1146	1170	behavioral abnormalities	DiseaseClass	D001523
+8894695	1191	1211	Lesch-Nyhan syndrome	SpecificDisease	D007926
+
+8673132|t|Mice lacking the myotonic dystrophy protein kinase develop a late onset progressive myopathy.
+8673132|a|Myotonic dystrophy (DM) is an autosomal dominant disorder resulting from the expansion of a CTG repeat in the 3 untranslated region of a putative protein kinase (DMPK). To elucidate the role of DMPK in DM pathogenesis we have developed Dmpk deficient (Dmpk-/-) mice. Dmpk-/-mice develop a late-onset, progressive skeletal myopathy that shares some pathological features with DM. Muscles from mature mice show variation in fibre size, increased fibre degeneration and fibrosis. Adult Dmpk-/-mice show ultrastructural changes in muscle and a 50% decrease in force generation compared to young mice. Our results indicate that DMPK may be necessary for the maintenance of skeletal muscle structure and function and suggest that a decrease in DMPK levels may contribute to DM pathology.. 
+8673132	17	35	myotonic dystrophy	Modifier	D009223
+8673132	84	92	myopathy	SpecificDisease	D009135
+8673132	94	112	Myotonic dystrophy	SpecificDisease	D009223
+8673132	114	116	DM	SpecificDisease	D009223
+8673132	124	151	autosomal dominant disorder	DiseaseClass	D030342
+8673132	296	298	DM	Modifier	D009223
+8673132	330	344	Dmpk deficient	SpecificDisease	OMIM:160900
+8673132	395	424	progressive skeletal myopathy	SpecificDisease	D009135
+8673132	469	471	DM	SpecificDisease	D009223
+8673132	538	556	fibre degeneration	SpecificDisease	D020966
+8673132	561	569	fibrosis	SpecificDisease	D005355
+8673132	862	864	DM	Modifier	D009223
+
+8644703|t|Rapid detection of regionally clustered germ-line BRCA1 mutations by multiplex heteroduplex analysis. UKCCCR Familial Ovarian Cancer Study Group.
+8644703|a|Germ-line mutations of the BRCA1 gene are responsible for a substantial proportion of families with multiple cases of early-onset breast and/or ovarian cancer. Since the isolation of BRCA1 last year, > 65 distinct mutations scattered throughout the coding region have been detected, making analysis of the gene time consuming and technically challenging. We have developed a multiplex heteroduplex analysis that is designed to analyze one-quarter of the coding sequence in a single-step screening procedure and that will detect approximately 50% of all BRCA1 mutations so far reported in breast/ovarian cancer families. We have used this technique to analyze BRCA1 in 162 families with a history of breast and/or ovarian cancer and identified 12 distinct mutations in 35 families.. 
+8644703	118	132	Ovarian Cancer	Modifier	D010051
+8644703	276	304	breast and/or ovarian cancer	CompositeMention	OMIM:604370
+8644703	734	755	breast/ovarian cancer	Modifier	OMIM:604370
+8644703	845	873	breast and/or ovarian cancer	CompositeMention	OMIM:604370
+
+8812423|t|LPP, the preferred fusion partner gene of HMGIC in lipomas, is a novel member of the LIM protein gene family.
+8812423|a|A major cytogenetic subgroup of lipomas is characterized by recurrent chromosome aberrations, mainly translocations, that involve chromosome segment 12q13-q15. Multiple chromosomes have been found as the translocation partners of chromosome 12 but 3q27-q28 is preferentially involved. In previous studies, it has been shown that the high mobility group (HMG) protein gene HMGIC at 12q15 is consistently rearranged as a consequence of these translocations. Here, we report the identification and characterization of the chromosome 3-derived translocation partner gene, which we have designated LPP (lipoma preferred partner gene). Using 3-RACE analysis of HMGIC fusion transcripts in lipoma cell line Li-501/SV40, ectopic genetic sequences were obtained, which by CASH (chromosome assignment using somatic cell hybrids) and FISH (fluorescence in situ hybridization) analysis were found to originate from chromosome segment 3q27-q28. In Northern blot analysis, an mRNA of over 10 kb was detected by these ectopic sequences in a variety of human tissues but not in brain and peripheral blood leukocytes. Upon partial cDNA cloning, features of the genetic organization of LPP were established. The gene was found to span a genomic region of over 400 kb. Nucleotide sequence analysis of a composite cDNA of LPP revealed an open reading frame of 1836 nucleotides encoding a proline-rich protein containing a leucine-zipper motif in its amino-terminal region and three LIM domains in its carboxy-terminal region. The LPP-encoded protein should be classified as a novel member of the group 3 proteins of the LIM protein gene family. Using reverse transcriptase combined with polymerase chain reactions in the analysis of a number of lipoma cell lines and primary lipomas, it appeared that LPP is frequently rearranged also in cases without a cytogenetically detectable involvement of 3q27-q28. Two alternative HMGIC/LPP hybrid transcripts have been detected; the difference between them is mainly the presence of either two or three LIM domains in the predicted HMGI-C/LPP fusion proteins.. 
+8812423	51	58	lipomas	DiseaseClass	D008067
+8812423	142	149	lipomas	DiseaseClass	D008067
+8812423	708	714	lipoma	Modifier	D008067
+8812423	793	799	lipoma	Modifier	D008067
+8812423	1835	1841	lipoma	Modifier	D008067
+8812423	1857	1872	primary lipomas	DiseaseClass	D008067
+
+8833159|t|Exon-intron structure of the human neuronal nicotinic acetylcholine receptor alpha 4 subunit (CHRNA4).
+8833159|a|The human neuronal nicotinic acetylcholine receptor alpha 4 subunit gene (CHRNA4) is located in the candidate region for three different phenotypes  benign familial neonatal convulsions, autosomal dominant nocturnal frontal lobe epilepsy, and low-voltage EEG. Recently, a missense mutation in transmembrane domain 2 of CHRNA4 was found to be associated with autosomal dominant nocturnal frontal lobe epilepsy in one extended pedigree. We have determined the genomic organization of CHRNA4, which consists of six exons distributed over approximately 17 kb of genomic DNA. The nucleotide sequence obtained from the genomic regions adjacent to the exon boundaries enabled us to develop a set of primer pairs for PCR amplification of the complete coding region. The sequence analysis provides the basis for a comprehensive mutation screening of CHRNA4 in the above-mentioned phenotypes and possibly in other types of idiopathic epilepsies.. 
+8833159	252	288	benign familial neonatal convulsions	SpecificDisease	D020936
+8833159	290	340	autosomal dominant nocturnal frontal lobe epilepsy	SpecificDisease	D017034
+8833159	461	511	autosomal dominant nocturnal frontal lobe epilepsy	SpecificDisease	D017034
+8833159	1016	1037	idiopathic epilepsies	DiseaseClass	D004827
+
+8595416|t|A novel homeodomain-encoding gene is associated with a large CpG island interrupted by the myotonic dystrophy unstable (CTG)n repeat.
+8595416|a|Myotonic dystrophy (DM) is associated with a (CTG) n trinucleotide repeat expansion in the 3-untranslated region of a protein kinase-encoding gene, DMPK, which maps to chromosome 19q13. 3. Characterisation of the expression of this gene in patient tissues has thus far generated conflicting data on alterations in the steady state levels of DMPK mRNA, and on the final DMPK protein levels in the presence of the expansion. The DM region of chromosome 19 is gene rich, and it is possible that the repeat expansion may lead to dysfunction of a number of transcription units in the vicinity, perhaps as a consequence of chromatin disruption. We have searched for genes associated with a CpG island at the 3 end of DMPK. Sequencing of this region shows that the island extends over 3. 5 kb and is interrupted by the (CTG) n repeat. Comparison of genomic sequences downstream (centromeric) of the repeat in human and mouse identified regions of significant homology. These correspond to exons of a gene predicted to encode a homeodomain protein. RT-PCR analysis shows that this gene, which we have called DM locus-associated homeodomain protein (DMAHP), is expressed in a number of human tissues, including skeletal muscle, heart and brain.
+8595416	91	109	myotonic dystrophy	Modifier	D009223
+8595416	134	152	Myotonic dystrophy	SpecificDisease	D009223
+8595416	154	156	DM	SpecificDisease	D009223
+8595416	561	563	DM	Modifier	D009223
+8595416	1234	1236	DM	Modifier	D009223
+
+9028321|t|Missense mutations in the Fas gene resulting in autoimmune lymphoproliferative syndrome: a molecular and immunological analysis.
+9028321|a|Programmed cell death (or apoptosis) is a physiological process essential to the normal development and homeostatic maintenance of the immune system. The Fas/Apo-1 receptor plays a crucial role in the regulation of apoptosis, as demonstrated by lymphoproliferation in MRL-lpr/lpr mice and by the recently described autoimmune lymphoproliferative syndrome (ALPS) in humans, both of which are due to mutations in the Fas gene. We describe a novel family with ALPS in which three affected siblings carry two distinct missense mutations on both the Fas gene alleles and show lack of Fas-induced apoptosis. The children share common clinical features including splenomegaly and lymphadenopathy, but only one developed severe autoimmune manifestations. In all three siblings, we demonstrated the presence of anergic CD3 + CD4-CD8- (double negative, [DN]) T cells; moreover, a chronic lymphocyte activation was found, as demonstrated by the presence of high levels of HLA-DR expression on peripheral CD3 + cells and by the presence of high levels of serum activation markers such as soluble interleukin-2 receptor (slL-2R) and soluble CD30 (sCD30).. 
+9028321	48	87	autoimmune lymphoproliferative syndrome	SpecificDisease	D056735
+9028321	444	483	autoimmune lymphoproliferative syndrome	SpecificDisease	D056735
+9028321	485	489	ALPS	SpecificDisease	D056735
+9028321	586	590	ALPS	SpecificDisease	D056735
+9028321	785	797	splenomegaly	DiseaseClass	D013163
+9028321	802	817	lymphadenopathy	DiseaseClass	D008206
+9028321	849	874	autoimmune manifestations	DiseaseClass	D001327
+
+9063749|t|Common BRCA1 variants and susceptibility to breast and ovarian cancer in the general population.
+9063749|a|Most multiple case families of young onset breast cancer and ovarian cancer are thought to be due to highly penetrant mutations in the predisposing genes BRCA1 and BRCA2. However, these mutations are uncommon in the population and they probably account for only a few percent of all breast cancer incidence. A much larger fraction of breast cancer might, in principle, be due to common variants which confer more modest individual risks. There are several common polymorphisms in the BRCA1 gene which generate amino acid substitutions. We have examined the frequency of four of these polymorphisms  Gln356Arg, Pro871Leu, Glu1038Gly and Ser1613Gly in large series of breast and ovarian cancer cases and matched controls. Due to strong linkage disequilibrium, these four sites generate only three haplotypes with a frequency > 1. 3%. The most common haplotypes, defined by the alleles Gln356Pro871Glu1038Ser1613 and Gln356Leu871Gly1038Gly1613, have frequencies of 0. 57 and 0. 32 respectively, and these frequencies do not differ significantly between patient and control groups. Thus the most common polymorphisms of the BRCA1 gene do not make a significant contribution to breast or ovarian cancer risk. However, our data suggest that the Arg356 allele may have a different genotype distribution in breast cancer patients from that in controls (Arg356 homozygotes are more frequent in the control groups, P = 0. 01), indicating that it may be protective against breast cancer. If this finding can be confirmed, it may provide an insight into the structural features of the BRCA1 protein that are important for its function. 
+9063749	44	69	breast and ovarian cancer	CompositeMention	D001943|D010051
+9063749	140	153	breast cancer	SpecificDisease	D001943
+9063749	158	172	ovarian cancer	SpecificDisease	D010051
+9063749	380	393	breast cancer	Modifier	D001943
+9063749	431	444	breast cancer	SpecificDisease	D001943
+9063749	763	788	breast and ovarian cancer	CompositeMention	D001943|D010051
+9063749	1270	1294	breast or ovarian cancer	Modifier	D001943|D010051
+9063749	1396	1409	breast cancer	Modifier	D001943
+9063749	1559	1572	breast cancer	SpecificDisease	D001943
+
+8758207|t|Mutation of the VHL gene is associated exclusively with the development of non-papillary renal cell carcinomas.
+8758207|a|To define the possible role of the VHL gene in the development of sporadic renal cell carcinomas, 91 different parenchymal tumours of the kidney have been investigated for mutation of the VHL gene by single strand conformation polymorphism (SSCP) and/or heteroduplex (HD) techniques. Chromosome 3p deletion was detected in 98 per cent of non-papillary renal cell carcinomas and in 25 per cent of chromophobe renal cell carcinomas. In 22 of the 43 non-papillary renal cell carcinomas, abnormally migrating DNA bands were detected by SSCP and/or HD analysis. No mobility shift was seen in any of the 23 chromophobe renal cell carcinomas. In addition, 15 papillary renal cell tumours and ten renal oncocytomas, which are characterized by genetic changes other than loss of chromosome 3p sequences, were analysed for mutation of the VHL gene. None of these tumours showed abnormal migration patterns. The results indicate that mutation of the VHL gene is associated exclusively with the development of non-papillary renal cell carcinoma.. 
+8758207	75	110	non-papillary renal cell carcinomas	SpecificDisease	D002292
+8758207	147	150	VHL	Modifier	D006623
+8758207	178	208	sporadic renal cell carcinomas	SpecificDisease	D002292
+8758207	223	256	parenchymal tumours of the kidney	DiseaseClass	D007674
+8758207	300	303	VHL	Modifier	D006623
+8758207	450	485	non-papillary renal cell carcinomas	SpecificDisease	D002292
+8758207	520	541	renal cell carcinomas	SpecificDisease	D002292
+8758207	559	594	non-papillary renal cell carcinomas	SpecificDisease	D002292
+8758207	725	746	renal cell carcinomas	SpecificDisease	D002292
+8758207	764	792	papillary renal cell tumours	SpecificDisease	D002292
+8758207	801	818	renal oncocytomas	SpecificDisease	C537750
+8758207	941	944	VHL	Modifier	D006623
+8758207	965	972	tumours	DiseaseClass	D009369
+8758207	1051	1054	VHL	Modifier	D006623
+8758207	1110	1144	non-papillary renal cell carcinoma	SpecificDisease	D002292
+
+8786135|t|Comparative genome mapping of the ataxia-telangiectasia region in mouse, rat, and Syrian hamster.
+8786135|a|Chromosomal locations of the Atm (ataxia-telangiectasia (AT) -mutated) and Acat1 (mitochondrial acetoacetyl-CoA thiolase) genes in mouse, rat, and Syrian hamster were determined by direct R-banding FISH. Both genes were colocalized to the C-D band of mouse chromosome 9, the proximal end of q24. 1 of rat chromosome 8, and qa4-qa5 of Syrian hamster chromosome 12. The regions in the mouse and rat were homologous to human chromosome 11q. Fine genetic linkage mapping of the mouse AT region was performed using the interspecific backcross mice. Atm, Acat1, and Npat, which is a new gene isolated from the AT region, and 12 flanking microsatellite DNA markers were examined. No recombinations were found among the Atm, Npat, Acat1, and D9Mit6 loci, and these loci were mapped 2. 0 cM distal to D9Mit99 and 1. 3 cM proximal to D9Mit102. Comparison of the linkage map of mouse chromosome 9 (MMU9) and that of human chromosome 11 (HSA11) indicates that there is a chromosomal rearrangement due to an inversion between Ets1 and Atm-Npat-Acat1 and that the inversion of MMU9 originated from the chromosomal breakage at the boundary between Gria4 and Atm-Npat-Acat1 on HSA11. This type of inversion appeared to be conserved in the three rodent species, mouse, rat, and Syrian hamster, using additional comparative mapping data with the Rck gene 
+8786135	34	55	ataxia-telangiectasia	Modifier	D001260
+8786135	132	153	ataxia-telangiectasia	Modifier	D001260
+8786135	155	157	AT	Modifier	D001260
+8786135	578	580	AT	Modifier	D001260
+
+8637912|t|Tumor suppression and apoptosis of human prostate carcinoma mediated by a genetic locus within human chromosome 10pter-q11.
+8637912|a|Prostate cancer is the second leading cause of male cancer deaths in the United States. Yet, despite a large international effort, little is known about the molecular mechanisms that underlie this devastating disease. Prostate secretory epithelial cells and androgen-dependent prostate carcinomas undergo apoptosis in response to androgen deprivation and, furthermore, most prostate carcinomas become androgen independent and refractory to further therapeutic manipulations during disease progression. Definition of the genetic events that trigger apoptosis in the prostate could provide important insights into critical pathways in normal development as well as elucidate the perturbations of those key pathways in neoplastic transformation. We report the functional definition of a novel genetic locus within human chromosome 10pter-q11 that mediates both in vivo tumor suppression and in vitro apoptosis of prostatic adenocarcinoma cells. A defined fragment of human chromosome 10 was transferred via microcell fusion into a prostate adenocarcinoma cell line. Microcell hybrids containing only the region 10pter-q11 were suppressed for tumorigenicity following injection of microcell hybrids into nude mice. Furthermore, the complemented hybrids undergo programmed cell death in vitro via a mechanism that does not require nuclear localization of p53. These data functionally define a novel genetic locus, designated PAC1, for prostate adenocarcinoma 1, involved in tumor suppression of human prostate carcinoma and furthermore strongly suggest that the cell death pathway can be functionally restored in prostatic adenocarcinoma.. 
+8637912	0	5	Tumor	Modifier	D009369
+8637912	41	59	prostate carcinoma	SpecificDisease	D011471
+8637912	124	139	Prostate cancer	SpecificDisease	D011471
+8637912	176	182	cancer	Modifier	D009369
+8637912	401	420	prostate carcinomas	SpecificDisease	D011471
+8637912	498	517	prostate carcinomas	SpecificDisease	D011471
+8637912	1034	1058	prostatic adenocarcinoma	Modifier	D011471
+8637912	1152	1175	prostate adenocarcinoma	Modifier	D011471
+8637912	1620	1638	prostate carcinoma	SpecificDisease	D011471
+8637912	1732	1756	prostatic adenocarcinoma	SpecificDisease	D011471
+
+8931695|t|Phenotypic and genotypic overlap between atelosteogenesis type 2 and diastrophic dysplasia.
+8931695|a|Mutations in the diastrophic dysplasia sulfate transporter gene DTDST have been associated with a family of chondrodysplasias that comprises, in order of increasing severity, diastrophic dysplasia (DTD), atelosteogenesis type 2 (AO2), and achondrogenesis type 1B (ACG1B). To learn more about the molecular basis of DTDST chondrodysplasias and about genotype-phenotype correlations, we studied fibroblast cultures of three new patients  one with AO-2, one with DTD, and one with an intermediate phenotype (AO2/DTD). Reduced incorporation of inorganic sulfate into macromolecules was found in all three. Each of the three patients was found to be heterozygous for a c862t transition predicting a R279W substitution in the third extracellular loop of DTDST. In two patients (DTD and AO2/DTD), no other structural mutation was found, but polymerase chain reaction amplification and single-strand conformation polymorphism analysis of fibroblast cDNA showed reduced mRNA levels of the wild-type DTDST allele  these two patients may be compound heterozygotes for the " Finnish " mutation (as yet uncharacterized at the DNA level), which causes reduced expression of DTDST. The third patient (with AO2) had the R279W mutation compounded with a novel mutation, the deletion of cytosine 418 (delta c418), predicting a frameshift with premature termination. Also the delta c418 allele was underrepresented in the cDNA, in accordance with previous observations that premature stop codons reduce mRNA levels. The presence of the DTDST R279W mutation in a total of 11 patients with AO2 or DTD emphasizes the overlap between these conditions. This mutation has not been found so far in 8 analyzed ACG1B patients, suggesting that it allows some residual activity of the sulfate transporter.. 
+8931695	41	64	atelosteogenesis type 2	SpecificDisease	C535395
+8931695	69	90	diastrophic dysplasia	SpecificDisease	C536170
+8931695	109	130	diastrophic dysplasia	Modifier	C536170
+8931695	200	217	chondrodysplasias	DiseaseClass	D010009
+8931695	267	288	diastrophic dysplasia	SpecificDisease	C536170
+8931695	290	293	DTD	SpecificDisease	C536170
+8931695	296	319	atelosteogenesis type 2	SpecificDisease	C535395
+8931695	321	324	AO2	SpecificDisease	C535395
+8931695	331	354	achondrogenesis type 1B	SpecificDisease	C536016
+8931695	356	361	ACG1B	SpecificDisease	C536016
+8931695	407	430	DTDST chondrodysplasias	SpecificDisease	OMIM:222600
+8931695	537	541	AO-2	SpecificDisease	C535395
+8931695	552	555	DTD	SpecificDisease	C536170
+8931695	597	600	AO2	SpecificDisease	C535395
+8931695	601	604	DTD	SpecificDisease	C536170
+8931695	864	867	DTD	SpecificDisease	C536170
+8931695	872	875	AO2	SpecificDisease	C535395
+8931695	876	879	DTD	SpecificDisease	C536170
+8931695	1283	1286	AO2	SpecificDisease	C535395
+8931695	1661	1664	AO2	SpecificDisease	C535395
+8931695	1668	1671	DTD	SpecificDisease	C536170
+8931695	1775	1780	ACG1B	Modifier	C536016
+
+9069115|t|Cloning of the homogentisate 1,2-dioxygenase gene, the key enzyme of alkaptonuria in mouse.
+9069115|a|We determined 48 amino acid residues from five peptides from the homogeneous monomer of homogentisate 1, 2-dioxygenase (HGO; E. C. 1. 13. 11. 15) of mouse liver. After digestion with trypsin, peptides were separated by reversed phase chromatography and amino acid sequenced. The deduced codon sequence of three peptides was used to derive degenerated oligomeres. By combining these oligos, we were able to amplify fragments from 100 to 300 bases (b) from mouse liver cDNA by polymerase chain reaction after reverse transcription (RT-PCR). A fragment of 200 b was cloned and used as a probe to screen a mouse liver cDNA library. One clone from this library contained the complete cDNA-insert for HGO as determined by sequencing. The cDNA encodes for a protein of 50 kDa, as predicted. The cDNA of mouse HGO has an overall identity of 41% to the corresponding gene hmgA from Aspergillus. Sequence similarities to human expressed sequence tags (EST) clones ranged from 70% to 20%. The positions of 122 conserved amino acids could be determined by multiple sequence alignment. We identified one first intron of 928 b in the mouse gene. The gene for HGO seems to be expressed in various tissues, as shown by RT-PCR on different cDNAs. FISH experiments with the whole murine cDNA as probe clearly revealed signals at the human chromosomal band 3q13. 3-q21. This corresponds well to the previous assignment of the locus for the human alkaptonuria gene (AKU) to the same chromosomal region by multipoint linkage analysis. We therefore conclude that the HGO cDNA encodes the gene responsible for alkaptonuria.
+9069115	69	81	alkaptonuria	SpecificDisease	D000474
+9069115	1519	1531	alkaptonuria	Modifier	D000474
+9069115	1679	1691	alkaptonuria	SpecificDisease	D000474
+
+8673131|t|Abnormal myotonic dystrophy protein kinase levels produce only mild myopathy in mice.
+8673131|a|Myotonic dystrophy (DM) is commonly associated with CTG repeat expansions within the gene for DM-protein kinase (DMPK). The effect of altered expression levels of DMPK, which is ubiquitously expressed in all muscle cell lineages during development, was examined by disrupting the endogenous Dmpk gene and overexpressing a normal human DMPK transgene in mice. Nullizygous (-/-) mice showed only inconsistent and minor size changes in head and neck muscle fibres at older age, animals with the highest DMPK transgene expression showed hypertrophic cardiomyopathy and enhanced neonatal mortality. However, both models lack other frequent DM symptoms including the fibre-type dependent atrophy, myotonia, cataract and male-infertility. These results strengthen the contention that simple loss- or gain-of-expression of DMPK is not the only crucial requirement for development of the disease.. 
+8673131	9	27	myotonic dystrophy	Modifier	D009223
+8673131	68	76	myopathy	DiseaseClass	D009135
+8673131	86	104	Myotonic dystrophy	SpecificDisease	D009223
+8673131	106	108	DM	SpecificDisease	D009223
+8673131	619	646	hypertrophic cardiomyopathy	SpecificDisease	D002312
+8673131	721	723	DM	Modifier	D009223
+8673131	768	775	atrophy	SpecificDisease	D001284
+8673131	777	785	myotonia	SpecificDisease	D009222
+8673131	787	795	cataract	SpecificDisease	D002386
+8673131	800	816	male-infertility	SpecificDisease	D007248
+
+8871666|t|Molecular bases of combined subtotal deficiencies of C6 and C7: their effects in combination with other C6 and C7 deficiencies.
+8871666|a|Combined subtotal deficiency of C6 and C7, in which both proteins are expressed at very low levels, has been observed in homozygous form in two families. A defect at the 5 splice donor site of intron 15 of the C6 gene explains the low molecular weight of the C6 protein and is probably responsible for its low expressed concentration. The C7 defect is more enigmatic  the protein is of normal molecular weight, low circulating concentration, and altered isoelectric point. An Arg > Ser codon substitution in exon 11 is the only molecular alteration within the mature C7 protein. These defects are associated with a characteristic set of polymorphic DNA markers in the C6/C7 region, forming a distinct haplotype. The haplotype has been found in combination with a number of other haplotypes containing defective genes that lead either to C6 or C7 deficiency, but with different consequences. Where it is combined with a C6-deficient gene, the serum C7 levels can be surprisingly high, possibly because there is no C6 generating C56 to consume the C7. In contrast, where the C7 genes are both defective (but still partially functional), there may be a profound deficit of circulating C7 because there is ample C6 to produce C56 and consume the already small amount of C7. Each molecular defect has also been found in isolation and has the expected effect.. 
+8871666	19	62	combined subtotal deficiencies of C6 and C7	SpecificDisease	OMIM:612446|OMIM:610102
+8871666	104	126	C6 and C7 deficiencies	CompositeMention	OMIM:612446|OMIM:610102
+8871666	128	169	Combined subtotal deficiency of C6 and C7	SpecificDisease	OMIM:612446|OMIM:610102
+8871666	965	984	C6 or C7 deficiency	CompositeMention	OMIM:612446|OMIM:610102
+8871666	1047	1059	C6-deficient	Modifier	OMIM:612446
+
+9245987|t|Constitutively methylated CpG dinucleotides as mutation hot spots in the retinoblastoma gene (RB1).
+9245987|a|A wide spectrum of mutations, ranging from point mutations to large deletions, have been described in the retinoblastoma gene (RB1). Mutations have been found throughout the gene; however, these genetic alterations do not appear to be homogeneously distributed. In particular, a significant proportion of disease-causing mutations results in the premature termination of protein synthesis, and the majority of these mutations occur as C-- > T transitions at CpG dinucleotides (CpGs). Such recurrent CpG mutations, including those found in RB1, are likely the result of the deamination of 5-methylcytosine within these CpGs. In the present study, we used the sodiumbisulfite conversion method to detect cytosine methylation in representative exons of RB1. We analyzed DNA from a variety of tissues and specifically targeted CGA codons in RB1, where recurrent premature termination mutations have been reported. We found that DNA methylation within RB1 exons 8, 14, 25, and 27 appeared to be restricted to CpGs, including six CGA codons. Other codons containing methylated cytosines have not been reported to be mutated. Therefore, disease-causing mutations at CpGs in RB1 appear to be determined by several factors, including the constitutive presence of DNA methylation at cytosines within CpGs, the specific codon within which the methylated cytosine is located, and the particular region of the gene within which that codon resides.. 
+9245987	73	87	retinoblastoma	Modifier	D012175
+9245987	206	220	retinoblastoma	Modifier	D012175
+
+9019400|t|The TSG101 tumor susceptibility gene is located in chromosome 11 band p15 and is mutated in human breast cancer.
+9019400|a|Recent work has identified a mouse gene (tsg101) whose inactivation in fibroblasts results in cellular transformation and the ability to produce metastatic tumors in nude mice. Here, we report that the human homolog, TSG101, which we isolated and mapped to chromosome 11, bands 15. 1-15 1-15. 2, a region proposed to contain tumor suppressor gene (s), is mutated at high frequency in human breast cancer. In 7 of 15 uncultured primary human breast carcinomas, intragenic deletions were shown in TSG101 genomic DNA and transcripts by gel and sequence analysis, and mutations affecting two TSG101 alleles were identified in four of these cancers. No TSG101 defects were found in matched normal breast tissue from the breast cancer patients. These findings strongly implicate TSG101 mutations in human breast cancer 
+9019400	11	16	tumor	Modifier	D009369
+9019400	98	111	breast cancer	SpecificDisease	D001943
+9019400	258	275	metastatic tumors	DiseaseClass	D009362
+9019400	438	443	tumor	Modifier	D009369
+9019400	503	516	breast cancer	SpecificDisease	D001943
+9019400	554	571	breast carcinomas	SpecificDisease	D001943
+9019400	749	756	cancers	DiseaseClass	D009369
+9019400	828	841	breast cancer	Modifier	D001943
+9019400	912	925	breast cancer	SpecificDisease	D001943
+
+8776595|t|The Emery-Dreifuss muscular dystrophy protein, emerin, is a nuclear membrane protein.
+8776595|a|A large fragment of emerin cDNA was prepared by PCR and expressed as a recombinant protein in Escherichia coli. Using this as immunogen, we prepared a panel of 12 monoclonal antibodies which recognise at least four different epitopes on emerin in order to ensure that emerin can be distinguished from non-specific cross-reacting proteins. All the mAbs recognised a 34 kDa protein in all tissues tested, though minor emerin-related bands were also detected in some tissues. Immunofluorescence microscopy showed that emerin is located at the nuclear rim in all tissues examined. A muscle biopsy from an Emery-Dreifuss muscular dystrophy (EMDM) patient showed complete absence of emerin by both Western blotting and immunohistochemistry, suggesting a simple diagnostic antibody test for EDMD families. Biochemical fractionation of brain and liver tissues showed that emerin was present in nuclei purified by centrifugation through 65% sucrose and was absent from soluble fractions (post-100, 000 g). From these results, together with sequence and structural homologies between emerin, thymopoietins and the nuclear lamina-associated protein, LAP2, we suggest that emerin will prove to be one member of a family of inner nuclear membrane proteins.. 
+8776595	4	37	Emery-Dreifuss muscular dystrophy	Modifier	D020389
+8776595	687	720	Emery-Dreifuss muscular dystrophy	Modifier	D020389
+8776595	722	726	EMDM	Modifier	D020389
+8776595	870	874	EDMD	Modifier	D020389
+
+8689689|t|Influence of PAX6 gene dosage on development: overexpression causes severe eye abnormalities.
+8689689|a|Aniridia in man and Small eye in mice are semidominant developmental disorders caused by mutations within the paired box gene PAX6. Whereas heterozygotes suffer from iris hypoplasia, homozygous mice lack eyes and nasal cavities and exhibit brain abnormalities. To investigate the role of gene dosage in more detail, we have generated yeast artificial chromosome transgenic mice carrying the human PAX6 locus. When crossed onto the Small eye background, the transgene rescues the mutant phenotype. Strikingly, mice carrying multiple copies on a wild-type background show specific developmental abnormalities of the eye, but not of other tissues expressing the gene. Thus, at least five different eye phenotypes are associated with changes in PAX6 expression. We provide evidence that not only reduced, but also increased levels of transcriptional regulators can cause developmental defects.. 
+8689689	75	92	eye abnormalities	DiseaseClass	D005124
+8689689	94	102	Aniridia	SpecificDisease	D015783
+8689689	136	172	semidominant developmental disorders	DiseaseClass	D002658
+8689689	260	275	iris hypoplasia	SpecificDisease	D007499
+8689689	334	353	brain abnormalities	DiseaseClass	D001927
+8689689	673	711	developmental abnormalities of the eye	DiseaseClass	D005124
+8689689	961	982	developmental defects	DiseaseClass	D002658
+
+8644702|t|Founding BRCA1 mutations in hereditary breast and ovarian cancer in southern Sweden.
+8644702|a|Nine different germ-line mutations in the BRCA1 breast and ovarian cancer susceptibility gene were identified in 15 of 47 kindreds from southern Sweden, by use of SSCP and heteroduplex analysis of all exons and flanking intron region and by a protein-truncation test for exon 11, followed by direct sequencing. All but one of the mutations are predicted to give rise to premature translation termination and include seven frameshift insertions or deletions, a nonsense mutation, and a splice acceptor site mutation. The remaining mutation is a missense mutation (Cys61Gly) in the zinc-binding motif. Four novel Swedish founding mutations were identified  the nucleotide 2595 deletion A was found in five families, the C 1806 T nonsense mutation in three families, the 3166 insertion TGAGA in three families, and the nucleotide 1201 deletion 11 in two families. Analysis of the intragenic polymorphism D17S855 supports common origins of the mutations. Eleven of the 15 kindreds manifesting BRCA1 mutations were breast-ovarian cancer families, several of them with a predominant ovarian cancer phenotype. The set of 32 families in which no BRCA1 alterations were detected included 1 breast-ovarian cancer kindred manifesting clear linkage to the BRCA1 region and loss of the wild-type chromosome in associated tumors. Other tumor types found in BRCA1 mutation/haplotype carriers included prostatic, pancreas, skin, and lung cancer, a malignant melanoma, an oligodendroglioma, and a carcinosarcoma. In all, 12 of 16 kindreds manifesting BRCA1 mutation or linkage contained ovarian cancer, as compared with only 6 of the remaining 31 families (P <. 001). The present study confirms the involvement of BRCA1 in disease predisposition for a subset of hereditary breast cancer families often characterized by ovarian cancers. 
+8644702	28	64	hereditary breast and ovarian cancer	CompositeMention	D061325
+8644702	133	158	breast and ovarian cancer	Modifier	D061325
+8644702	1095	1116	breast-ovarian cancer	Modifier	D061325
+8644702	1162	1176	ovarian cancer	Modifier	D010051
+8644702	1266	1287	breast-ovarian cancer	Modifier	D061325
+8644702	1393	1399	tumors	DiseaseClass	D009369
+8644702	1407	1412	tumor	Modifier	D009369
+8644702	1471	1513	prostatic, pancreas, skin, and lung cancer	CompositeMention	D011471|D010190|D012878|D008175
+8644702	1517	1535	malignant melanoma	SpecificDisease	D008545
+8644702	1540	1557	oligodendroglioma	SpecificDisease	D009837
+8644702	1565	1579	carcinosarcoma	SpecificDisease	D002296
+8644702	1655	1669	ovarian cancer	SpecificDisease	D010051
+8644702	1830	1854	hereditary breast cancer	Modifier	D001943
+8644702	1887	1902	ovarian cancers	SpecificDisease	D010051
+
+8929264|t|The DCC protein and prognosis in colorectal cancer.
+8929264|a|BACKGROUND  Allelic loss of chromosome 18q predicts a poor outcome in patients with stage II colorectal cancer. Although the specific gene inactivated by this allelic loss has not been elucidated, the DCC (deleted in colorectal cancer) gene is a candidate. We investigated whether the expression of the DCC protein in tumor cells is a prognostic marker in colorectal carcinoma. METHODS  The expression of DCC was evaluated immunohistochemically in 132 paraffin-embedded samples from patients with curatively resected stage II and III colorectal carcinomas. The Cox proportional-hazards model was used to adjust for covariates including age, sex, tumor site, degree of tumor differentiation, and use of adjuvant therapy. RESULTS  The expression of DCC was a strong positive predictive factor for survival in both stage II and stage III colorectal carcinomas. In patients with stage II disease whose tumors expressed DCC, the five-year survival rate was 94. 3 percent, whereas in patients with DCC-negative tumors, the survival rate was 61. 6 percent (P < 0. 001). In patients with stage III disease, the respective survival rates were 59. 3 percent and 33. 2 percent (P = 0. 03). CONCLUSIONS  DCC is a prognostic marker in patients with stage II or stage III colorectal cancer. In stage II colorectal carcinomas, the absence of DCC identifies a subgroup of patients with lesions that behave like stage III cancers. These findings may thus have therapeutic implications in this group of patients 
+8929264	33	50	colorectal cancer	SpecificDisease	D015179
+8929264	136	162	stage II colorectal cancer	SpecificDisease	D015179
+8929264	269	286	colorectal cancer	SpecificDisease	D015179
+8929264	370	375	tumor	Modifier	D009369
+8929264	408	428	colorectal carcinoma	SpecificDisease	D015179
+8929264	569	607	stage II and III colorectal carcinomas	CompositeMention	D015179
+8929264	698	703	tumor	Modifier	D009369
+8929264	720	725	tumor	Modifier	D009369
+8929264	864	908	stage II and stage III colorectal carcinomas	CompositeMention	D015179
+8929264	950	956	tumors	DiseaseClass	D009369
+8929264	1044	1063	DCC-negative tumors	SpecificDisease	D009369
+8929264	1132	1149	stage III disease	SpecificDisease	D009369
+8929264	1288	1327	stage II or stage III colorectal cancer	CompositeMention	D015179
+8929264	1332	1362	stage II colorectal carcinomas	SpecificDisease	D015179
+8929264	1447	1464	stage III cancers	DiseaseClass	D009369
+
+8828602|t|Gene therapy for phenylketonuria.
+8828602|a|Classical phenylketonuria (PKU) is an autosomal recessive disorder caused by a deficiency of hepatic phenylalanine hydroxylase (PAH). Limitations of the current dietary treatment for PKU have led to the development of potential treatments based on somatic gene transfer. Three different vector systems have been examined. Vectors derived from a recombinant retrovirus or a DNA/protein complex can efficiently transduce the PAH cDNA into PAH-deficient hepatocytes in vitro, but the application of these vector systems is presently limited by their low transduction efficiency in vivo. In contrast, a vector derived from a recombinant adenovirus can restore 10% -80% of normal hepatic PAH activity into PAH-deficient mice, which completely normalizes serum phenylalanine levels. This treatment is transient and cannot be effectively re-administered due to the presence of neutralizing antibodies directed against the recombinant adenoviral vector. However, these findings suggest that PKU can be completely corrected by somatic gene therapy, and provide some direction for the future development of adenoviral vectors.. 
+8828602	17	32	phenylketonuria	SpecificDisease	D010661
+8828602	44	59	phenylketonuria	SpecificDisease	D010661
+8828602	61	64	PKU	SpecificDisease	D010661
+8828602	72	100	autosomal recessive disorder	DiseaseClass	D030342
+8828602	113	160	deficiency of hepatic phenylalanine hydroxylase	SpecificDisease	OMIM:261600
+8828602	217	220	PKU	SpecificDisease	D010661
+8828602	471	484	PAH-deficient	Modifier	OMIM:261600
+8828602	735	748	PAH-deficient	Modifier	OMIM:261600
+8828602	1017	1020	PKU	SpecificDisease	D010661
+
+8944023|t|Identification of a RING protein that can interact in vivo with the BRCA1 gene product.
+8944023|a|The hereditary breast and ovarian cancer gene, BRCA1, encodes a large polypeptide that contains the cysteine-rich RING motif, a zinc-binding domain found in a variety of regulatory proteins. Here we describe a novel protein that interacts in vivo with the N-terminal region of BRCA1. This BRCA1-associated RING domain (BARD1) protein contains an N-terminal RING motif, three tandem ankyrin repeats, and a C-terminal sequence with significant homology to the phylogenetically conserved BRCT domains that lie near the C terminus of BRCA1. The BARD1/BRCA1 interaction is disrupted by BRCA1 missense mutations that segregate with breast cancer susceptibility, indicating that BARD1 may be involved in mediating tumour suppression by BRCA1.. 
+8944023	92	128	hereditary breast and ovarian cancer	Modifier	D061325
+8944023	714	727	breast cancer	Modifier	D001943
+8944023	795	801	tumour	Modifier	D009369
+
+8682510|t|Wiskott-Aldrich syndrome: no strict genotype-phenotype correlations but clustering of missense mutations in the amino-terminal part of the WASP gene product.
+8682510|a|The Wiskott-Aldrich syndrome protein (WASP) gene was found to be mutated in patients presenting with WAS and in patients showing X-linked thrombocytopenia. Mutation analysis in 19 families of German, Swiss and Turkish descent by single-strand conformation polymorphism and sequencing resulted in the detection of seven novel and 10 known mutations. A striking clustering of missense mutations in the first four exons contrasted with a random distribution of nonsense mutations. More than 85% of all known missense mutations were localized in the amino-terminal stretch of the WASP gene product; this region contained a mutational hot spot at codon 86. No genotype-phenotype correlation emerged after a comparison of the identified mutations with the resulting clinical picture for a classical WAS phenotype. A substitution at codon 86 resulted in an extremely variable expression of the disease in a large Swiss family. An extended homology search revealed a distant relationship of this stretch to the vasodilator-stimulated phosphoprotein (VASP), which is involved in the maintenance of cyto-architecture by interacting with actin-like filaments.. 
+8682510	0	24	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+8682510	162	186	Wiskott-Aldrich syndrome	Modifier	D014923
+8682510	259	262	WAS	SpecificDisease	D014923
+8682510	287	312	X-linked thrombocytopenia	SpecificDisease	OMIM:313900
+8682510	951	954	WAS	Modifier	D014923
+
+8954016|t|Autosomal dominant primary hyperparathyroidism and jaw tumor syndrome associated with renal hamartomas and cystic kidney disease: linkage to 1q21-q32 and loss of the wild type allele in renal hamartomas.
+8954016|a|Hereditary hyperparathyroidism-jaw tumor syndrome (HPT-JT) is an autosomal dominant disease (OMIM 145001) that has recently been mapped to chromosomal region 1q21-q32 (HRPT2). Here we report two families with HPT-JT syndrome in which adult renal hamartomas or cystic kidney disease were prominent associated features, possibly representing a new phenotypic variant of the HPT-JT syndrome. In the first family, renal lesions were present in five out of six affected individuals, whereas HPT and JT were seen in four and two cases, respectively. In the second family, JT was found in three of the five affected individuals and two affected members also exhibited polycystic kidney disease. The possibility of the latter cosegregating as a separate autosomal dominant gene can not be ruled out. A sex-dependent penetrance of primary HPT, resulting in predominantly male-affected cases was evident in the two families. Twenty microsatellite markers in the HRPT2 region were typed, in addition to markers in the multiple endocrine neoplasia (MEN) types 1 and 2 regions at 11q13 and 10q11. The disease in these two kindreds was linked to five markers in the 1q21-q32 region (logarithm-of-odds scores  3. 2-4 2-4. 2), whereas linkage to the MEN1 and MEN2 regions was excluded. Meiotic recombinations detected in affected individuals placed the locus telomeric of D1S215, thus narrowing the HRPT2 region from > 60 to approximately 34 centimorgans. Loss of heterozygosity was studied in seven renal hamartomas from two affected individuals in the first family, as well as in a jaw tumor and a parathyroid tumor from the second family. All renal hamartomas showed loss of heterozygosity at the 1q21-q32 region. The losses invariably involved the wild type allele derived from the unaffected parent, suggesting the inactivation of a tumor suppressor gene in this region 
+8954016	27	69	hyperparathyroidism and jaw tumor syndrome	SpecificDisease	OMIM:145001
+8954016	86	102	renal hamartomas	SpecificDisease	D007674+D006222
+8954016	107	128	cystic kidney disease	DiseaseClass	D052177
+8954016	186	202	renal hamartomas	SpecificDisease	D007674+D006222
+8954016	204	253	Hereditary hyperparathyroidism-jaw tumor syndrome	SpecificDisease	OMIM:145001
+8954016	255	261	HPT-JT	SpecificDisease	OMIM:145001
+8954016	269	295	autosomal dominant disease	DiseaseClass	D030342
+8954016	413	428	HPT-JT syndrome	SpecificDisease	OMIM:145001
+8954016	438	460	adult renal hamartomas	SpecificDisease	C536399
+8954016	464	485	cystic kidney disease	DiseaseClass	D052177
+8954016	576	591	HPT-JT syndrome	SpecificDisease	OMIM:145001
+8954016	614	627	renal lesions	DiseaseClass	D007680
+8954016	690	693	HPT	SpecificDisease	D006961
+8954016	698	700	JT	SpecificDisease	D007573
+8954016	770	772	JT	SpecificDisease	D007573
+8954016	865	890	polycystic kidney disease	SpecificDisease	D007690
+8954016	1026	1037	primary HPT	SpecificDisease	D049950
+8954016	1211	1259	multiple endocrine neoplasia (MEN) types 1 and 2	Modifier	D009377
+8954016	1438	1442	MEN1	Modifier	OMIM:131100
+8954016	1447	1451	MEN2	Modifier	D018813
+8954016	1688	1704	renal hamartomas	SpecificDisease	D007674+D006222
+8954016	1772	1781	jaw tumor	SpecificDisease	D007573
+8954016	1788	1805	parathyroid tumor	SpecificDisease	D010282
+8954016	1834	1850	renal hamartomas	SpecificDisease	D007674+D006222
+8954016	2026	2031	tumor	Modifier	D009369
+
+8692963|t|Heterodimer formation and activity in the human enzyme galactose-1-phosphate uridylyltransferase.
+8692963|a|One of the fundamental questions concerning expression and function of dimeric enzymes involves the impact of naturally occurring mutations on subunit assembly and heterodimer activity. This question is of particular interest for the human enzyme galactose-l-phosphate uridylyl-transferase (GALT), impairment of which results in the inherited metabolic disorder galactosemia, because many if not most patients studied to date are compound heterozygotes rather than true molecular homozygotes. Furthermore, the broad range of phenotypic severity observed in these patients raises the possibility that allelic combination, not just allelic constitution, may play some role in determining outcome. In the work described herein, we have selected two distinct naturally occurring null mutations of GALT, Q188R and R333W, and asked the questions (i) what are the impacts of these mutations on subunit assembly, and (ii) if heterodimers do form, are they active ? To answer these questions, we have established a yeast system for the coexpression of epitope-tagged alleles of human GALT and investigated both the extent of specific GALT subunit interactions and the activity of defined heterodimer pools. We have found that both homodimers and heterodimers do form involving each of the mutant subunits tested and that both heterodimer pools retain substantial enzymatic activity. These results are significant not only in terms of their implications for furthering our understanding of galactosemia and GALT holoenzyme structure-function relationships but also because the system described may serve as a model for similar studies of other complexes composed of multiple subunits.. 
+8692963	431	459	inherited metabolic disorder	DiseaseClass	D008659
+8692963	460	472	galactosemia	SpecificDisease	D005693
+8692963	1578	1590	galactosemia	SpecificDisease	D005693
+
+8968716|t|BRCA1 R841W: a strong candidate for a common mutation with moderate phenotype.
+8968716|a|BRCA1 mutations cause increased risk for breast and ovarian cancer, frequently of early onset. Many different mutations occur in BRCA1, including several examples of recurrent mutations, each of which accounts for a significant number of families with heritable cancer predisposition. These common mutations have an etiological role in many breast and ovarian cancer cases and provide the opportunity to examine genotype-phenotype correlations and genotype-environment interactions in individuals with the identical BRCA1 lesion. We report a novel missense change in BRCA1, 2640 C-- > T (R841W), found in 3 cases from a subject group of 305 breast and 79 ovarian cancer cases from Orange County, CA. These are consecutive, population-based cases not selected for age or family history. In all three cases, there is a strong family history of breast, ovarian, or other cancers possibly related to a BRCA1 defect and family members showed a high concordance of cancer incidence with the presence of R841W. The age of cancer onset was not always distinct from typical sporadic cases. Testing of a sample of 413 unrelated individuals to examine the hypothesis that R841W might be a rare polymorphism detected one additional instance in a woman with breast cancer diagnosed at age 77 years, and cancer in one parent. R841W is likely to be an etiologically significant lesion with involvement in close to 1% (95% confidence interval of 0-1. 7%) of all breast and ovarian cancers in this population. 
+8968716	120	145	breast and ovarian cancer	CompositeMention	D001943|D010051
+8968716	341	347	cancer	Modifier	D009369
+8968716	420	445	breast and ovarian cancer	Modifier	D001943|D010051
+8968716	720	748	breast and 79 ovarian cancer	Modifier	D001943|D010051
+8968716	921	954	breast, ovarian, or other cancers	CompositeMention	D001943|D010051|D009369
+8968716	1038	1044	cancer	Modifier	D009369
+8968716	1094	1100	cancer	Modifier	D009369
+8968716	1324	1337	breast cancer	SpecificDisease	D001943
+8968716	1369	1375	cancer	DiseaseClass	D009369
+8968716	1525	1551	breast and ovarian cancers	CompositeMention	D001943|D010051
+
+8956035|t|Independent origin of single and double mutations in the human glucose 6-phosphate dehydrogenase gene.
+8956035|a|The vast majority of both polymorphic and sporadic G6PD variants are due to single missense mutations. In the four polymorphic variants that have two point mutations, one of the mutations is always 376 A-- > G (126 Asn-- > Asp), which on its own gives rise to the nondeficient polymorphic variant, G6PD A. In a study of G6PD deficient patients who presented with clinical favism in Spain, we have found a new polymorphic variant that we have called G6PD Malaga, whose only abnormality is a 542 A-- > T (181 Asp-- > Val) mutation. This is the same mutation as previously found in association with the mutation of G6PD A in the double mutant, G6PD Santamaria. G6PD Malaga is associated with enzyme deficiency (class III), and the enzymic properties of G6PD Malaga and G6PD Santamaria are quite similar, indicating that in this case the effects of the two mutations are additive rather than synergistic. G6PD Santamaria might have been produced by recombination between G6PD A and G6PD Malaga; however haplotype analysis, including the use of a new silent polymorphism, suggests that the same 542 A-- > T mutation has taken place independently in a G6PD B gene to give G6PD Malaga and in a G6PD A gene to give G6PD Santamaria. These findings help to outline the relationship and evolution of mutations in the human G6PD locus.. 
+8956035	423	437	G6PD deficient	Modifier	D005955
+8956035	475	481	favism	SpecificDisease	D005236
+8956035	792	809	enzyme deficiency	DiseaseClass	D008661
+
+8825052|t|FISH studies in a patient with sporadic aniridia and t(7;11) (q31.2;p13).
+8825052|a|A 2 year old female presenting with bilateral sporadic aniridia was found to have an apparently balanced reciprocal translocation with a chromosome 11 breakpoint within band p13. Fluorescence in situ hybridisation (FISH) studies with distal 11p13 specific cosmids showed that the chromosome 11 breakpoint lay between the aniridia (PAX6) locus and a region approximately 100 kb distal to PAX6 defined by the cosmid FO2121. Although this patient did not have a detectable deletion within PAX6, her aniridia may have resulted from a disruption of the distal chromatin domain containing either enhancers or regulators for PAX6. This case may therefore be another example of aniridia caused by a position effect as recently described in two familial aniridia patients in which the phenotype cosegregated with chromosome abnormalities with 11p13 breakpoints.. 
+8825052	31	48	sporadic aniridia	SpecificDisease	D015783
+8825052	110	137	bilateral sporadic aniridia	SpecificDisease	D015783
+8825052	395	403	aniridia	SpecificDisease	D015783
+8825052	570	578	aniridia	SpecificDisease	D015783
+8825052	744	752	aniridia	SpecificDisease	D015783
+8825052	810	827	familial aniridia	Modifier	D015783
+8825052	878	902	chromosome abnormalities	DiseaseClass	D002869
+
+8589723|t|Ovarian cancer risk in BRCA1 carriers is modified by the HRAS1 variable number of tandem repeat (VNTR) locus.
+8589723|a|Women who carry a mutation in the BRCA1 gene (on chromosome 17q21), have an 80% risk of breast cancer and a 40% risk of ovarian cancer by the age of 70 (ref. 1). The variable penetrance of BRCA1 suggests that other genetic and non-genetic factors play a role in tumourigenesis in these individuals. The HRAS1 variable number of tandem repeats (VNTR) polymorphism, located 1 kilobase (kb) downstream of the HRAS1 proto-oncogene (chromosome 11p15. 5) is one possible genetic modifier of cancer penetrance. Individuals who have rare alleles of the VNTR have an increased risk of certain types of cancers, including breast cancer (2-4). To investigate whether the presence of rare HRAS1 alleles increases susceptibility to hereditary breast and ovarian cancer, we have typed a panel of 307 female BRCA1 carriers at this locus using a PCR-based technique. The risk for ovarian cancer was 2. 11 times greater for BRCA1 carriers harbouring one or two rare HRAS1 alleles, compared to carriers with only common alleles (P = 0. 015). The magnitude of the relative risk associated with a rare HRAS1 allele was not altered by adjusting for the other known risk factors for hereditary ovarian cancer (5). Susceptibility to breast cancer did not appear to be affected by the presence of rare HRAS1 alleles. This study is the first to show the effect of a modifying gene on the penetrance of an inherited cancer syndrome 
+8589723	0	14	Ovarian cancer	Modifier	D010051
+8589723	198	211	breast cancer	SpecificDisease	D001943
+8589723	230	244	ovarian cancer	SpecificDisease	D010051
+8589723	595	601	cancer	Modifier	D009369
+8589723	703	710	cancers	DiseaseClass	D009369
+8589723	722	735	breast cancer	SpecificDisease	D001943
+8589723	829	865	hereditary breast and ovarian cancer	CompositeMention	D061325
+8589723	974	988	ovarian cancer	SpecificDisease	D010051
+8589723	1271	1296	hereditary ovarian cancer	SpecificDisease	D061325
+8589723	1320	1333	breast cancer	SpecificDisease	D001943
+8589723	1490	1515	inherited cancer syndrome	DiseaseClass	D009386
+
+8649785|t|A previously undescribed mutation within the tetramerisation domain of TP53 in a family with Li-Fraumeni syndrome.
+8649785|a|We report details of a family with classic Li-Fraumeni syndrome in which there is a mutation in codon 344 of the tumour suppressor gene TP53. Codon 344 is a key residue within the tetramerisation domain, and the amino acid substitution of a proline for a leucine is predicted to have profound implications for tetramerisation and potentially DNA binding. This is the first report of a mutation at this residue in either sporadic tumours or in the germline and the first report of a germline mutation within the tetramerisation domain. The family does not appear to be remarkable in the spectrum of tumours, and there is loss of the wild-type allele in a leiomyosarcoma from the proband. A cell line has been established from the tumour of the proband and cytogenetic and molecular studies carried out, providing an extensive analysis in this family.. 
+8649785	93	113	Li-Fraumeni syndrome	SpecificDisease	D016864
+8649785	158	178	Li-Fraumeni syndrome	SpecificDisease	D016864
+8649785	228	234	tumour	Modifier	D009369
+8649785	535	551	sporadic tumours	DiseaseClass	D009369
+8649785	713	720	tumours	DiseaseClass	D009369
+8649785	769	783	leiomyosarcoma	SpecificDisease	D007890
+8649785	844	850	tumour	DiseaseClass	D009369
+
+9241282|t|Trinucleotide repeat expansion at the myotonic dystrophy locus reduces expression of DMAHP.
+9241282|a|Myotonic dystrophy, or dystrophia myotonica (DM), is an autosomal dominant multisystem disorder caused by the expansion of a CTG trinucleotide repeat in the 3 untranslated region of the DMPK protein kinase gene on chromosome 19q13. 3 (refs 1-3). Although the DM mutation was identified more than five years ago, the pathogenic mechanisms underlying this most prevalent form of hereditary adult neuromuscular disease remain elusive. Previous work from our laboratory demonstrated that a DNase l-hypersensitive site located adjacent to the repeats on the wild-type allele is eliminated by repeat expansion, indicating that large CTG-repeat arrays may be associated with a local chromatin environment that represses gene expression. Here we report that the hypersensitive site contains an enhancer element that regulates transcription of the adjacent DMAHP homeobox gene. Analysis of DMAHP expression in the cells of DM patients with loss of the hypersensitive site revealed a two- to fourfold reduction in steady-state DMAHP transcript levels relative to wild-type controls. Allele-specific analysis of DMAHP expression showed that steady-state transcript levels from the expanded allele were greatly reduced in comparison to those from the wild-type allele. Together, these results demonstrate that CTG-repeat expansions can suppress local gene expression and implicate DMAHP in DM pathogenesis. 
+9241282	38	56	myotonic dystrophy	Modifier	D009223
+9241282	92	110	Myotonic dystrophy	SpecificDisease	D009223
+9241282	115	135	dystrophia myotonica	SpecificDisease	D009223
+9241282	137	139	DM	SpecificDisease	D009223
+9241282	148	187	autosomal dominant multisystem disorder	DiseaseClass	D030342
+9241282	351	353	DM	Modifier	D009223
+9241282	486	507	neuromuscular disease	DiseaseClass	D009468
+9241282	1006	1008	DM	Modifier	D009223
+9241282	1470	1472	DM	Modifier	D009223
+
+9122265|t|A mutation in autosomal dominant myotonia congenita affects pore properties of the muscle chloride channel.
+9122265|a|Autosomal dominant myotonia congenita is an inherited disorder of skeletal muscle caused by mutations in a voltage-gated Cl- channel gene (CLCN1, 7q35). Here, we report that a mutation predicting the substitution of Gly 230 by glutamic acid (G230E) between segments D3 and D4 dramatically alters the pore properties of a recombinant human muscle Cl- channel (hCIC-1) expressed in a mammalian cell line (tsA201). The G230E mutation causes substantial changes in anion and cation selectivity as well as a fundamental change in rectification of the current-voltage relationship. Whereas wild-type channels are characterized by pronounced inward rectification and a Cl > thiocyanate > Br > NO (3) > I > CH (3) SO (3) selectivity, G230E exhibits outward rectification at positive potentials and a thiocyanate > NO (3) > I > Br > Cl > CH (3) SO (3) selectivity. Furthermore, the cation-to-anion permeability ratio of the mutant is much greater than that of the wild-type channel. Voltage-dependent blocks by intracellular and extracellular iodide help to distinguish two distinct ion binding sites within the hClC-1 conduction pathway. Both binding sites are preserved in the mutant but have decreased affinities for iodide. These findings suggest that Gly 230 is critical for normal ion conductance in hClC-1 and that this residue resides within the channel pore.. 
+9122265	14	51	autosomal dominant myotonia congenita	SpecificDisease	OMIM:160800
+9122265	108	145	Autosomal dominant myotonia congenita	SpecificDisease	OMIM:160800
+9122265	152	189	inherited disorder of skeletal muscle	DiseaseClass	D009135+D030342
+
+9012404|t|Mutation analysis of BRCA1 and BRCA2 in a male breast cancer population.
+9012404|a|A population-based series of 54 male breast cancer cases from Southern California were analyzed for germ-line mutations in the inherited breast/ovarian cancer genes, BRCA1 and BRCA2. Nine (17%) of the patients had a family history of breast and/or ovarian cancer in at least one first-degree relative. A further seven (13%) of the patients reported breast/ovarian cancer in at least one second-degree relative and in no first-degree relatives. No germ-line BRCA1 mutations were found. Two male breast cancer patients (4% of the total) were found to carry novel truncating mutations in the BRCA2 gene. Only one of the two male breast cancer patients carrying a BRCA2 mutation had a family history of cancer, with one case of ovarian cancer in a first-degree relative. The remaining eight cases (89%) of male breast cancer with a family history of breast/ovarian cancer in first-degree relatives remain unaccounted for by mutations in either the BRCA1 gene or the BRCA2 gene.. 
+9012404	42	60	male breast cancer	Modifier	D018567
+9012404	105	123	male breast cancer	Modifier	D018567
+9012404	200	231	inherited breast/ovarian cancer	Modifier	D061325
+9012404	307	335	breast and/or ovarian cancer	CompositeMention	D061325
+9012404	422	443	breast/ovarian cancer	CompositeMention	D061325
+9012404	562	580	male breast cancer	Modifier	D018567
+9012404	694	712	male breast cancer	Modifier	D018567
+9012404	772	778	cancer	DiseaseClass	D009369
+9012404	797	811	ovarian cancer	SpecificDisease	D010051
+9012404	875	893	male breast cancer	SpecificDisease	D018567
+9012404	919	940	breast/ovarian cancer	CompositeMention	D061325
+
+8733131|t|Expression of the von Hippel-Lindau disease tumour suppressor gene during human embryogenesis.
+8733131|a|The von Hippel-Lindau (VHL) disease product is thought to down-regulate transcription by antagonizing elongin-enhanced transcriptional elongation. Germline VHL gene mutations predispose to the development of retinal, cerebellar and spinal haemangioblastomas, renal cell carcinoma and phaeochromocytoma. In addition, somatic Inactivation of the VHL gene is frequent in sporadic renal cell carcinoma and haemangioblastoma. Regulation of transcript elongation is an important control mechanism for gene expression and the VHL gene might modify the expression of proto-oncogenes and growth suppressor genes during embryogenesis. We therefore investigated the expression of VHL mRNA during human embryogenesis by in situ hybridization studies at 4, 6 and 10 weeks post conception. Although VHL mRNA was expressed in all three germ layers, strong expression was noted in the central nervous system, kidneys, testis and lung. Within the kidney, VHL mRNA was differentially expressed within renal tubules suggesting that the VHL gene product may have a specific role in kidney development. Two alternatively spliced VHL mRNAs characterized by inclusion (isoform I) or exclusion (isoform II) of exon 2 are transcribed in adult tissues. To investigate if the two isoforms are differentially expressed during embryogenesis, VHL mRNA was reverse transcribed from 13 fetal tissues (8-10 weeks gestation). The quantitative distribution of VHL mRNA within fetal tissues reflected that seen by in situ hybridization and the ratio of the two VHL isoforms was similar between tissues. Although the genes regulated by the VHL gene product have not yet been identified, our findings are compatible with the hypothesis that VHL-mediated control of transcriptional elongation may have a role in normal human development.. 
+8733131	18	50	von Hippel-Lindau disease tumour	Modifier	D006623
+8733131	99	130	von Hippel-Lindau (VHL) disease	Modifier	D006623
+8733131	251	254	VHL	Modifier	D006623
+8733131	303	352	retinal, cerebellar and spinal haemangioblastomas	CompositeMention	D012175|D018325
+8733131	354	374	renal cell carcinoma	SpecificDisease	D002292
+8733131	379	396	phaeochromocytoma	SpecificDisease	D010673
+8733131	439	442	VHL	Modifier	D006623
+8733131	463	492	sporadic renal cell carcinoma	SpecificDisease	D002292
+8733131	497	514	haemangioblastoma	SpecificDisease	D018325
+8733131	614	617	VHL	Modifier	D006623
+8733131	764	767	VHL	Modifier	D006623
+8733131	880	883	VHL	Modifier	D006623
+8733131	1033	1036	VHL	Modifier	D006623
+8733131	1112	1115	VHL	Modifier	D006623
+8733131	1203	1206	VHL	Modifier	D006623
+8733131	1408	1411	VHL	Modifier	D006623
+8733131	1520	1523	VHL	Modifier	D006623
+8733131	1620	1623	VHL	Modifier	D006623
+8733131	1698	1701	VHL	Modifier	D006623
+8733131	1798	1801	VHL	Modifier	D006623
+
+9195227|t|Screening for ESR mutations in breast and ovarian cancer patients.
+9195227|a|In the present study, leukocyte DNA from 143 patients with familial clustering of breast and/or ovarian cancer and tumour DNA from 96 breast carcinomas were screened for base mutations in the estrogen receptor gene (ESR). Three patients with a family history of cancer were carrying a Gly160Cys germline substitution. This alteration was also detected in eight (four females and four males) of 729 controls (366 female, 363 males), indicating that the substitution probably represents a polymorphism. However, in the 229 female controls in whom family history of cancer was known, one of two who had a sister with breast cancer was carrying the variant allele. Hence, a possible clinical significance of the glycine into cysteine cannot be completely ruled out and should be further investigated. Somatic mutations were not detected in any of the tumours studied, and the present data do not provide support for somatic ESR base mutations as an important mechanism for hormonal therapy resistance in estrogen receptor-positive breast carcinomas.. 
+9195227	31	56	breast and ovarian cancer	Modifier	D061325
+9195227	149	177	breast and/or ovarian cancer	CompositeMention	D061325
+9195227	182	188	tumour	Modifier	D009369
+9195227	201	218	breast carcinomas	SpecificDisease	D001943
+9195227	329	335	cancer	DiseaseClass	D009369
+9195227	630	636	cancer	DiseaseClass	D009369
+9195227	681	694	breast cancer	SpecificDisease	D001943
+9195227	914	921	tumours	DiseaseClass	D009369
+9195227	1067	1111	estrogen receptor-positive breast carcinomas	SpecificDisease	D001943
+
+8675707|t|Increased coronary heart disease in Japanese-American men with mutation in the cholesteryl ester transfer protein gene despite increased HDL levels.
+8675707|a|Plasma high density lipoprotein (HDL) levels are strongly genetically determined and show a general inverse relationship with coronary heart disease (CHD). The cholesteryl ester transfer protein (CETP) mediates the transfer of cholesteryl esters from HDL to other lipoproteins and is a key participant in the reverse transport of cholesterol from the periphery to the liver. A high prevalence of two different CETP gene mutations (D442G, 5. 1%; intron 14G  A, 0. 5%), was found in 3, 469 men of Japanese ancestry in the Honolulu Heart Program and mutations were associated with decreased CETP (-35%) and increased HDL chol levels (+ 10% for D442G). However, the overall prevalence of definite CHD was 21% in men with mutations and 16% in men without mutations. The relative risk (RR) of CHD was 1. 43 in men with mutations (P <. 05); after adjustment for CHD risk factors, the RR was 1. 55 (P =. 02); after additional adjustment for HDL levels, the RR was 1. 68 (P =. 008). Similar RR values were obtained for the D442G mutation alone. Increased CHD in men with mutations was primarily observed for HDL chol 41-60 mg/dl; for HDL chol > 60 mg/dl men with and without mutations had low CHD prevalence. Thus, genetic CETP deficiency appears to be an independent risk factor for CHD, primarily due to increased CHD prevalence in men with the D442G mutation and HDL cholesterol between 41 and 60 mg/dl. The findings suggest that both HDL concentration and the dynamics of cholesterol transport through HDL (i. e., reverse cholesterol transport) determine the anti-atherogenicity of the HDL fraction.
+8675707	10	32	coronary heart disease	SpecificDisease	D003327
+8675707	275	297	coronary heart disease	SpecificDisease	D003327
+8675707	299	302	CHD	SpecificDisease	D003327
+8675707	842	845	CHD	SpecificDisease	D003327
+8675707	936	939	CHD	SpecificDisease	D003327
+8675707	1004	1007	CHD	Modifier	D003327
+8675707	1195	1198	CHD	SpecificDisease	D003327
+8675707	1333	1336	CHD	SpecificDisease	D003327
+8675707	1363	1378	CETP deficiency	SpecificDisease	OMIM:143470
+8675707	1424	1427	CHD	SpecificDisease	D003327
+8675707	1456	1459	CHD	Modifier	D003327
+
+8808606|t|Analysis of meiotic segregation, using single-sperm typing: meiotic drive at the myotonic dystrophy locus.
+8808606|a|Meiotic drive at the myotonic dystrophy (DM) locus has recently been suggested as being responsible for maintaining the frequency, in the human population, of DM chromosomes capable of expansion to the disease state. In order to test this hypothesis, we have studied samples of single sperm from three individuals heterozygous at the DM locus, each with one allele larger and one allele smaller than 19 CTG repeats. To guard against the possible problem of differential PCR amplification rates based on the lengths of the alleles, the sperm were also typed at another closely linked marker whose allele size was unrelated to the allele size at the DM locus. Using statistical models specifically designed to study single-sperm segregation data, we find no evidence of meiotic segregation distortion. The upper limit of the two-sided 95% confidence interval for the estimate of the common segregation probability for the three donors is at or below. 515 for all models considered, and no statistically significant difference from. 5 is detected in any of the models. This suggests that any greater amount of segregation distortion at the myotonic dystrophy locus must result from events following sperm ejaculation. 
+8808606	81	99	myotonic dystrophy	Modifier	D009223
+8808606	128	146	myotonic dystrophy	Modifier	D009223
+8808606	148	150	DM	Modifier	D009223
+8808606	266	268	DM	Modifier	D009223
+8808606	441	443	DM	Modifier	D009223
+8808606	755	757	DM	Modifier	D009223
+8808606	1244	1262	myotonic dystrophy	Modifier	D009223
+
+9223307|t|Isolation of full-length ATM cDNA and correction of the ataxia-telangiectasia cellular phenotype.
+9223307|a|A gene mutated in the human genetic disorder ataxia-telangiectasia (A-T), ATM, was recently identified by positional cloning. ATM is a member of the phosphatidylinositol-3-kinase superfamily, some of which are protein kinases and appear to have important roles in cell cycle control and radiation signal transduction. We describe herein, to our knowledge, for the first time, the cloning of a full-length cDNA for ATM and correction of multiple aspects of the radio-sensitive phenotype of A-T cells by transfection with this cDNA. Overexpression of ATM cDNA in A-T cells enhanced the survival of these cells in response to radiation exposure, decreased radiation-induced chromosome aberrations, reduced radio-resistant DNA synthesis, and partially corrected defective cell cycle checkpoints and induction of stress-activated protein kinase. This correction of the defects in A-T cells provides further evidence of the multiplicity of effector functions of the ATM protein and suggests possible approaches to gene therapy.. 
+9223307	56	77	ataxia-telangiectasia	Modifier	D001260
+9223307	126	142	genetic disorder	DiseaseClass	D030342
+9223307	143	164	ataxia-telangiectasia	SpecificDisease	D001260
+9223307	166	169	A-T	SpecificDisease	D001260
+9223307	587	590	A-T	Modifier	D001260
+9223307	659	662	A-T	Modifier	D001260
+9223307	973	976	A-T	Modifier	D001260
+
+8651278|t|The spectrum of RB1 germ-line mutations in hereditary retinoblastoma.
+8651278|a|We have searched for germ-line RB1 mutations in 119 patients with hereditary retinoblastoma. Previous investigations by Southern blot hybridization and PCR fragment-length analysis had revealed mutations in 48 patients. Here we report on the analysis of the remaining 71 patients. By applying heteroduplex analysis, nonisotopic SSCP, and direct sequencing, we detected germ-line mutations resulting in premature termination codons or disruption of splice signals in 51 (72%) of the 71 patients. Four patients also showed rare sequence variants. No region of the RB1 gene was preferentially involved in single base substitutions. Recurrent transitions were observed at most of the 14 codons within the RB1. No mutation was observed in exons 25-27, although this region contains two CGA codons. This suggests that mutations within the 3-terminal region of the RB1 gene may not be oncogenic. When these data were combined with the results of our previous investigations, mutations were identified in a total of 99 (83%) of 119 patients. The spectrum comprises 15% large deletions, 26% small length alterations, and 42% base substitutions. No correlation between the location of frameshift or nonsense mutations and phenotypic features, including age at diagnosis, the number of tumor foci, and manifestation of nonocular tumors was observed.. 
+8651278	43	68	hereditary retinoblastoma	SpecificDisease	D012175
+8651278	136	161	hereditary retinoblastoma	SpecificDisease	D012175
+8651278	1345	1350	tumor	Modifier	D009369
+8651278	1378	1394	nonocular tumors	DiseaseClass	D009369
+
+8625410|t|Wiskott-Aldrich syndrome protein, a novel effector for the GTPase CDC42Hs, is implicated in actin polymerization.
+8625410|a|The Rho family of GTPases control diverse biological processes, including cell morphology and mitogenesis. We have identified WASP, the protein that is defective in Wiskott-Aldrich syndrome (WAS), as a novel effector for CDC42Hs, but not for the other Rho family members, Rac and Rho. This interaction is dependent on the presence of the G protein-binding domain. Cellular expression of epitope-tagged WASP produces clusters of WASP that are highly enriched in polymerized actin. This clustering is not observed with a C-terminally deleted WASP and is inhibited by coexpression with dominant negative CDC42Hs-N17, but not with dominant negative forms of Rac or Rho. Thus, WASP provides a novel link between CDC42Hs and the actin cytoskeleton, which suggests a molecular mechanism for many of the cellular abnormalities in WAS. The WASP sequence contains two novel domains that are homologous to other proteins involved in action organization.. 
+8625410	0	24	Wiskott-Aldrich syndrome	Modifier	D014923
+8625410	279	303	Wiskott-Aldrich syndrome	SpecificDisease	D014923
+8625410	305	308	WAS	SpecificDisease	D014923
+8625410	936	939	WAS	SpecificDisease	D014923
+
+9272171|t|Adult onset globoid cell leukodystrophy (Krabbe disease): analysis of galactosylceramidase cDNA from four Japanese patients.
+9272171|a|We examined galactosylceramidase (GALC) cDNA in four Japanese patients with adult onset globoid cell leukodystrophy (Krabbe disease; AO-GLD) by polymerase chain reaction/single-strand conformation polymorphism (PCR-SSCP) analysis, subsequent sequence determination, and restriction enzyme digestion of PCR products, initial symptoms were the onset of slowly progressive spastic paraplegia from the middle of the second decade, and all patients had diminished GALC activity in their leukocytes. We identified three missense mutations (I66M, G270D, L618S) and one exon-6 skipping (535-573del). Two of the patients had only the I66M mutant mRNA, and one only the G27OD mutant mRNA. The fourth patient carried a compound heterozygous mutation of 535-573del and L618S. To determine the enzymatic activities produced by these mutations, we constructed mutated GALC cDNAs and expressed them in COS-1 cells. Three mutations, viz., G270D, L618S, and exon-6 skipping (535-573del), produced diminished GALC activity as expected. The I66M mutation in the wild-type GALC cDNA (I289) had normal activity, but when this mutation and the V289 polymorphism were introduced into the same allele, it had decreased activity. Thus, the combination of a unique mutation and polymorphism causes conformational change in the GALC enzyme, resulting in low enzymatic activity. AO-GLD mutations, including those found here, are located in the N-terminus (I66M, G270D, 535-573del) or C-terminus (L618S) of the GALC enzyme, whereas the reported mutations in the infantile form (IF-GLD) are in the central domain. This difference in mutation sites may affect the clinical features of GLD. 
+9272171	0	39	Adult onset globoid cell leukodystrophy	SpecificDisease	D007965
+9272171	41	55	Krabbe disease	SpecificDisease	OMIM:245200
+9272171	201	240	adult onset globoid cell leukodystrophy	SpecificDisease	D007965
+9272171	242	256	Krabbe disease	SpecificDisease	OMIM:245200
+9272171	258	264	AO-GLD	SpecificDisease	D007965
+9272171	495	513	spastic paraplegia	DiseaseClass	D010264
+9272171	573	597	diminished GALC activity	DiseaseClass	C538554
+9272171	1105	1129	diminished GALC activity	DiseaseClass	C538554
+9272171	1476	1482	AO-GLD	Modifier	D007965
+9272171	1674	1680	IF-GLD	SpecificDisease	D007965
+9272171	1779	1782	GLD	SpecificDisease	D007965
+
+8589722|t|BRCA1 is secreted and exhibits properties of a granin.
+8589722|a|Germline mutations in BRCA1 are responsible for most cases of inherited breast and ovarian cancer . However, the function of the BRCA1 protein has remained elusive. We now show that BRCA1 encodes a 190-kD protein with sequence homology and biochemical analogy to the granin protein family. Interestingly, BRCA2 also includes a motif similar to the granin consensus at the C terminus of the protein. Both BRCA1 and the granins localize to secretory vesicles, are secreted by a regulated pathway, are post-translationally glycosylated and are responsive to hormones. As a regulated secretory protein, BRCA1 appears to function by a mechanism not previously described for tumour suppressor gene products.. 
+8589722	117	152	inherited breast and ovarian cancer	CompositeMention	D061325
+8589722	724	730	tumour	Modifier	D009369
+
+9144439|t|Insulin gene region contributes to genetic susceptibility to, but may not to low incidence of, insulin-dependent diabetes mellitus in Japanese.
+9144439|a|In the Caucasian population, it has been demonstrated that the insulin gene (INS) region contains the insulin-dependent diabetes mellitus locus (IDDM2). In the Japanese population, however, there has been no report demonstrating the contribution of IDDM2 to the pathogenesis of IDDM. We conducted an association study of IDDM in a large number of Japanese subjects with multiple polymorphisms in INS region. We found a significant association of the INS region with IDDM. Alleles positively associated with IDDM in INS region were the same as those positively-associated with IDDM in Caucasian population, although positively-associated alleles are very common (allele frequencies > 0. 9) in the Japanese general population. These data suggest that IDDM2 is involved in the genetic susceptibility to IDDM in Japanese. The high frequencies of disease-associated alleles in the general population suggest that IDDM2 locus is not responsible for the low incidence of IDDM in Japanese. 
+9144439	95	130	insulin-dependent diabetes mellitus	SpecificDisease	OMIM:125852
+9144439	246	281	insulin-dependent diabetes mellitus	Modifier	OMIM:125852
+9144439	422	426	IDDM	SpecificDisease	D003922
+9144439	465	469	IDDM	SpecificDisease	D003922
+9144439	610	614	IDDM	SpecificDisease	D003922
+9144439	651	655	IDDM	SpecificDisease	D003922
+9144439	720	724	IDDM	SpecificDisease	D003922
+9144439	944	948	IDDM	SpecificDisease	D003922
+9144439	1108	1112	IDDM	SpecificDisease	D003922
+
+8929413|t|Association of anxiety-related traits with a polymorphism in the serotonin transporter gene regulatory region.
+8929413|a|Transporter-facilitated uptake of serotonin (5-hydroxytryptamine or 5-HT) has been implicated in anxiety in humans and animal models and is the site of action of widely used uptake-inhibiting antidepressant and antianxiety drugs. Human 5-HT transporter (5-HTT) gene transcription is modulated by a common polymorphism in its upstream regulatory region. The short variant of the polymorphism reduces the transcriptional efficiency of the 5-HTT gene promoter, resulting in decreased 5-HTT expression and 5-HT uptake in lymphoblasts. Association studies in two independent samples totaling 505 individuals revealed that the 5-HTT polymorphism accounts for 3 to 4 percent of total variation and 7 to 9 percent of inherited variance in anxiety-related personality traits in individuals as well as sibships.. 
+8929413	15	37	anxiety-related traits	DiseaseClass	OMIM:607834
+8929413	208	215	anxiety	DiseaseClass	D001008
+8929413	842	876	anxiety-related personality traits	DiseaseClass	OMIM:607834
+
+8845838|t|Cloning and characterization of human very-long-chain acyl-CoA dehydrogenase cDNA, chromosomal assignment of the gene and identification in four patients of nine different mutations within the VLCAD gene.
+8845838|a|Very-long-chain acyl-CoA dehydrogenase (VLCAD) is one of four straight-chain acyl-CoA dehydrogenase (ACD) enzymes, which are all nuclear encoded mitochondrial flavoproteins catalyzing the initial step in fatty acid beta-oxidation. We have used the very fast, Rapid Amplification of cDNA Ends (RACE) based strategy to obtain the sequence of cDNAs encoding human VLCAD from placenta and fibroblasts. Alignment of the predicted amino acid sequence of human VLCAD with those of the other human ACD enzymes revealed extensive sequence homology. Moreover, human VLCAD and human acyl-CoA oxidase showed extensive sequence homology corroborating the notion that these genes are evolutionarily related. Southern blot analysis of genomic DNA from hybrid cell lines was used to localize the VLCAD gene to human chromosome 17p11. 2-p11. 13105. Using Northern and Western blot analysis to investigate the tissue specific distribution of VLCAD mRNA and protein in several human tissues we showed that VLCAD is most abundant in heart and skeletal muscle. This agrees well with the fact that cardiac and muscle symptoms are characteristic for patients with VLCAD deficiency. Northern blot analysis and sequencing of cloned PCR amplified VLCAD cDNA from four unrelated patients with VLCAD deficiency showed that VLCAD mRNA was undetectable in one patient and that the other three have mutations in both VLCAD alleles. Western blot analysis of patient fibroblasts showed that the identified mutations result in severely reduced amounts of VLCAD protein. 
+8845838	1346	1362	VLCAD deficiency	SpecificDisease	C536353
+8845838	1471	1487	VLCAD deficiency	SpecificDisease	C536353
+
+8892662|t|Genetic bases of human complement C7 deficiency.
+8892662|a|Complement C7 deficiency (C7D) is associated frequently with recurrent bacterial infections, especially meningitis caused by Neisseria meningitidis. We report in this work the molecular bases of C7D in two unrelated Japanese males. We used exon-specific PCR/single-strand conformation polymorphism analysis as a screening step for mutations. Subsequent direct sequencing of the target exons identified homozygous mutations in exon 16 of case 1 and in exon 15 of case 2. The mutation of case 1 was a homozygous T to A transversion at nucleotide 2250, the third nucleotide of the codon TGT for Cys728, leading to a stop codon TGA (C728X). In case 2, a homozygous 2-bp deletion (2137delTG/2138delGT/2139delTG) caused a frameshift, generating a premature termination codon 4 to 6 nucleotides downstream. Family study in case 1 confirmed the genetic nature of the defect. Moreover, we detected a novel polymorphism in intron 11 that presumably is linked to the mutation responsible for C7D in case 1. Our results indicate that the pathogenesis of C7D is heterogeneous like most of the other deficiencies of complement components.. 
+8892662	23	47	complement C7 deficiency	SpecificDisease	OMIM:610102
+8892662	49	73	Complement C7 deficiency	SpecificDisease	OMIM:610102
+8892662	75	78	C7D	SpecificDisease	OMIM:610102
+8892662	120	140	bacterial infections	DiseaseClass	D001424
+8892662	153	163	meningitis	DiseaseClass	D008581
+8892662	174	196	Neisseria meningitidis	SpecificDisease	D008589
+8892662	244	247	C7D	SpecificDisease	OMIM:610102
+8892662	1030	1033	C7D	SpecificDisease	OMIM:610102
+8892662	1091	1094	C7D	SpecificDisease	OMIM:610102
+8892662	1135	1172	deficiencies of complement components	DiseaseClass	D007153
+
+8622978|t|Defective dimerization of von Willebrand factor subunits due to a Cys-> Arg mutation in type IID von Willebrand disease.
+8622978|a|The same heterozygous T - > C transition at nt 8567 of the von Willebrand factor (vWF) transcript was found in two unrelated patients with type IID von Willebrand disease, with no other apparent abnormality. In one family, both alleles were normal in the parents and one sister; thus, the mutation originated de novo in the proposita. The second patient also had asymptomatic parents who, however, were not available for study. The structural consequences of the identified mutation, resulting in the CyS2010 - > Arg substitution, were evaluated by expression of the vWF carboxyl-terminal domain containing residues 1366-2050. Insect cells infected with recombinant baculovirus expressing normal vWF sequence secreted a disulfide linked dimeric molecule with an apparent molecular mass of 150 kDa before reduction, yielding a single band of 80 kDa after disulfide bond reduction. In contrast, cells expressing the mutant fragment secreted a monomeric molecule of apparent molecular mass of 80 kDa, which remained unchanged after reduction. We conclude that CyS2010 is essential for normal dimerization of vWF subunits through disulfide bonding of carboxyl-terminal domains and that a heterozygous mutation in the corresponding codon is responsible for defective multimer formation in type IID von Willebrand disease.. 
+8622978	26	40	von Willebrand	Modifier	D014842
+8622978	88	119	type IID von Willebrand disease	SpecificDisease	D056728
+8622978	180	194	von Willebrand	Modifier	D014842
+8622978	260	291	type IID von Willebrand disease	SpecificDisease	D056728
+8622978	1405	1436	type IID von Willebrand disease	SpecificDisease	D056728
+
+8968760|t|Ataxia-telangiectasia: founder effect among north African Jews.
+8968760|a|The ATM gene is responsible for the autosomal recessive disorder ataxia-telangiectasia (A-T), characterized by cerebellar degeneration, immunodeficiency and cancer predisposition. A-T carriers were reported to be moderately cancer-prone. A wide variety of A-T mutations, most of which are unique to single families, were identified in various ethnic groups, precluding carrier screening with mutation-specific assays. However, a single mutation was observed in 32/33 defective ATM alleles in Jewish A-T families of North African origin, coming from various regions of Morocco and Tunisia. This mutation, 103C-- > T, results in a stop codon at position 35 of the ATM protein. In keeping with the nature of this mutation, various antibodies directed against the ATM protein failed to defect this protein in patient cells. A rapid carrier detection assay detected this mutation in three out of 488 ATM alleles of Jewish Moroccan or Tunisian origin. This founder effect provides a unique opportunity for population-based screening for A-T carriers in a large Jewish community.. 
+8968760	0	21	Ataxia-telangiectasia	SpecificDisease	D001260
+8968760	100	128	autosomal recessive disorder	DiseaseClass	D030342
+8968760	129	150	ataxia-telangiectasia	SpecificDisease	D001260
+8968760	152	155	A-T	SpecificDisease	D001260
+8968760	175	198	cerebellar degeneration	DiseaseClass	D013132
+8968760	200	216	immunodeficiency	DiseaseClass	D007153
+8968760	221	242	cancer predisposition	DiseaseClass	D009369
+8968760	244	247	A-T	Modifier	D001260
+8968760	288	300	cancer-prone	DiseaseClass	D009369
+8968760	320	323	A-T	Modifier	D001260
+8968760	563	566	A-T	Modifier	D001260
+8968760	1095	1098	A-T	Modifier	D001260
+
+8755918|t|Mutations associated with variant phenotypes in ataxia-telangiectasia.
+8755918|a|We have identified 14 families with ataxia-telangiectasia (A-T) in which mutation of the ATM gene is associated with a less severe clinical and cellular phenotype (approximately 10% -15% of A-T families identified in the United Kingdom). In 10 of these families, all the homozygotes have a 137-bp insertion in their cDNA caused by a point mutation in a sequence resembling a splice-donor site. The second A-T allele has a different mutation in each patient. We show that the less severe phenotype in these patients is caused by some degree of normal splicing, which occurs as an alternative product from the insertion-containing allele. The level of the 137-bp PCR product containing the insertion was lowest in two patients who showed a later onset of cerebellar ataxia. A further four families who do not have this insertion have been identified. Mutations detected in two of four of these are missense mutations, normally rare in A-T patients. The demonstration of mutations giving rise to a slightly milder phenotype in A-T raises the interesting question of what range of phenotypes might occur in individuals in whom both mutations are milder. One possibility might be that individuals who are compound heterozygotes for ATM mutations are more common than we realize.. 
+8755918	48	69	ataxia-telangiectasia	SpecificDisease	D001260
+8755918	107	128	ataxia-telangiectasia	SpecificDisease	D001260
+8755918	130	133	A-T	SpecificDisease	D001260
+8755918	261	264	A-T	Modifier	D001260
+8755918	476	479	A-T	Modifier	D001260
+8755918	824	841	cerebellar ataxia	SpecificDisease	D002524
+8755918	1004	1007	A-T	Modifier	D001260
+8755918	1095	1098	A-T	SpecificDisease	D001260
+
+8696339|t|Cleavage of huntingtin by apopain, a proapoptotic cysteine protease, is modulated by the polyglutamine tract.
+8696339|a|Apoptosis has recently been recognized as a mode of cell death in Huntington disease (HD). Apopain, a human counterpart of the nematode cysteine protease death-gene product, CED-3, has a key role in proteolytic events leading to apoptosis. Here we show that apoptotic extracts and apopain itself specifically cleave the HD gene product, huntingtin. The rate of cleavage increases with the length of the huntingtin polyglutamine tract, providing an explanation for the gain-of-function associated with CAG expansion. Our results show that huntingtin is cleaved by cysteine proteases and suggest that HD might be a disorder of inappropriate apoptosis.. 
+8696339	176	194	Huntington disease	SpecificDisease	D006816
+8696339	196	198	HD	SpecificDisease	D006816
+8696339	430	432	HD	Modifier	D006816
+8696339	709	711	HD	SpecificDisease	D006816
+8696339	723	758	disorder of inappropriate apoptosis	DiseaseClass	D004194
