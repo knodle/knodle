@@ -1,0 +1,1074 @@
+[
+  {
+    "lr": 0.0001,
+    "cv_n_folds": 3,
+    "epochs": 1,
+    "batch_size": 8,
+    "psx_calculation_method": "signatures",
+    "accuracy": [
+      0.936,
+      0.884,
+      0.94,
+      0.908,
+      0.92,
+      0.868,
+      0.94,
+      0.916,
+      0.948,
+      0.824
+    ],
+    "mean_accuracy": 0.9084,
+    "std_accuracy": 0.03925755412090208,
+    "precision": [
+      0.9403364632237872,
+      0.9003395585738541,
+      0.9489795918367347,
+      0.9258064516129032,
+      0.9342105263157895,
+      0.9,
+      0.9436853406207301,
+      0.9242124034079651,
+      0.9505152634649038,
+      0.8492626205331821
+    ],
+    "mean_precision": 0.9217348219589849,
+    "std_precision": 0.031196825272443975,
+    "recall": [
+      0.9335516178736518,
+      0.8784668721109399,
+      0.9364406779661016,
+      0.902542372881356,
+      0.9152542372881356,
+      0.8601694915254237,
+      0.937788906009245,
+      0.9123651771956857,
+      0.9462634822804314,
+      0.8162557781201849
+    ],
+    "mean_recall": 0.9039098613251155,
+    "std_recall": 0.04126387692416887,
+    "f1-score": [
+      0.9354046896195336,
+      0.8814022345454843,
+      0.939181627986182,
+      0.9059397032602117,
+      0.91849243609807,
+      0.8631636562671046,
+      0.93948782495038,
+      0.9148542791806549,
+      0.9476304806716189,
+      0.8178325384207737
+    ],
+    "mean_f1": 0.9063389471000014,
+    "std_f1": 0.04118657446193744
+  }
+]
+
+
+
+
+2021-10-13 15:00: 31, 393 __main__     INFO     ======================================
+2021-10-13 15: 00: 31, 395 __main__     INFO     Parameters: cv_n_folds = 3 epochs = 1 psx_calculation_method = signatures psx_epochs = 20 psx_lr = 0.8
+2021-10-13 15: 00: 31, 398 __main__     INFO     ======================================
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 00: 32, 539 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 00: 32, 549 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 00: 32, 576 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 00: 35, 605 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 00:35, 620 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 00: 35, 632 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 901, samples in test set: 481
+2021-10-13 15:00: 35, 643 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 1044, samples in test set: 338
+2021-10-13 15: 00: 35, 652 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 819, samples in test set: 563
+3it [ 00: 17, 5.84s/it ]
+2021-10-13 15: 00: 53, 201 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.08919338 0.91080662 ]
+[ 0.12400154 0.87599846 ]
+[ 0.10089387 0.89910613 ]
+[ 0.03050609 0.96949391 ]
+[ 0.92057328 0.07942672 ]
+[ 0.02558109 0.97441891 ]
+[ 0.82925125 0.17074875 ]
+[ 0.89248745 0.10751255 ]
+[ 0.97889262 0.02110738 ]
+[ 0.76125606 0.23874394 ]
+]
+2021-10-13 15: 00: 53, 239 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 122 out of 1382
+2021-10-13 15:00: 53, 264 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 00: 53, 266 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 00: 53, 269 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.53it/s ]
+2021-10-13 15: 03: 00, 656 knodle.trainer.trainer INFO     Epoch development accuracy: 0.908
+2021-10-13 15: 03:01, 719 knodle.trainer.trainer INFO     Train avg loss: 0.2722774708180586
+2021-10-13 15: 03: 01, 722 knodle.trainer.trainer INFO     Train avg accuracy: 0.8988439306358381
+2021-10-13 15: 03:01, 726 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 03: 01, 730 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 03: 01, 731 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.53it/s ]
+2021-10-13 15: 03: 06, 618 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8609271523178808, 'recall': 0.9848484848484849, 'f1-score': 0.9187279151943463, 'support': 132}, '1': {'precision': 0.9797979797979798, 'recall': 0.8220338983050848, 'f1-score': 0.8940092165898619, 'support': 118}, 'accuracy': 0.908, 'macro avg': {'precision': 0.9203625660579302, 'recall': 0.9034411915767848, 'f1-score': 0.9063685658921041, 'support': 250}, 'weighted avg': {'precision': 0.9170341828884875, 'recall': 0.908, 'f1-score': 0.9070606894530296, 'support': 250}}
+2021-10-13 15:03: 06, 621 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.38267144560813904, denoising continues.
+2021-10-13 15: 03: 06, 622 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:03: 06, 638 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 03: 06, 649 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 955, samples in test set: 427
+2021-10-13 15: 03: 06, 659 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 825, samples in test set: 557
+2021-10-13 15: 03: 06, 669 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 984, samples in test set: 398
+3it [ 00: 17, 5.96s/it ]
+2021-10-13 15: 03: 24, 556 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.09706207 0.90293793 ]
+[ 0.06366131 0.93633869 ]
+[ 0.13905703 0.86094297 ]
+[ 0.01449039 0.98550961 ]
+[ 0.88986162 0.11013838 ]
+[ 0.01154633 0.98845367 ]
+[ 0.83526713 0.16473287 ]
+[ 0.88151678 0.11848322 ]
+[ 0.96310498 0.03689502 ]
+[ 0.72283077 0.27716923 ]
+]
+2021-10-13 15: 03: 24, 597 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 117 out of 1382
+2021-10-13 15:03: 24, 622 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 03: 24, 623 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 03: 24, 624 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 05: 31, 609 knodle.trainer.trainer INFO     Epoch development accuracy: 0.936
+2021-10-13 15: 05:32, 556 knodle.trainer.trainer INFO     Train avg loss: 0.2868600313287939
+2021-10-13 15: 05: 32, 560 knodle.trainer.trainer INFO     Train avg accuracy: 0.9096820809248555
+2021-10-13 15: 05:32, 565 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 05: 32, 569 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 05: 32, 573 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 05: 37, 430 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.9264705882352942, 'recall': 0.9545454545454546, 'f1-score': 0.9402985074626866, 'support': 132}, '1': {'precision': 0.9473684210526315, 'recall': 0.9152542372881356, 'f1-score': 0.9310344827586206, 'support': 118}, 'accuracy': 0.936, 'macro avg': {'precision': 0.9369195046439629, 'recall': 0.9348998459167951, 'f1-score': 0.9356664951106536, 'support': 250}, 'weighted avg': {'precision': 0.9363343653250774, 'recall': 0.936, 'f1-score': 0.9359258878023675, 'support': 250}}
+2021-10-13 15:05: 37, 431 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.23900090157985687, denoising continues.
+2021-10-13 15: 05: 37, 434 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 2
+2021-10-13 15:05: 37, 451 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 05: 37, 462 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 895, samples in test set: 487
+2021-10-13 15: 05: 37, 472 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 779, samples in test set: 603
+2021-10-13 15: 05: 37, 481 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1090, samples in test set: 292
+3it [ 00: 17, 5.98s/it ]
+2021-10-13 15: 05: 55, 443 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.10430878 0.89569122 ]
+[ 0.09570001 0.90429999 ]
+[ 0.12695572 0.87304428 ]
+[ 0.05482852 0.94517148 ]
+[ 0.88665593 0.11334407 ]
+[ 0.32998751 0.67001249 ]
+[ 0.7028197  0.2971803 ]
+[ 0.81015189 0.18984811 ]
+[ 0.96053837 0.03946163 ]
+[ 0.60539214 0.39460786 ]
+]
+2021-10-13 15: 05: 55, 482 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 122 out of 1382
+2021-10-13 15:05: 55, 503 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 05: 55, 507 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 05: 55, 509 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.58it/s ]
+2021-10-13 15: 08: 01, 730 knodle.trainer.trainer INFO     Epoch development accuracy: 0.936
+2021-10-13 15: 08:02, 667 knodle.trainer.trainer INFO     Train avg loss: 0.27017079185522186
+2021-10-13 15: 08: 02, 670 knodle.trainer.trainer INFO     Train avg accuracy: 0.903179190751445
+2021-10-13 15: 08:02, 675 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 08: 02, 680 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 08: 02, 684 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.62it/s ]
+2021-10-13 15: 08: 07, 537 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.23900090157985687, new dev loss: 0.29599159955978394). Denoising stops.
+2021-10-13 15: 08: 07, 539 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 08: 12, 400 __main__     INFO     Accuracy is: 0.936
+2021-10-13 15: 08: 12, 402 __main__     INFO     Precision is: 0.9403364632237872
+2021-10-13 15: 08: 12, 405 __main__     INFO     Recall is: 0.9335516178736518
+2021-10-13 15: 08: 12, 410 __main__     INFO     F1 is: 0.9354046896195336
+2021-10-13 15: 08: 12, 412 __main__     INFO     {'0': {'precision': 0.9084507042253521, 'recall': 0.9772727272727273, 'f1-score': 0.9416058394160584, 'support': 132}, '1': {'precision': 0.9722222222222222, 'recall': 0.8898305084745762, 'f1-score': 0.9292035398230089, 'support': 118}, 'accuracy': 0.936, 'macro avg': {'precision': 0.9403364632237872, 'recall': 0.9335516178736518, 'f1-score': 0.9354046896195336, 'support': 250}, 'weighted avg': {'precision': 0.9385508607198748, 'recall': 0.936, 'f1-score': 0.935751954008139, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 08: 13, 446 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 08: 13, 447 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 08: 13, 453 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 08: 13, 706 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 08:13, 715 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 08: 13, 730 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 690, samples in test set: 692
+2021-10-13 15:08: 13, 741 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 961, samples in test set: 421
+2021-10-13 15: 08: 13, 756 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1113, samples in test set: 269
+3it [ 00: 18, 6.06s/it ]
+2021-10-13 15: 08: 31, 967 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.10184816 0.89815184 ]
+[ 0.10857491 0.89142509 ]
+[ 0.23541903 0.76458097 ]
+[ 0.02972389 0.97027611 ]
+[ 0.90348146 0.09651854 ]
+[ 0.00818219 0.99181781 ]
+[ 0.82833004 0.17166996 ]
+[ 0.898146   0.101854 ]
+[ 0.96398343 0.03601657 ]
+[ 0.7511861  0.2488139 ]
+]
+2021-10-13 15: 08: 32, 069 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 118 out of 1382
+2021-10-13 15:08: 32, 092 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 08: 32, 096 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 08: 32, 097 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.56it/s ]
+2021-10-13 15: 10: 38, 299 knodle.trainer.trainer INFO     Epoch development accuracy: 0.948
+2021-10-13 15: 10:39, 259 knodle.trainer.trainer INFO     Train avg loss: 0.260478414366334
+2021-10-13 15: 10: 39, 261 knodle.trainer.trainer INFO     Train avg accuracy: 0.8971579963761258
+2021-10-13 15: 10:39, 266 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 10: 39, 269 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 10: 39, 271 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.65it/s ]
+2021-10-13 15: 10: 44, 096 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.9407407407407408, 'recall': 0.9621212121212122, 'f1-score': 0.951310861423221, 'support': 132}, '1': {'precision': 0.9565217391304348, 'recall': 0.9322033898305084, 'f1-score': 0.944206008583691, 'support': 118}, 'accuracy': 0.948, 'macro avg': {'precision': 0.9486312399355878, 'recall': 0.9471623009758603, 'f1-score': 0.947758435003456, 'support': 250}, 'weighted avg': {'precision': 0.9481893719806763, 'recall': 0.948, 'f1-score': 0.9479573708829627, 'support': 250}}
+2021-10-13 15:10: 44, 099 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.19560252130031586, denoising continues.
+2021-10-13 15: 10: 44, 103 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:10: 44, 122 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 10: 44, 134 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 1022, samples in test set: 360
+2021-10-13 15: 10: 44, 150 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 980, samples in test set: 402
+2021-10-13 15: 10: 44, 160 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 762, samples in test set: 620
+3it [ 00: 18, 6.03s/it ]
+2021-10-13 15: 11: 02, 264 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.07751909 0.92248091 ]
+[ 0.06152144 0.93847856 ]
+[ 0.2072626  0.7927374 ]
+[ 0.00974144 0.99025856 ]
+[ 0.92271995 0.07728005 ]
+[ 0.00939053 0.99060947 ]
+[ 0.83866687 0.16133313 ]
+[ 0.92977003 0.07022997 ]
+[ 0.96974608 0.03025392 ]
+[ 0.80896825 0.19103175 ]
+]
+2021-10-13 15: 11: 02, 357 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 106 out of 1382
+2021-10-13 15:11: 02, 380 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 11: 02, 381 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 11: 02, 384 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.62it/s ]
+2021-10-13 15: 13: 08, 594 knodle.trainer.trainer INFO     Epoch development accuracy: 0.884
+2021-10-13 15: 13:09, 561 knodle.trainer.trainer INFO     Train avg loss: 0.2788104904503319
+2021-10-13 15: 13: 09, 563 knodle.trainer.trainer INFO     Train avg accuracy: 0.875
+2021-10-13 15: 13:09, 569 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 13: 09, 573 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 13: 09, 577 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 13: 14, 441 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.19560252130031586, new dev loss: 0.2797873020172119). Denoising stops.
+2021-10-13 15: 13: 14, 443 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.52it/s ]
+2021-10-13 15: 13: 19, 293 __main__     INFO     Accuracy is: 0.884
+2021-10-13 15: 13: 19, 296 __main__     INFO     Precision is: 0.9003395585738541
+2021-10-13 15: 13: 19, 297 __main__     INFO     Recall is: 0.8784668721109399
+2021-10-13 15: 13: 19, 299 __main__     INFO     F1 is: 0.8814022345454843
+2021-10-13 15: 13: 19, 303 __main__     INFO     {'0': {'precision': 0.832258064516129, 'recall': 0.9772727272727273, 'f1-score': 0.8989547038327526, 'support': 132}, '1': {'precision': 0.968421052631579, 'recall': 0.7796610169491526, 'f1-score': 0.863849765258216, 'support': 118}, 'accuracy': 0.884, 'macro avg': {'precision': 0.9003395585738541, 'recall': 0.8784668721109399, 'f1-score': 0.8814022345454843, 'support': 250}, 'weighted avg': {'precision': 0.8965269949066215, 'recall': 0.884, 'f1-score': 0.8823851728255713, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 13: 20, 371 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 13: 20, 375 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 13: 20, 379 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 13: 20, 637 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 13:20, 646 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 13: 20, 660 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 957, samples in test set: 425
+2021-10-13 15:13: 20, 669 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 712, samples in test set: 670
+2021-10-13 15: 13: 20, 679 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1095, samples in test set: 287
+3it [ 00: 18, 6.08s/it ]
+2021-10-13 15: 13: 38, 925 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.09368109 0.90631891 ]
+[ 0.05049001 0.94950999 ]
+[ 0.2285203  0.7714797 ]
+[ 0.01278564 0.98721436 ]
+[ 0.86853509 0.13146491 ]
+[ 0.06003424 0.93996576 ]
+[ 0.85750736 0.14249264 ]
+[ 0.84094034 0.15905966 ]
+[ 0.99279669 0.00720331 ]
+[ 0.67323761 0.32676239 ]
+]
+2021-10-13 15: 13: 39, 032 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 119 out of 1382
+2021-10-13 15:13: 39, 058 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 13: 39, 059 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 13: 39, 063 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 15: 45, 315 knodle.trainer.trainer INFO     Epoch development accuracy: 0.952
+2021-10-13 15: 15:46, 239 knodle.trainer.trainer INFO     Train avg loss: 0.2865793234803256
+2021-10-13 15: 15: 46, 241 knodle.trainer.trainer INFO     Train avg accuracy: 0.9046242774566474
+2021-10-13 15: 15:46, 246 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 15: 46, 248 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 15: 46, 250 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.61it/s ]
+2021-10-13 15: 15: 51, 059 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.9411764705882353, 'recall': 0.9696969696969697, 'f1-score': 0.955223880597015, 'support': 132}, '1': {'precision': 0.9649122807017544, 'recall': 0.9322033898305084, 'f1-score': 0.9482758620689654, 'support': 118}, 'accuracy': 0.952, 'macro avg': {'precision': 0.9530443756449949, 'recall': 0.9509501797637391, 'f1-score': 0.9517498713329902, 'support': 250}, 'weighted avg': {'precision': 0.9523797729618163, 'recall': 0.952, 'f1-score': 0.9519444158517756, 'support': 250}}
+2021-10-13 15:15: 51, 062 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.1944654881954193, denoising continues.
+2021-10-13 15: 15: 51, 064 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:15: 51, 082 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 15: 51, 095 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 891, samples in test set: 491
+2021-10-13 15: 15: 51, 106 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 891, samples in test set: 491
+2021-10-13 15: 15: 51, 119 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 982, samples in test set: 400
+3it [ 00: 17, 5.98s/it ]
+2021-10-13 15: 16: 09, 090 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.08866246 0.91133754 ]
+[ 0.07321051 0.92678949 ]
+[ 0.19480419 0.80519581 ]
+[ 0.01369171 0.98630829 ]
+[ 0.91370925 0.08629075 ]
+[ 0.0393034  0.9606966 ]
+[ 0.84984647 0.15015353 ]
+[ 0.91203519 0.08796481 ]
+[ 0.98026918 0.01973082 ]
+[ 0.73480154 0.26519846 ]
+]
+2021-10-13 15: 16: 09, 194 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 114 out of 1382
+2021-10-13 15:16: 09, 231 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 16: 09, 232 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 16: 09, 239 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 15: 18: 15, 540 knodle.trainer.trainer INFO     Epoch development accuracy: 0.94
+2021-10-13 15: 18:16, 439 knodle.trainer.trainer INFO     Train avg loss: 0.2581373131053382
+2021-10-13 15: 18: 16, 441 knodle.trainer.trainer INFO     Train avg accuracy: 0.9096820809248555
+2021-10-13 15: 18:16, 447 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 18: 16, 451 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 18: 16, 455 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.53it/s ]
+2021-10-13 15: 18: 21, 275 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.1944654881954193, new dev loss: 0.237503781914711). Denoising stops.
+2021-10-13 15: 18: 21, 277 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 18: 26, 139 __main__     INFO     Accuracy is: 0.94
+2021-10-13 15: 18: 26, 142 __main__     INFO     Precision is: 0.9489795918367347
+2021-10-13 15: 18: 26, 144 __main__     INFO     Recall is: 0.9364406779661016
+2021-10-13 15: 18: 26, 146 __main__     INFO     F1 is: 0.939181627986182
+2021-10-13 15: 18: 26, 148 __main__     INFO     {'0': {'precision': 0.8979591836734694, 'recall': 1.0, 'f1-score': 0.9462365591397849, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8728813559322034, 'f1-score': 0.9321266968325792, 'support': 118}, 'accuracy': 0.94, 'macro avg': {'precision': 0.9489795918367347, 'recall': 0.9364406779661016, 'f1-score': 0.939181627986182, 'support': 250}, 'weighted avg': {'precision': 0.9461224489795919, 'recall': 0.94, 'f1-score': 0.9395767041307838, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 18: 27, 208 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 18: 27, 210 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 18: 27, 214 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 18: 27, 472 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 18:27, 484 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 18: 27, 497 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 898, samples in test set: 484
+2021-10-13 15:18: 27, 517 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 1155, samples in test set: 227
+2021-10-13 15: 18: 27, 531 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 711, samples in test set: 671
+3it [ 00: 17, 5.97s/it ]
+2021-10-13 15: 18: 45, 468 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.07445688 0.92554312 ]
+[ 0.07931139 0.92068861 ]
+[ 0.15303935 0.84696065 ]
+[ 0.0212703  0.9787297 ]
+[ 0.93645863 0.06354137 ]
+[ 0.01241593 0.98758407 ]
+[ 0.86326288 0.13673712 ]
+[ 0.91585974 0.08414026 ]
+[ 0.97937233 0.02062767 ]
+[ 0.72358633 0.27641367 ]
+]
+2021-10-13 15: 18: 45, 551 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 113 out of 1382
+2021-10-13 15:18: 45, 572 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 18: 45, 574 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 18: 45, 578 knodle.trainer.trainer INFO     ======================================
+Prior: 129.09999999999997
+100%
+32/32 [ 00: 04<00: 00, 6.52it/s ]
+2021-10-13 15: 20: 52, 069 knodle.trainer.trainer INFO     Epoch development accuracy: 0.932
+2021-10-13 15: 20:53, 002 knodle.trainer.trainer INFO     Train avg loss: 0.2963465030353538
+2021-10-13 15: 20: 53, 009 knodle.trainer.trainer INFO     Train avg accuracy: 0.8836705202312138
+2021-10-13 15: 20:53, 015 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 20: 53, 016 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 20: 53, 023 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.56it/s ]
+2021-10-13 15: 20: 57, 890 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8859060402684564, 'recall': 1.0, 'f1-score': 0.9395017793594307, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8559322033898306, 'f1-score': 0.9223744292237444, 'support': 118}, 'accuracy': 0.932, 'macro avg': {'precision': 0.9429530201342282, 'recall': 0.9279661016949152, 'f1-score': 0.9309381042915875, 'support': 250}, 'weighted avg': {'precision': 0.9397583892617449, 'recall': 0.932, 'f1-score': 0.9314176700953867, 'support': 250}}
+2021-10-13 15:20: 57, 892 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.22066226601600647, denoising continues.
+2021-10-13 15: 20: 57, 895 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:20: 57, 914 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 20: 57, 928 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 931, samples in test set: 451
+2021-10-13 15: 20: 57, 946 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 989, samples in test set: 393
+2021-10-13 15: 20: 57, 955 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 844, samples in test set: 538
+3it [ 00: 18, 6.04s/it ]
+2021-10-13 15: 21: 16, 112 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.05725289 0.94274711 ]
+[ 0.06725375 0.93274625 ]
+[ 0.04520728 0.95479272 ]
+[ 0.00878206 0.99121794 ]
+[ 0.86791962 0.13208038 ]
+[ 0.03859344 0.96140656 ]
+[ 0.75614163 0.24385837 ]
+[ 0.85358488 0.14641512 ]
+[ 0.97889262 0.02110738 ]
+[ 0.69423491 0.30576509 ]
+]
+2021-10-13 15: 21: 16, 175 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 118 out of 1382
+2021-10-13 15:21: 16, 199 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 21: 16, 200 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 21: 16, 205 knodle.trainer.trainer INFO     ======================================
+Prior: 129.09999999999997
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 15: 23: 22, 286 knodle.trainer.trainer INFO     Epoch development accuracy: 0.908
+2021-10-13 15: 23:23, 165 knodle.trainer.trainer INFO     Train avg loss: 0.2789083339456964
+2021-10-13 15: 23: 23, 168 knodle.trainer.trainer INFO     Train avg accuracy: 0.903179190751445
+2021-10-13 15: 23:23, 174 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 23: 23, 179 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 23: 23, 191 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 23: 28, 021 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.22066226601600647, new dev loss: 0.2929849922657013). Denoising stops.
+2021-10-13 15: 23: 28, 023 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.56it/s ]
+2021-10-13 15: 23: 32, 873 __main__     INFO     Accuracy is: 0.908
+2021-10-13 15: 23: 32, 874 __main__     INFO     Precision is: 0.9258064516129032
+2021-10-13 15: 23: 32, 879 __main__     INFO     Recall is: 0.902542372881356
+2021-10-13 15: 23: 32, 880 __main__     INFO     F1 is: 0.9059397032602117
+2021-10-13 15: 23: 32, 883 __main__     INFO     {'0': {'precision': 0.8516129032258064, 'recall': 1.0, 'f1-score': 0.9198606271777003, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8050847457627118, 'f1-score': 0.8920187793427229, 'support': 118}, 'accuracy': 0.908, 'macro avg': {'precision': 0.9258064516129032, 'recall': 0.902542372881356, 'f1-score': 0.9059397032602117, 'support': 250}, 'weighted avg': {'precision': 0.9216516129032258, 'recall': 0.908, 'f1-score': 0.906719274999591, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 23: 33, 962 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 23: 33, 967 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 23: 33, 969 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 23: 34, 205 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 23:34, 218 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 23: 34, 230 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 1079, samples in test set: 303
+2021-10-13 15:23: 34, 241 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 923, samples in test set: 459
+2021-10-13 15: 23: 34, 253 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 762, samples in test set: 620
+3it [ 00: 18, 6.04s/it ]
+2021-10-13 15: 23: 52, 390 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.14426435 0.85573565 ]
+[ 0.11962502 0.88037498 ]
+[ 0.20140772 0.79859228 ]
+[ 0.01093615 0.98906385 ]
+[ 0.91503189 0.08496811 ]
+[ 0.03309375 0.96690625 ]
+[ 0.84061065 0.15938935 ]
+[ 0.9032387  0.0967613 ]
+[ 0.98147719 0.01852281 ]
+[ 0.73798074 0.26201926 ]
+]
+2021-10-13 15: 23: 52, 489 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 123 out of 1382
+2021-10-13 15:23: 52, 512 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 23: 52, 514 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 23: 52, 518 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.64it/s ]
+2021-10-13 15: 25: 58, 648 knodle.trainer.trainer INFO     Epoch development accuracy: 0.956
+2021-10-13 15: 25:59, 560 knodle.trainer.trainer INFO     Train avg loss: 0.2999250112381371
+2021-10-13 15: 25: 59, 562 knodle.trainer.trainer INFO     Train avg accuracy: 0.8973988439306358
+2021-10-13 15: 25:59, 568 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 25: 59, 573 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 25: 59, 578 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.51it/s ]
+2021-10-13 15: 26: 04, 418 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.935251798561151, 'recall': 0.9848484848484849, 'f1-score': 0.959409594095941, 'support': 132}, '1': {'precision': 0.9819819819819819, 'recall': 0.923728813559322, 'f1-score': 0.9519650655021833, 'support': 118}, 'accuracy': 0.956, 'macro avg': {'precision': 0.9586168902715665, 'recall': 0.9542886492039034, 'f1-score': 0.9556873297990621, 'support': 250}, 'weighted avg': {'precision': 0.9573084451357833, 'recall': 0.956, 'f1-score': 0.9558957765996874, 'support': 250}}
+2021-10-13 15:26: 04, 421 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.1376822590827942, denoising continues.
+2021-10-13 15: 26: 04, 425 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:26: 04, 442 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 26: 04, 455 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 950, samples in test set: 432
+2021-10-13 15: 26: 04, 468 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 966, samples in test set: 416
+2021-10-13 15: 26: 04, 479 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 848, samples in test set: 534
+3it [ 00: 18, 6.03s/it ]
+2021-10-13 15: 26: 22, 584 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.09761005 0.90238995 ]
+[ 0.05597134 0.94402866 ]
+[ 0.1052929  0.8947071 ]
+[ 0.02595294 0.97404706 ]
+[ 0.89282178 0.10717822 ]
+[ 0.0625658  0.9374342 ]
+[ 0.76302626 0.23697374 ]
+[ 0.87232885 0.12767115 ]
+[ 0.98026918 0.01973082 ]
+[ 0.64969164 0.35030836 ]
+]
+2021-10-13 15: 26: 22, 649 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 126 out of 1382
+2021-10-13 15:26: 22, 671 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 26: 22, 672 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 26: 22, 677 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 28: 28, 712 knodle.trainer.trainer INFO     Epoch development accuracy: 0.92
+2021-10-13 15: 28:29, 646 knodle.trainer.trainer INFO     Train avg loss: 0.27074109983625094
+2021-10-13 15: 28: 29, 648 knodle.trainer.trainer INFO     Train avg accuracy: 0.9130539501333512
+2021-10-13 15: 28:29, 655 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 28: 29, 658 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 28: 29, 661 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 28: 34, 498 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.1376822590827942, new dev loss: 0.21648743748664856). Denoising stops.
+2021-10-13 15: 28: 34, 500 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 28: 39, 374 __main__     INFO     Accuracy is: 0.92
+2021-10-13 15: 28: 39, 375 __main__     INFO     Precision is: 0.9342105263157895
+2021-10-13 15: 28: 39, 377 __main__     INFO     Recall is: 0.9152542372881356
+2021-10-13 15: 28: 39, 378 __main__     INFO     F1 is: 0.91849243609807
+2021-10-13 15: 28: 39, 380 __main__     INFO     {'0': {'precision': 0.868421052631579, 'recall': 1.0, 'f1-score': 0.9295774647887324, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8305084745762712, 'f1-score': 0.9074074074074074, 'support': 118}, 'accuracy': 0.92, 'macro avg': {'precision': 0.9342105263157895, 'recall': 0.9152542372881356, 'f1-score': 0.91849243609807, 'support': 250}, 'weighted avg': {'precision': 0.9305263157894738, 'recall': 0.92, 'f1-score': 0.919113197704747, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 28: 40, 428 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 28: 40, 432 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 28: 40, 435 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 28: 40, 711 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 28:40, 729 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 28: 40, 740 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 829, samples in test set: 553
+2021-10-13 15:28: 40, 752 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 1039, samples in test set: 343
+2021-10-13 15: 28: 40, 764 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 896, samples in test set: 486
+3it [ 00: 17, 5.96s/it ]
+2021-10-13 15: 28: 58, 675 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.09267232 0.90732768 ]
+[ 0.0559247  0.9440753 ]
+[ 0.06888728 0.93111272 ]
+[ 0.0095019  0.9904981 ]
+[ 0.90527994 0.09472006 ]
+[ 0.01766313 0.98233687 ]
+[ 0.83416242 0.16583758 ]
+[ 0.90636004 0.09363996 ]
+[ 0.98624822 0.01375178 ]
+[ 0.74059295 0.25940705 ]
+]
+2021-10-13 15: 28: 58, 781 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 111 out of 1382
+2021-10-13 15:28: 58, 807 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 28: 58, 813 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 28: 58, 814 knodle.trainer.trainer INFO     ======================================
+Prior: 129.10000000000002
+100%
+32/32 [ 00: 04<00: 00, 6.60it/s ]
+2021-10-13 15: 31: 04, 964 knodle.trainer.trainer INFO     Epoch development accuracy: 0.888
+2021-10-13 15: 31:05, 943 knodle.trainer.trainer INFO     Train avg loss: 0.24524029027778288
+2021-10-13 15: 31: 05, 947 knodle.trainer.trainer INFO     Train avg accuracy: 0.9096820809248555
+2021-10-13 15: 31:05, 953 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 31: 05, 958 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 31: 05, 963 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 15: 31: 10, 787 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8513513513513513, 'recall': 0.9545454545454546, 'f1-score': 0.9, 'support': 132}, '1': {'precision': 0.9411764705882353, 'recall': 0.8135593220338984, 'f1-score': 0.8727272727272728, 'support': 118}, 'accuracy': 0.888, 'macro avg': {'precision': 0.8962639109697933, 'recall': 0.8840523882896765, 'f1-score': 0.8863636363636365, 'support': 250}, 'weighted avg': {'precision': 0.8937488076311606, 'recall': 0.888, 'f1-score': 0.8871272727272728, 'support': 250}}
+2021-10-13 15:31: 10, 790 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.4333420395851135, denoising continues.
+2021-10-13 15: 31: 10, 793 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:31: 10, 815 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 31: 10, 838 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 874, samples in test set: 508
+2021-10-13 15: 31: 10, 850 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 1048, samples in test set: 334
+2021-10-13 15: 31: 10, 863 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 842, samples in test set: 540
+3it [ 00: 17, 5.93s/it ]
+2021-10-13 15: 31: 28, 689 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.07919366 0.92080634 ]
+[ 0.04692981 0.95307019 ]
+[ 0.11077425 0.88922575 ]
+[ 0.01437064 0.98562936 ]
+[ 0.90644215 0.09355785 ]
+[ 0.0146611  0.9853389 ]
+[ 0.83351689 0.16648311 ]
+[ 0.9032387  0.0967613 ]
+[ 0.98624822 0.01375178 ]
+[ 0.71625698 0.28374302 ]
+]
+2021-10-13 15: 31: 28, 783 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 111 out of 1382
+2021-10-13 15:31: 28, 806 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 31: 28, 807 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 31: 28, 812 knodle.trainer.trainer INFO     ======================================
+Prior: 129.09999999999997
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 15: 33: 34, 919 knodle.trainer.trainer INFO     Epoch development accuracy: 0.868
+2021-10-13 15: 33:35, 908 knodle.trainer.trainer INFO     Train avg loss: 0.27063201225599587
+2021-10-13 15: 33: 35, 909 knodle.trainer.trainer INFO     Train avg accuracy: 0.8923410404624278
+2021-10-13 15: 33:35, 913 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 33: 35, 916 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 33: 35, 917 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.60it/s ]
+2021-10-13 15: 33: 40, 770 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.4333420395851135, new dev loss: 0.516238808631897). Denoising stops.
+2021-10-13 15: 33: 40, 772 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 33: 45, 614 __main__     INFO     Accuracy is: 0.868
+2021-10-13 15: 33: 45, 617 __main__     INFO     Precision is: 0.9
+2021-10-13 15: 33: 45, 619 __main__     INFO     Recall is: 0.8601694915254237
+2021-10-13 15: 33: 45, 620 __main__     INFO     F1 is: 0.8631636562671046
+2021-10-13 15: 33: 45, 624 __main__     INFO     {'0': {'precision': 0.8, 'recall': 1.0, 'f1-score': 0.888888888888889, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.7203389830508474, 'f1-score': 0.8374384236453203, 'support': 118}, 'accuracy': 0.868, 'macro avg': {'precision': 0.9, 'recall': 0.8601694915254237, 'f1-score': 0.8631636562671046, 'support': 250}, 'weighted avg': {'precision': 0.8944000000000001, 'recall': 0.868, 'f1-score': 0.8646042692939245, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 33: 46, 639 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 33: 46, 644 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 33: 46, 652 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 33: 46, 927 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 33:46, 942 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 33: 46, 962 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 998, samples in test set: 384
+2021-10-13 15:33: 46, 974 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 744, samples in test set: 638
+2021-10-13 15: 33: 46, 985 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1022, samples in test set: 360
+3it [ 00: 17, 5.90s/it ]
+2021-10-13 15: 34: 04, 690 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.08766626 0.91233374 ]
+[ 0.06990587 0.93009413 ]
+[ 0.16558356 0.83441644 ]
+[ 0.02250935 0.97749065 ]
+[ 0.93464316 0.06535684 ]
+[ 0.01307228 0.98692772 ]
+[ 0.75322443 0.24677557 ]
+[ 0.89990211 0.10009789 ]
+[ 0.99224259 0.00775741 ]
+[ 0.70440148 0.29559852 ]
+]
+2021-10-13 15: 34: 04, 773 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 122 out of 1382
+2021-10-13 15:34: 04, 804 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 34: 04, 808 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 34: 04, 811 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 36: 10, 847 knodle.trainer.trainer INFO     Epoch development accuracy: 0.932
+2021-10-13 15: 36:11, 800 knodle.trainer.trainer INFO     Train avg loss: 0.267097223986134
+2021-10-13 15: 36: 11, 803 knodle.trainer.trainer INFO     Train avg accuracy: 0.9010115606936416
+2021-10-13 15: 36:11, 806 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 36: 11, 809 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 36: 11, 812 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 36: 16, 624 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.9020979020979021, 'recall': 0.9772727272727273, 'f1-score': 0.9381818181818181, 'support': 132}, '1': {'precision': 0.9719626168224299, 'recall': 0.8813559322033898, 'f1-score': 0.9244444444444444, 'support': 118}, 'accuracy': 0.932, 'macro avg': {'precision': 0.937030259460166, 'recall': 0.9293143297380586, 'f1-score': 0.9313131313131313, 'support': 250}, 'weighted avg': {'precision': 0.9350740474478793, 'recall': 0.932, 'f1-score': 0.9316977777777776, 'support': 250}}
+2021-10-13 15:36: 16, 626 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.24915651977062225, denoising continues.
+2021-10-13 15: 36: 16, 627 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:36: 16, 643 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 36: 16, 657 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 965, samples in test set: 417
+2021-10-13 15: 36: 16, 670 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 793, samples in test set: 589
+2021-10-13 15: 36: 16, 680 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1006, samples in test set: 376
+3it [ 00: 17, 5.92s/it ]
+2021-10-13 15: 36: 34, 473 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.0577337  0.9422663 ]
+[ 0.0422833  0.9577167 ]
+[ 0.23766111 0.76233889 ]
+[ 0.00579616 0.99420384 ]
+[ 0.90510055 0.09489945 ]
+[ 0.00311702 0.99688298 ]
+[ 0.90488727 0.09511273 ]
+[ 0.89958733 0.10041267 ]
+[ 0.98319227 0.01680773 ]
+[ 0.80293432 0.19706568 ]
+]
+2021-10-13 15: 36: 34, 510 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 123 out of 1382
+2021-10-13 15:36: 34, 531 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 36: 34, 534 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 36: 34, 537 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.58it/s ]
+2021-10-13 15: 38: 40, 659 knodle.trainer.trainer INFO     Epoch development accuracy: 0.888
+2021-10-13 15: 38:41, 657 knodle.trainer.trainer INFO     Train avg loss: 0.2871198905255064
+2021-10-13 15: 38: 41, 658 knodle.trainer.trainer INFO     Train avg accuracy: 0.8863198460871085
+2021-10-13 15: 38:41, 665 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 38: 41, 668 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 38: 41, 671 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 38: 46, 536 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8513513513513513, 'recall': 0.9545454545454546, 'f1-score': 0.9, 'support': 132}, '1': {'precision': 0.9411764705882353, 'recall': 0.8135593220338984, 'f1-score': 0.8727272727272728, 'support': 118}, 'accuracy': 0.888, 'macro avg': {'precision': 0.8962639109697933, 'recall': 0.8840523882896765, 'f1-score': 0.8863636363636365, 'support': 250}, 'weighted avg': {'precision': 0.8937488076311606, 'recall': 0.888, 'f1-score': 0.8871272727272728, 'support': 250}}
+2021-10-13 15:38: 46, 538 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.2405060976743698, denoising continues.
+2021-10-13 15: 38: 46, 540 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 2
+2021-10-13 15:38: 46, 565 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 38: 46, 578 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 744, samples in test set: 638
+2021-10-13 15: 38: 46, 591 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 870, samples in test set: 512
+2021-10-13 15: 38: 46, 606 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1150, samples in test set: 232
+3it [ 00: 17, 5.96s/it ]
+2021-10-13 15: 39: 04, 504 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.0938779  0.9061221 ]
+[ 0.07626095 0.92373905 ]
+[ 0.16339202 0.83660798 ]
+[ 0.03622599 0.96377401 ]
+[ 0.91872615 0.08127385 ]
+[ 0.01136937 0.98863063 ]
+[ 0.8418977  0.1581023 ]
+[ 0.84606158 0.15393842 ]
+[ 0.99224259 0.00775741 ]
+[ 0.75563856 0.24436144 ]
+]
+2021-10-13 15: 39: 04, 575 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 122 out of 1382
+2021-10-13 15:39: 04, 598 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 39: 04, 600 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 39: 04, 604 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 41: 10, 812 knodle.trainer.trainer INFO     Epoch development accuracy: 0.94
+2021-10-13 15: 41:11, 785 knodle.trainer.trainer INFO     Train avg loss: 0.30441165212649485
+2021-10-13 15: 41: 11, 786 knodle.trainer.trainer INFO     Train avg accuracy: 0.8793352601156069
+2021-10-13 15: 41:11, 794 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 41: 11, 798 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 41: 11, 803 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 41: 16, 669 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.2405060976743698, new dev loss: 0.24877792596817017). Denoising stops.
+2021-10-13 15: 41: 16, 672 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 41: 21, 514 __main__     INFO     Accuracy is: 0.94
+2021-10-13 15: 41: 21, 518 __main__     INFO     Precision is: 0.9436853406207301
+2021-10-13 15: 41: 21, 522 __main__     INFO     Recall is: 0.937788906009245
+2021-10-13 15: 41: 21, 524 __main__     INFO     F1 is: 0.93948782495038
+2021-10-13 15: 41: 21, 530 __main__     INFO     {'0': {'precision': 0.9148936170212766, 'recall': 0.9772727272727273, 'f1-score': 0.945054945054945, 'support': 132}, '1': {'precision': 0.9724770642201835, 'recall': 0.8983050847457628, 'f1-score': 0.9339207048458149, 'support': 118}, 'accuracy': 0.94, 'macro avg': {'precision': 0.9436853406207301, 'recall': 0.937788906009245, 'f1-score': 0.93948782495038, 'support': 250}, 'weighted avg': {'precision': 0.9420730040991607, 'recall': 0.94, 'f1-score': 0.9397995836762356, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 41: 22, 557 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 41: 22, 559 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 41: 22, 564 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 41: 22, 828 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 41:22, 846 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 41: 22, 858 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 888, samples in test set: 494
+2021-10-13 15:41: 22, 868 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 881, samples in test set: 501
+2021-10-13 15: 41: 22, 889 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 995, samples in test set: 387
+3it [ 00: 17, 5.96s/it ]
+2021-10-13 15: 41: 40, 783 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.06938801 0.93061199 ]
+[ 0.05597134 0.94402866 ]
+[ 0.18567274 0.81432726 ]
+[ 0.01774334 0.98225666 ]
+[ 0.91142718 0.08857282 ]
+[ 0.02231133 0.97768867 ]
+[ 0.87054646 0.12945354 ]
+[ 0.91130215 0.08869785 ]
+[ 0.98524199 0.01475801 ]
+[ 0.70736963 0.29263037 ]
+]
+2021-10-13 15: 41: 40, 822 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 104 out of 1382
+2021-10-13 15:41: 40, 845 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 41: 40, 846 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 41: 40, 847 knodle.trainer.trainer INFO     ======================================
+Prior: 129.09999999999997
+100%
+32/32 [ 00: 04<00: 00, 6.56it/s ]
+2021-10-13 15: 43: 47, 070 knodle.trainer.trainer INFO     Epoch development accuracy: 0.912
+2021-10-13 15: 43:48, 071 knodle.trainer.trainer INFO     Train avg loss: 0.2790616530214431
+2021-10-13 15: 43: 48, 074 knodle.trainer.trainer INFO     Train avg accuracy: 0.8949903663183223
+2021-10-13 15: 43:48, 080 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 43: 48, 086 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 43: 48, 087 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 43: 52, 930 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8571428571428571, 'recall': 1.0, 'f1-score': 0.923076923076923, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8135593220338984, 'f1-score': 0.897196261682243, 'support': 118}, 'accuracy': 0.912, 'macro avg': {'precision': 0.9285714285714286, 'recall': 0.9067796610169492, 'f1-score': 0.910136592379583, 'support': 250}, 'weighted avg': {'precision': 0.9245714285714286, 'recall': 0.912, 'f1-score': 0.9108612508986341, 'support': 250}}
+2021-10-13 15:43: 52, 935 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.33779531717300415, denoising continues.
+2021-10-13 15: 43: 52, 938 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:43: 53, 135 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 43: 53, 147 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 948, samples in test set: 434
+2021-10-13 15: 43: 53, 159 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 953, samples in test set: 429
+2021-10-13 15: 43: 53, 169 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 863, samples in test set: 519
+3it [ 00: 17, 5.89s/it ]
+2021-10-13 15: 44: 10, 853 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.06383697 0.93616303 ]
+[ 0.08134501 0.91865499 ]
+[ 0.13203395 0.86796605 ]
+[ 0.02716949 0.97283051 ]
+[ 0.87518659 0.12481341 ]
+[ 0.00497887 0.99502113 ]
+[ 0.88145774 0.11854226 ]
+[ 0.87667678 0.12332322 ]
+[ 0.97672776 0.02327224 ]
+[ 0.62199577 0.37800423 ]
+]
+2021-10-13 15: 44: 10, 897 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 104 out of 1382
+2021-10-13 15:44: 10, 932 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 44: 10, 934 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 44: 10, 940 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.58it/s ]
+2021-10-13 15: 46: 17, 182 knodle.trainer.trainer INFO     Epoch development accuracy: 0.916
+2021-10-13 15: 46:18, 140 knodle.trainer.trainer INFO     Train avg loss: 0.2761662249033463
+2021-10-13 15: 46: 18, 145 knodle.trainer.trainer INFO     Train avg accuracy: 0.8973988439306358
+2021-10-13 15: 46:18, 150 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 46: 18, 155 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 46: 18, 160 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.68it/s ]
+2021-10-13 15: 46: 22, 997 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8675496688741722, 'recall': 0.9924242424242424, 'f1-score': 0.9257950530035335, 'support': 132}, '1': {'precision': 0.98989898989899, 'recall': 0.8305084745762712, 'f1-score': 0.9032258064516129, 'support': 118}, 'accuracy': 0.916, 'macro avg': {'precision': 0.928724329386581, 'recall': 0.9114663585002568, 'f1-score': 0.9145104297275732, 'support': 250}, 'weighted avg': {'precision': 0.9252985483978862, 'recall': 0.916, 'f1-score': 0.915142368631027, 'support': 250}}
+2021-10-13 15:46: 22, 998 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.2873261570930481, denoising continues.
+2021-10-13 15: 46: 23, 000 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 2
+2021-10-13 15:46: 23, 024 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 46: 23, 037 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 901, samples in test set: 481
+2021-10-13 15: 46: 23, 049 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 903, samples in test set: 479
+2021-10-13 15: 46: 23, 061 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 960, samples in test set: 422
+3it [ 00: 17, 5.87s/it ]
+2021-10-13 15: 46: 40, 682 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.09216889 0.90783111 ]
+[ 0.08395701 0.91604299 ]
+[ 0.11552971 0.88447029 ]
+[ 0.02610882 0.97389118 ]
+[ 0.92155386 0.07844614 ]
+[ 0.01437697 0.98562303 ]
+[ 0.81842115 0.18157885 ]
+[ 0.94995105 0.05004895 ]
+[ 0.98319227 0.01680773 ]
+[ 0.73037936 0.26962064 ]
+]
+2021-10-13 15: 46: 40, 788 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 114 out of 1382
+2021-10-13 15:46: 40, 818 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 46: 40, 823 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 46: 40, 825 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 48: 46, 940 knodle.trainer.trainer INFO     Epoch development accuracy: 0.944
+2021-10-13 15: 48:47, 894 knodle.trainer.trainer INFO     Train avg loss: 0.26023288108300785
+2021-10-13 15: 48: 47, 895 knodle.trainer.trainer INFO     Train avg accuracy: 0.9108863200755478
+2021-10-13 15: 48:47, 897 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 48: 47, 907 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 48: 47, 917 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.63it/s ]
+2021-10-13 15: 48: 52, 745 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.9041095890410958, 'recall': 1.0, 'f1-score': 0.949640287769784, 'support': 132}, '1': {'precision': 1.0, 'recall': 0.8813559322033898, 'f1-score': 0.936936936936937, 'support': 118}, 'accuracy': 0.944, 'macro avg': {'precision': 0.952054794520548, 'recall': 0.9406779661016949, 'f1-score': 0.9432886123533606, 'support': 250}, 'weighted avg': {'precision': 0.9493698630136986, 'recall': 0.944, 'f1-score': 0.9436443061766803, 'support': 250}}
+2021-10-13 15:48: 52, 748 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.2352190762758255, denoising continues.
+2021-10-13 15: 48: 52, 751 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 3
+2021-10-13 15:48: 52, 770 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 48: 52, 790 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 893, samples in test set: 489
+2021-10-13 15: 48: 52, 800 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 1061, samples in test set: 321
+2021-10-13 15: 48: 52, 811 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 810, samples in test set: 572
+3it [ 00: 17, 5.80s/it ]
+2021-10-13 15: 49: 10, 242 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.1054856  0.8945144 ]
+[ 0.06778751 0.93221249 ]
+[ 0.20795347 0.79204653 ]
+[ 0.01738847 0.98261153 ]
+[ 0.92683115 0.07316885 ]
+[ 0.02500623 0.97499377 ]
+[ 0.92344146 0.07655854 ]
+[ 0.91936559 0.08063441 ]
+[ 0.97786299 0.02213701 ]
+[ 0.74347338 0.25652662 ]
+]
+2021-10-13 15: 49: 10, 327 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 108 out of 1382
+2021-10-13 15:49: 10, 350 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 49: 10, 352 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 49: 10, 360 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.53it/s ]
+2021-10-13 15: 51: 16, 600 knodle.trainer.trainer INFO     Epoch development accuracy: 0.916
+2021-10-13 15: 51:17, 587 knodle.trainer.trainer INFO     Train avg loss: 0.30507373489504086
+2021-10-13 15: 51: 17, 590 knodle.trainer.trainer INFO     Train avg accuracy: 0.8769267825032935
+2021-10-13 15: 51:17, 593 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 51: 17, 595 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 51: 17, 598 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 51: 22, 468 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.2352190762758255, new dev loss: 0.23894651234149933). Denoising stops.
+2021-10-13 15: 51: 22, 470 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 15: 51: 27, 304 __main__     INFO     Accuracy is: 0.916
+2021-10-13 15: 51: 27, 306 __main__     INFO     Precision is: 0.9242124034079651
+2021-10-13 15: 51: 27, 309 __main__     INFO     Recall is: 0.9123651771956857
+2021-10-13 15: 51: 27, 311 __main__     INFO     F1 is: 0.9148542791806549
+2021-10-13 15: 51: 27, 318 __main__     INFO     {'0': {'precision': 0.8775510204081632, 'recall': 0.9772727272727273, 'f1-score': 0.9247311827956989, 'support': 132}, '1': {'precision': 0.970873786407767, 'recall': 0.847457627118644, 'f1-score': 0.9049773755656108, 'support': 118}, 'accuracy': 0.916, 'macro avg': {'precision': 0.9242124034079651, 'recall': 0.9123651771956857, 'f1-score': 0.9148542791806549, 'support': 250}, 'weighted avg': {'precision': 0.9215993659599763, 'recall': 0.916, 'f1-score': 0.9154073857830973, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 51: 28, 346 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 51: 28, 347 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 51: 28, 354 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 51: 28, 620 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 51:28, 638 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 51: 28, 651 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 924, samples in test set: 458
+2021-10-13 15:51: 28, 663 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 900, samples in test set: 482
+2021-10-13 15: 51: 28, 671 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 940, samples in test set: 442
+3it [ 00: 17, 5.86s/it ]
+2021-10-13 15: 51: 46, 263 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.08116365 0.91883635 ]
+[ 0.08382883 0.91617117 ]
+[ 0.19522163 0.80477837 ]
+[ 0.04636926 0.95363074 ]
+[ 0.89107193 0.10892807 ]
+[ 0.0082428  0.9917572 ]
+[ 0.82706776 0.17293224 ]
+[ 0.87328878 0.12671122 ]
+[ 0.97672776 0.02327224 ]
+[ 0.74277743 0.25722257 ]
+]
+2021-10-13 15: 51: 46, 308 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 107 out of 1382
+2021-10-13 15:51: 46, 332 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 51: 46, 334 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 51: 46, 337 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.58it/s ]
+2021-10-13 15: 53: 52, 504 knodle.trainer.trainer INFO     Epoch development accuracy: 0.908
+2021-10-13 15: 53:53, 480 knodle.trainer.trainer INFO     Train avg loss: 0.28466323333539373
+2021-10-13 15: 53: 53, 482 knodle.trainer.trainer INFO     Train avg accuracy: 0.8995664739884393
+2021-10-13 15: 53:53, 483 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 53: 53, 492 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 53: 53, 497 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.62it/s ]
+2021-10-13 15: 53: 58, 369 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8657718120805369, 'recall': 0.9772727272727273, 'f1-score': 0.9181494661921707, 'support': 132}, '1': {'precision': 0.9702970297029703, 'recall': 0.8305084745762712, 'f1-score': 0.8949771689497716, 'support': 118}, 'accuracy': 0.908, 'macro avg': {'precision': 0.9180344208917536, 'recall': 0.9038906009244992, 'f1-score': 0.9065633175709712, 'support': 250}, 'weighted avg': {'precision': 0.9151077147983254, 'recall': 0.908, 'f1-score': 0.9072121418937583, 'support': 250}}
+2021-10-13 15:53: 58, 372 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.2460428774356842, denoising continues.
+2021-10-13 15: 53: 58, 374 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:53: 58, 407 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 53: 58, 421 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 782, samples in test set: 600
+2021-10-13 15: 53: 58, 433 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 964, samples in test set: 418
+2021-10-13 15: 53: 58, 446 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1018, samples in test set: 364
+3it [ 00: 18, 6.03s/it ]
+2021-10-13 15: 54: 16, 564 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.11025384 0.88974616 ]
+[ 0.08189095 0.91810905 ]
+[ 0.15844074 0.84155926 ]
+[ 0.0307372  0.9692628 ]
+[ 0.86314166 0.13685834 ]
+[ 0.04174923 0.95825077 ]
+[ 0.82516322 0.17483678 ]
+[ 0.90039278 0.09960722 ]
+[ 0.98624822 0.01375178 ]
+[ 0.6919375  0.3080625 ]
+]
+2021-10-13 15: 54: 16, 613 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 114 out of 1382
+2021-10-13 15:54: 16, 638 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 54: 16, 640 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 54: 16, 644 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.61it/s ]
+2021-10-13 15: 56: 22, 800 knodle.trainer.trainer INFO     Epoch development accuracy: 0.948
+2021-10-13 15: 56:23, 742 knodle.trainer.trainer INFO     Train avg loss: 0.2871210666728674
+2021-10-13 15: 56: 23, 744 knodle.trainer.trainer INFO     Train avg accuracy: 0.9024566473988439
+2021-10-13 15: 56:23, 752 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 56: 23, 754 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 56: 23, 759 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.57it/s ]
+2021-10-13 15: 56: 28, 607 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.2460428774356842, new dev loss: 0.25316673517227173). Denoising stops.
+2021-10-13 15: 56: 28, 609 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 15: 56: 33, 446 __main__     INFO     Accuracy is: 0.948
+2021-10-13 15: 56: 33, 447 __main__     INFO     Precision is: 0.9505152634649038
+2021-10-13 15: 56: 33, 449 __main__     INFO     Recall is: 0.9462634822804314
+2021-10-13 15: 56: 33, 452 __main__     INFO     F1 is: 0.9476304806716189
+2021-10-13 15: 56: 33, 454 __main__     INFO     {'0': {'precision': 0.9280575539568345, 'recall': 0.9772727272727273, 'f1-score': 0.9520295202952029, 'support': 132}, '1': {'precision': 0.972972972972973, 'recall': 0.9152542372881356, 'f1-score': 0.9432314410480349, 'support': 118}, 'accuracy': 0.948, 'macro avg': {'precision': 0.9505152634649038, 'recall': 0.9462634822804314, 'f1-score': 0.9476304806716189, 'support': 250}, 'weighted avg': {'precision': 0.9492576317324519, 'recall': 0.948, 'f1-score': 0.9478768268905396, 'support': 250}}
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing DistilBertForSequenceClassification: [ 'vocab_transform.bias', 'vocab_layer_norm.weight', 'vocab_projector.weight', 'vocab_projector.bias', 'vocab_transform.weight', 'vocab_layer_norm.bias' ]
+- This IS expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing DistilBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of DistilBertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [ 'pre_classifier.weight', 'classifier.bias', 'pre_classifier.bias', 'classifier.weight' ]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+2021-10-13 15: 56: 34, 481 knodle.trainer.config INFO     The cache will be saved to /content/knodle/cache folder
+2021-10-13 15: 56: 34, 482 knodle.trainer.config INFO     The trained models will be saved to the /content/knodle/cache directory.
+2021-10-13 15: 56: 34, 487 knodle.trainer.config INFO     Model will be trained on cuda
+/content/knodle/knodle/transformation/majority.py: 58: RuntimeWarning: invalid value encountered in true_divide
+labels_probs = rule_counts / rule_counts.sum(axis=1).reshape(-1, 1)
+2021-10-13 15: 56: 34, 783 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 0
+2021-10-13 15: 56:34, 795 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1: 2021-10-13 15: 56: 34, 812 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 1093, samples in test set: 289
+2021-10-13 15:56: 34, 822 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 889, samples in test set: 493
+2021-10-13 15: 56: 34, 840 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 782, samples in test set: 600
+3it [ 00: 17, 5.98s/it ]
+2021-10-13 15: 56: 52, 794 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.1122056  0.8877944 ]
+[ 0.07107817 0.92892183 ]
+[ 0.17554514 0.82445486 ]
+[ 0.0331209  0.9668791 ]
+[ 0.93683021 0.06316979 ]
+[ 0.0254713  0.9745287 ]
+[ 0.83165674 0.16834326 ]
+[ 0.94045459 0.05954541 ]
+[ 0.98624822 0.01375178 ]
+[ 0.81440903 0.18559097 ]
+]
+2021-10-13 15: 56: 52, 899 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 119 out of 1382
+2021-10-13 15:56: 52, 928 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 56: 52, 929 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 56: 52, 934 knodle.trainer.trainer INFO     ======================================
+Prior: 129.10000000000002
+100%
+32/32 [ 00: 04<00: 00, 6.56it/s ]
+2021-10-13 15: 58: 59, 073 knodle.trainer.trainer INFO     Epoch development accuracy: 0.924
+2021-10-13 15: 59:00, 023 knodle.trainer.trainer INFO     Train avg loss: 0.30218863763410403
+2021-10-13 15: 59: 00, 025 knodle.trainer.trainer INFO     Train avg accuracy: 0.8851156069364162
+2021-10-13 15: 59:00, 028 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 59: 00, 041 knodle.trainer.trainer INFO     Training done
+2021-10-13 15: 59: 00, 043 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.55it/s ]
+2021-10-13 15: 59: 04, 874 knodle.trainer.cleanlab.cleanlab INFO     Clf_report: {'0': {'precision': 0.8896551724137931, 'recall': 0.9772727272727273, 'f1-score': 0.9314079422382672, 'support': 132}, '1': {'precision': 0.9714285714285714, 'recall': 0.864406779661017, 'f1-score': 0.9147982062780269, 'support': 118}, 'accuracy': 0.924, 'macro avg': {'precision': 0.9305418719211822, 'recall': 0.9208397534668722, 'f1-score': 0.923103074258147, 'support': 250}, 'weighted avg': {'precision': 0.9282522167487685, 'recall': 0.924, 'f1-score': 0.9235681468650336, 'support': 250}}
+2021-10-13 15:59: 04, 878 knodle.trainer.cleanlab.cleanlab INFO     Dev loss: 0.2691175639629364, denoising continues.
+2021-10-13 15: 59: 04, 880 knodle.trainer.cleanlab.cleanlab INFO     Iteration: 1
+2021-10-13 15:59: 04, 898 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Partition 1/1:
+2021-10-13 15: 59: 04, 915 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 0     Rules in training set: 90, rules in test set: 45, samples in training set: 846, samples in test set: 536
+2021-10-13 15: 59: 04, 929 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 1     Rules in training set: 90, rules in test set: 45, samples in training set: 913, samples in test set: 469
+2021-10-13 15: 59: 04, 941 knodle.trainer.wscrossweigh.data_splitting_by_rules INFO     Fold 2     Rules in training set: 90, rules in test set: 45, samples in training set: 1005, samples in test set: 377
+3it [ 00: 17, 5.87s/it ]
+2021-10-13 15: 59: 22, 582 knodle.trainer.cleanlab.cleanlab INFO     [
+[ 0.08916911 0.91083089 ]
+[ 0.15080817 0.84919183 ]
+[ 0.25693093 0.74306907 ]
+[ 0.053298   0.946702 ]
+[ 0.93398299 0.06601701 ]
+[ 0.01545524 0.98454476 ]
+[ 0.90755195 0.09244805 ]
+[ 0.9219667  0.0780333 ]
+[ 0.98068899 0.01931101 ]
+[ 0.82971328 0.17028672 ]
+]
+2021-10-13 15: 59: 22, 684 knodle.trainer.cleanlab.cleanlab INFO     Labels changed: 115 out of 1382
+2021-10-13 15:59: 22, 715 knodle.trainer.trainer INFO     ======================================
+2021-10-13 15: 59: 22, 716 knodle.trainer.trainer INFO     Training starts
+2021-10-13 15: 59: 22, 718 knodle.trainer.trainer INFO     ======================================
+Prior: 129.1
+100%
+32/32 [ 00: 04<00: 00, 6.58it/s ]
+2021-10-13 16: 01: 28, 884 knodle.trainer.trainer INFO     Epoch development accuracy: 0.824
+2021-10-13 16: 01:29, 882 knodle.trainer.trainer INFO     Train avg loss: 0.29570993550143315
+2021-10-13 16: 01: 29, 889 knodle.trainer.trainer INFO     Train avg accuracy: 0.8945086705202312
+2021-10-13 16: 01:29, 892 knodle.trainer.trainer INFO     ======================================
+2021-10-13 16: 01: 29, 898 knodle.trainer.trainer INFO     Training done
+2021-10-13 16: 01: 29, 903 knodle.trainer.trainer INFO     ======================================
+100%
+32/32 [ 00: 04<00: 00, 6.59it/s ]
+2021-10-13 16: 01: 34, 725 knodle.trainer.cleanlab.cleanlab INFO     The model does not improve on the dev set (previous dev loss: 0.2691175639629364, new dev loss: 0.36632010340690613). Denoising stops.
+2021-10-13 16: 01: 34, 727 root         INFO     Training is done.
+100%
+32/32 [ 00: 04<00: 00, 6.54it/s ]
+2021-10-13 16: 01: 39, 592 __main__     INFO     Accuracy is: 0.824
+2021-10-13 16: 01: 39, 596 __main__     INFO     Precision is: 0.8492626205331821
+2021-10-13 16: 01: 39, 613 __main__     INFO     Recall is: 0.8162557781201849
+2021-10-13 16: 01: 39, 618 __main__     INFO     F1 is: 0.8178325384207737
+2021-10-13 16: 01: 39, 624 __main__     INFO     {'0': {'precision': 0.7682926829268293, 'recall': 0.9545454545454546, 'f1-score': 0.8513513513513513, 'support': 132}, '1': {'precision': 0.9302325581395349, 'recall': 0.6779661016949152, 'f1-score': 0.7843137254901962, 'support': 118}, 'accuracy': 0.824, 'macro avg': {'precision': 0.8492626205331821, 'recall': 0.8162557781201849, 'f1-score': 0.8178325384207737, 'support': 250}, 'weighted avg': {'precision': 0.8447283040272264, 'recall': 0.824, 'f1-score': 0.8197095919448861, 'support': 250}
+}
+---------------------------------------------------------------------------
