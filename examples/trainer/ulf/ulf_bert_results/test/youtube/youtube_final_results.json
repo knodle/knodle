@@ -1,0 +1,205 @@
+[
+  {
+    "p": 0.1,
+    "lr": 1e-06,
+    "folds": 2,
+    "iterations": 4,
+    "partitions": 1,
+    "lamda": 0.05,
+    "thresh": 0.2,
+    "update": 50,
+    "margin": 1.0,
+    "CV_finetune": {
+      "Iteration 0": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.825,
+            "test acc": 0.836
+          },
+          "soft": {
+            "valid acc": 0.5833333333333334,
+            "test acc": 0.604
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.6916666666666667,
+            "test acc": 0.708
+          },
+          "soft": {
+            "valid acc": 0.5666666666666667,
+            "test acc": 0.636
+          }
+        }
+      },
+      "Iteration 1": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.5416666666666666,
+            "test acc": 0.532
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        }
+      },
+      "Iteration 2": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.5416666666666666,
+            "test acc": 0.54
+          },
+          "soft": {
+            "valid acc": 0.6416666666666667,
+            "test acc": 0.688
+          }
+        }
+      },
+      "Iteration 3": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.6583333333333333,
+            "test acc": 0.696
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.5916666666666667,
+            "test acc": 0.584
+          }
+        }
+      },
+      "setting": {
+        "best_set_ft_cosine": "Iteration_0_hard_label",
+        "best_set_ft_ft": "Iteration_0_hard_label",
+        "best_score_ft_cosine": 0,
+        "best_score_ft_ft": 0
+      }
+    },
+    "CV_cosine": {
+      "Iteration 0": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.65,
+            "test acc": 0.636
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.5833333333333334,
+            "test acc": 0.556
+          }
+        }
+      },
+      "Iteration 1": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.4666666666666667,
+            "test acc": 0.472
+          },
+          "soft": {
+            "valid acc": 0.6833333333333333,
+            "test acc": 0.696
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.4666666666666667,
+            "test acc": 0.472
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        }
+      },
+      "Iteration 2": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.4666666666666667,
+            "test acc": 0.472
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.6583333333333333,
+            "test acc": 0.612
+          },
+          "soft": {
+            "valid acc": 0.6166666666666667,
+            "test acc": 0.596
+          }
+        }
+      },
+      "Iteration 3": {
+        "finetune": {
+          "hard": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        },
+        "cosine": {
+          "hard": {
+            "valid acc": 0.4666666666666667,
+            "test acc": 0.472
+          },
+          "soft": {
+            "valid acc": 0.5333333333333333,
+            "test acc": 0.528
+          }
+        }
+      },
+      "setting": {
+        "best_set_cosine_cosine": "Iteration_2_hard_label",
+        "best_set_cosine_ft": "Iteration_1_hard_label",
+        "best_score_cosine_cosine": 0,
+        "best_score_cosine_ft": 0
+      }
+    }
+  }
+]

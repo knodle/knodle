@@ -1,0 +1,23 @@
+[
+  {
+    "lr": 0.1,
+    "cv_n_folds": 5,
+    "epochs": 200,
+    "batch_size": 128,
+    "psx_calculation_method": "signatures",
+    "accuracy": [
+      0.872,
+      0.916,
+      0.908,
+      0.92,
+      0.92,
+      0.916,
+      0.912,
+      0.916,
+      0.872,
+      0.916
+    ],
+    "mean_accuracy": 0.9068,
+    "std_accuracy": 0.018671427964197674
+  }
+]
