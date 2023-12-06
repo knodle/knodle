@@ -111,9 +111,7 @@ class BaseTrainer(Trainer):
         self.rule_matches_z = reduced_dict["train_rule_matches_z"]
         self.mapping_rules_labels_t = reduced_dict["mapping_rules_labels_t"]
 
-    def _make_dataloader(
-            self, dataset: TensorDataset, shuffle: bool = True
-    ) -> DataLoader:
+    def _make_dataloader(self, dataset: TensorDataset, shuffle: bool = True) -> DataLoader:
         dataloader = DataLoader(
             dataset,
             batch_size=self.trainer_config.batch_size,

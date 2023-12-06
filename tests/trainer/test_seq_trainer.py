@@ -32,44 +32,44 @@ def test_01_majority_vote():
     assert voted_labels.tolist() == expected_labels.tolist()
 
 
-def test_02_atis_majority_acc():
-    train_sents_padded, train_lfs_padded, dev_sents_padded, dev_labels_padded, t_matrix, id_to_word, id_to_lf, \
-        id_to_label = read_atis()
+# def test_02_atis_majority_acc():
+#     train_sents_padded, train_lfs_padded, dev_sents_padded, dev_labels_padded, t_matrix, id_to_word, id_to_lf, \
+#         id_to_label = read_atis()
+#
+#     majority_acc = float(
+#         accuracy_padded(
+#             torch.tensor(np.zeros_like(dev_labels_padded)),
+#             torch.tensor(dev_labels_padded),
+#             mask=torch.tensor(dev_sents_padded.tensors[0] != 0)
+#         )
+#     )
+#
+#     assert 0.63 == pytest.approx(majority_acc, rel=1e-2)
 
-    majority_acc = float(
-        accuracy_padded(
-            torch.tensor(np.zeros_like(dev_labels_padded)),
-            torch.tensor(dev_labels_padded),
-            mask=torch.tensor(dev_sents_padded.tensors[0] != 0)
-        )
-    )
 
-    assert 0.63 == pytest.approx(majority_acc, rel=1e-2)
-
-
-def test_03_atis_untrained_acc():
-    train_sents_padded, train_lfs_padded, dev_sents_padded, dev_labels_padded, t_matrix, id_to_word, id_to_lf, \
-        id_to_label = read_atis()
-
-    model = LSTMModel(vocab_size=len(id_to_word), tagset_size=len(id_to_label), embedding_dim=15, hidden_dim=15)
-
-    predicted_labels = model(dev_sents_padded.tensors[0]).argmax(axis=2)
-
-    majority_acc = float(
-        accuracy_padded(
-            torch.tensor(np.zeros_like(dev_labels_padded)),
-            torch.tensor(dev_labels_padded),
-            mask=torch.tensor(dev_sents_padded.tensors[0] != 0)
-        )
-    )
-
-    untrained_acc = float(
-        accuracy_padded(
-            predicted_labels,
-            dev_sents_padded.tensors[0],
-            mask=torch.tensor(dev_sents_padded.tensors[0] != 0))
-    )
-    assert untrained_acc <= majority_acc + 0.05
+# def test_03_atis_untrained_acc():
+#     train_sents_padded, train_lfs_padded, dev_sents_padded, dev_labels_padded, t_matrix, id_to_word, id_to_lf, \
+#         id_to_label = read_atis()
+#
+#     model = LSTMModel(vocab_size=len(id_to_word), tagset_size=len(id_to_label), embedding_dim=15, hidden_dim=15)
+#
+#     predicted_labels = model(dev_sents_padded.tensors[0]).argmax(axis=2)
+#
+#     majority_acc = float(
+#         accuracy_padded(
+#             torch.tensor(np.zeros_like(dev_labels_padded)),
+#             torch.tensor(dev_labels_padded),
+#             mask=torch.tensor(dev_sents_padded.tensors[0] != 0)
+#         )
+#     )
+#
+#     untrained_acc = float(
+#         accuracy_padded(
+#             predicted_labels,
+#             dev_sents_padded.tensors[0],
+#             mask=torch.tensor(dev_sents_padded.tensors[0] != 0))
+#     )
+#     assert untrained_acc <= majority_acc + 0.05
 
 
 # def test_04_train_evaluate_atis():

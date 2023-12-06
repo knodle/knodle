@@ -161,10 +161,10 @@ reports = pd.read_csv("mimic_cxr_text.csv",
                       names = ["subject_id","study_id", "findings", "impressions"], 
                       na_values=".")
 
-print("average length findings section:", 
+print("average pad_length findings section:",
       np.mean(reports["findings"].str.len()))
 
-print("average length impression section:", 
+print("average pad_length impression section:",
       np.mean(reports["impressions"].str.len()))
 
 print("number of NAs in findings and impressions:\n", 

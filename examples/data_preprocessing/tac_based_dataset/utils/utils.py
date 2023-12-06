@@ -175,7 +175,7 @@ def get_match_matrix_row(num_columns: int, matched_columns: list) -> list:
     """
     There is a function that creates a list which will be transformed into matrix row in future. All elements in the
     list equal zeros, apart from the ones with indices given in matched_columns list - they equal ones.
-    :param num_columns: length of created list = future row vector 2nd dimensionality
+    :param num_columns: pad_length of created list = future row vector 2nd dimensionality
     :param matched_columns: list of element indices that equal to 1
     :return: binary list
     """

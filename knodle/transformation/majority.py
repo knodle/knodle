@@ -66,7 +66,7 @@ def input_to_majority_vote_input(
         use_probabilistic_labels
     )
 
-    normalization = "sigmoid" if multi_label else "standard"
+    normalization = "sigmoid" if multi_label else "softmax"
     logger.info(f"{normalization} normalization will be used.")
 
     # (1) multiplication of Z and T matrices

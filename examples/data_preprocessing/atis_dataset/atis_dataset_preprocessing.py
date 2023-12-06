@@ -47,11 +47,16 @@ def do_padding(sequences, max_length: int = 20):
     return pad_sequences(sequences, maxlen=max_length)
 
 
-def get_train_dev_test_data(data: Dict) -> Tuple[List, List, List, List, List, List]:
+def get_train_dev_test_data(data: Dict, train_dev_split: float = 0.8) -> Tuple[List, List, List, List, List, List]:
+    """
+    :param data:
+    :param train_dev_split: the % of data that will be used for training (the remaining will be used for testing)
+    :return:
+    """
     train_dev_sents = data["train_sents"]  # list of lists
     train_dev_lfs = data["train_labels"]  # list of lists
 
-    num_train = math.floor(0.8 * len(train_dev_sents))
+    num_train = math.floor(train_dev_split * len(train_dev_sents))
     train_sents = train_dev_sents[:num_train]
     train_lfs = train_dev_lfs[:num_train]
     dev_sents = train_dev_sents[num_train:]
@@ -62,7 +67,7 @@ def get_train_dev_test_data(data: Dict) -> Tuple[List, List, List, List, List, L
     return train_sents, train_lfs, dev_sents, dev_lfs, test_sents, test_lfs
 
 
-def read_atis(path_to_atis: str = None, other_class_label: str = "O", other_class_id: int = 0):
+def read_atis(path_to_atis: str = None, other_class_label: str = "O", other_class_id: int = 0, pad_length: int = 20):
     if path_to_atis is None:
         path_to_atis = os.path.join(__location__, "atis.json")
 
@@ -83,26 +88,27 @@ def read_atis(path_to_atis: str = None, other_class_label: str = "O", other_clas
     )
 
     # pad sentences
-    train_sents_padded = do_padding(train_sents, max_length=20)
-    dev_sents_padded = do_padding(dev_sents, max_length=20)
-    test_sents_padded = do_padding(test_sents, max_length=20)
+    train_sents_padded = do_padding(train_sents, max_length=pad_length)
+    dev_sents_padded = do_padding(dev_sents, max_length=pad_length)
+    test_sents_padded = do_padding(test_sents, max_length=pad_length)
 
-    # extract pure labels
+    # use original labels, without "O" to represent Z-matrix
+    # Dimensions of XXX_lfs_padded: #samples x #tokens in each sample x #LFs
+    train_lfs_padded = to_categorical(do_padding(train_lfs, max_length=pad_length), num_lfs)[:, :, 1:]
+    dev_lfs_padded = to_categorical(do_padding(dev_lfs, max_length=pad_length), num_lfs)[:, :, 1:]
+    test_lfs_padded = to_categorical(do_padding(test_lfs, max_length=pad_length), num_lfs)[:, :, 1:]
+
+    # extract pure labels without BIO schema
     new_labels = [oldlabel.split(".")[0].split("-")[-1] for oldlabel in lf_to_id.keys()]
     lf_to_newlabel = dict(zip(lf_to_id.keys(), new_labels))
     del lf_to_newlabel["O"]
-
-    # 1. use original labels, without "O" to represent Z-matrix
-    # Dimensions of XXX_lfs_padded: #samples x #tokens in each sample x #LFs
-    train_lfs_padded = to_categorical(do_padding(train_lfs, max_length=20), num_lfs)[:, :, 1:]
-    dev_lfs_padded = to_categorical(do_padding(dev_lfs, max_length=20), num_lfs)[:, :, 1:]
-    test_lfs_padded = to_categorical(do_padding(test_lfs, max_length=20), num_lfs)[:, :, 1:]
 
     # create dict with cleaned labels to label ids
     new_labels = list(set(lf_to_newlabel.values()))  # cut the BIO schema
     newlabel_to_id = {**{other_class_label: other_class_id},
                       **{new_labels[i]: i + 1 for i in range(0, len(new_labels))}}
 
+    # create a dict of {LF_id: (new_)label_id}
     lfid_to_nlid = dict()
     for lf_id in id_to_lf:
         if lf_id == 0:
@@ -113,13 +119,17 @@ def read_atis(path_to_atis: str = None, other_class_label: str = "O", other_clas
         # "O" is not a lf in the 1-hot encoding of the original labels
         lfid_to_nlid[lf_id - 1] = nl_id
 
+    # create t matrix
     t_matrix = np.zeros((len(lfid_to_nlid), len(newlabel_to_id)))
     for lfid in lfid_to_nlid:
         t_matrix[lfid, lfid_to_nlid[lfid]] = 1
 
     id_to_label = {i: l for l, i in newlabel_to_id.items()}
 
-    dev_labels_padded = seq_input_to_majority_vote_input(dev_lfs_padded, t_matrix).argmax(axis=2)
+    dev_labels_padded = seq_input_to_majority_vote_input(
+        dev_lfs_padded, t_matrix, other_class_id=other_class_id
+    ).argmax(axis=2)
+
     # test_labels = majority_vote(test_labels_padded, t_matrix).argmax(axis=2)
     return train_sents_padded, train_lfs_padded, dev_sents_padded, dev_labels_padded, \
            t_matrix, id_to_word, id_to_lf, id_to_label

@@ -1,33 +1,20 @@
-from typing import Union
-
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
 
-from knodle.trainer.baseline.utils import SeqDataset
-
 
 def input_labels_to_tensordataset(
-        model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False, dataset: str = None,
-) -> Union[TensorDataset, SeqDataset]:
+        model_input_x: TensorDataset, labels: np.ndarray, probs: bool = False
+) -> TensorDataset:
     """
     This function takes Dataset with data features (num_samples x features dimension x features) and
     labels (num_samples x labels dimension) and turns it into one Dataset
     """
     model_tensors = model_input_x.tensors
-
-    if dataset == "sequence":
-        if probs:
-            return SeqDataset(*model_tensors, torch.from_numpy(labels).float())
-        else:
-            return SeqDataset(*model_tensors, torch.from_numpy(labels).long())
-    elif dataset is None:
-        if probs:
-            return TensorDataset(*model_tensors, torch.from_numpy(labels).float())
-        else:
-            return TensorDataset(*model_tensors, torch.from_numpy(labels).long())
+    if probs:
+        return TensorDataset(*model_tensors, torch.from_numpy(labels).float())
     else:
-        raise ValueError("Unknown dataset type!")
+        return TensorDataset(*model_tensors, torch.from_numpy(labels).long())
 
 
 def input_info_labels_to_tensordataset(

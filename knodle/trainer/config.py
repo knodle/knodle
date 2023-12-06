@@ -20,17 +20,23 @@ class TrainerConfig:
             self,
             criterion: Callable[[Tensor, Tensor], float] = cross_entropy_with_probs,
             batch_size: int = 32,
-            optimizer: Optimizer = SGD,
+            optimizer: Optimizer = None,
             lr: int = 0.01,
             output_classes: int = 2,
             class_weights: Tensor = None,
             epochs: int = 3,
             seed: int = None,
             grad_clipping: int = None,
+            evaluation_step: int = 50,
+            patience: int = 200,
             device: str = None,
+            verbose: bool = False,
+            early_stopping: bool = True,
             caching_folder: str = os.path.join(pathlib.Path().absolute(), "cache"),
             caching_suffix: str = "",
             saved_models_dir: str = None,
+            save_model_path: str = None,
+            save_model_name: str = None,
             multi_label: bool = False,
             multi_label_threshold: float = None
     ):
@@ -73,12 +79,19 @@ class TrainerConfig:
             self.saved_models_dir = caching_folder
         logger.info(f"The trained models will be saved to the {self.saved_models_dir} directory.")
 
+        self.save_model_path = save_model_path
+        self.save_model_name = save_model_name
+
         self.criterion = criterion
         self.lr = lr
         self.batch_size = batch_size
         self.output_classes = output_classes
         self.grad_clipping = grad_clipping
+        self.evaluation_step = evaluation_step
+        self.patience = patience
         self.device = torch.device(device) if device is not None else check_and_return_device()
+        self.early_stopping = early_stopping
+        self.verbose = verbose
         logger.info(f"Model will be trained on {self.device}")
 
         if epochs <= 0:

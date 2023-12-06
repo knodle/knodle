@@ -130,7 +130,7 @@ def encode_samples(raw_samples: list, word2id: dict, maxlen: int) -> list:
 
 
 def add_padding(tokens: list, maxlen: int) -> list:
-    """ Provide padding of the encoded tokens to the maxlen; if length of tokens > maxlen, reduce it to maxlen """
+    """ Provide padding of the encoded tokens to the maxlen; if pad_length of tokens > maxlen, reduce it to maxlen """
     padded_tokens = [0] * maxlen
     for token in range(0, min(len(tokens), maxlen)):
         padded_tokens[token] = tokens[token]

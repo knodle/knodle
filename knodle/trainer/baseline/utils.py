@@ -17,6 +17,7 @@ class SeqDataset(Dataset):
 
 def accuracy_padded(predicted, gold, mask):
     # Expects label ids, NOT 1-hot encodings
+    # predicted $ gold $ mask: batch_size x seqlength
     return sum(sum((predicted == gold) * mask)) / sum(sum(mask))
 
 
