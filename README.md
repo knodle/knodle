@@ -101,7 +101,7 @@ There are several denoising methods available.
 | WSCrossWeighTrainer   | `knodle.trainer.wscrossweigh`    | This method weighs the training samples basing on how reliable their labels are. The less reliable sentences (i.e. sentences, whose weak labels are possibly wrong) are detected using a DS-CrossWeigh method, which is similar to k-fold cross-validation, and got reduced weights in further training. This counteracts the problem of wrongly classified sentences.                                                                                                  |
 | SnorkelTrainer        | `knodle.trainer.snorkel`         | A wrapper of the Snorkel system, which incorporates both generative and discriminative Snorkel steps in a single call.                                                                                                                                                                                                                                                                                                                                                  |
 | WSCleanlabTrainer     | `knodle.trainer.wscleanlab`      | An adaptation of Cleanlab framework for weak supervision.                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ULF                   | `knodle.trainer.ulf`             | A method for Unsupervised Labeling Function correction, which denoises WS data by leveraging models trained on all but some LFs to identify and correct biases specific to the held-out LFs. ULF refines the allocation of LFs to classes by re-estimating this assignment on highly reliable cross-validated samples. For more details, see: Sedova and Roth. ULF: Unsupervised Labeling Function Correction using Cross-Validation for Weak Supervision. EMNLP 2023.                                                                                                                                                                           |
+| ULF                   | `knodle.trainer.ulf`             | A method for Unsupervised Labeling Function correction, which denoises WS data by leveraging models trained on all but some LFs to identify and correct biases specific to the held-out LFs. ULF refines the allocation of LFs to classes by re-estimating this assignment on highly reliable cross-validated samples. For more details, see: Sedova and Roth. ULF: Unsupervised Labeling Function Correction using Cross-Validation for Weak Supervision. EMNLP 2023.  |                                                                                                                                                                         |
 Each of the methods has its own default config file, which will be used in training if no custom config is provided. 
 
 ## Details about negative samples
@@ -179,11 +179,23 @@ And don't forget to follow [@knodle_ai](https://twitter.com/knodle_ai) on Twitte
 ## Citation
 
 ```
-@misc{sedova2021knodle,
-      title={Knodle: Modular Weakly Supervised Learning with PyTorch}, 
-      author={Anastasiia Sedova, Andreas Stephan, Marina Speranskaya, and Benjamin Roth},
-      year={2021},
-      eprint={2104.11557},
+@inproceedings{Sedova_2021,
+   title={Knodle: Modular Weakly Supervised Learning with PyTorch},
+   url={http://dx.doi.org/10.18653/v1/2021.repl4nlp-1.12},
+   DOI={10.18653/v1/2021.repl4nlp-1.12},
+   booktitle={Proceedings of the 6th Workshop on Representation Learning for NLP (RepL4NLP-2021)},
+   publisher={Association for Computational Linguistics},
+   author={Sedova, Anastasiia and Stephan, Andreas and Speranskaya, Marina and Roth, Benjamin},
+   year={2021} }
+
+```
+
+```
+@misc{sedova2023ulf,
+      title={ULF: Unsupervised Labeling Function Correction using Cross-Validation for Weak Supervision}, 
+      author={Anastasiia Sedova and Benjamin Roth},
+      year={2023},
+      eprint={2204.06863},
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
