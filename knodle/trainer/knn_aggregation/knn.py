@@ -55,10 +55,11 @@ class KNNAggregationTrainer(MajorityVoteTrainer):
         self._knn_denoise_rule_matches()
 
         self.model_input_x, noisy_input_y, self.rule_matches_z = input_to_majority_vote_input(
-            self.rule_matches_z, self.mapping_rules_labels_t.astype(np.int64), self.model_input_x,
-            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
-            filter_non_labelled=self.trainer_config.filter_non_labelled,
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
             probability_threshold=self.trainer_config.probability_threshold,
+            unmatched_strategy=self.trainer_config.unmatched_strategy,
+            ties_strategy=self.trainer_config.ties_strategy,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
             other_class_id=self.trainer_config.other_class_id,
             multi_label=self.trainer_config.multi_label,
             multi_label_threshold=self.trainer_config.multi_label_threshold

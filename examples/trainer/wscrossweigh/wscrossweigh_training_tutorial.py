@@ -91,7 +91,7 @@ def train_wscrossweigh(path_to_data: str, num_classes: int) -> None:
     custom_wscrossweigh_config = WSCrossWeighConfig(
         # general trainer parameters
         output_classes=num_classes,
-        filter_non_labelled=False,
+        unmatched_strategy="random",
         other_class_id=3,
         seed=12345,
         epochs=parameters.get("epochs"),

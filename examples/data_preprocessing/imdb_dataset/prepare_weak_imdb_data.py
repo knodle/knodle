@@ -19,15 +19,15 @@ import os
 from joblib import dump
 from tqdm import tqdm
 
-import pandas as pd 
-import numpy as np 
+import pandas as pd
+import numpy as np
 from scipy.sparse import csr_matrix
 
 from bs4 import BeautifulSoup
 from snorkel.labeling import LabelingFunction, PandasLFApplier, LFAnalysis
 
 from knodle.transformation.rule_label_format import transform_snorkel_matrix_to_z_t
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_labels
+from knodle.transformation.majority import input_to_majority_vote_input
 
 # client to access the dataset collection
 from minio import Minio
@@ -208,8 +208,8 @@ rule_matches, mapping_rules_labels = transform_snorkel_matrix_to_z_t(applied_lfs
 # 
 # Now we make a majority vote based on all rule matches. First we get the `rule_counts` by multiplying `rule_matches` with the `mapping_rules_labels`, then we divide it sumwise by the sum to get a probability value. In the end we counteract the divide with zero issue by setting all nan values to zero. All this happens in the `z_t_matrices_to_majority_vote_labels` function.
 
-# the ties are resolved randomly internally, so the predictions might slightly vary
-pred_labels = z_t_matrices_to_majority_vote_labels(rule_matches, mapping_rules_labels)
+# the ties are resolved randomly internally by default, so the predictions might slightly vary
+pred_labels = input_to_majority_vote_input(rule_matches, mapping_rules_labels)
 
 # There are more positive labels predicted by the majority vote.
 labels, counts = np.unique(pred_labels, return_counts=True)

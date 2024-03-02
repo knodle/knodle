@@ -72,6 +72,7 @@ def check_and_return_device() -> torch.device:
 
 def set_seed(seed: int) -> None:
     """ Fix seed for all shuffle processes in order to get the reproducible result """
+    torch.backends.cudnn.deterministic = True
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
