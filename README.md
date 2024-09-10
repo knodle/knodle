@@ -1,4 +1,7 @@
-<center><img src="img/logo.png" height="150></center>
+<br>
+<p align="center">
+   <img src="img/logo.png" height="200">
+</p><br>
 
 [![Python Version](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/downloads/release/python-360/)
 [![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
