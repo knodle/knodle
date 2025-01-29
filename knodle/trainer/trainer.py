@@ -19,7 +19,6 @@ from knodle.evaluation.multi_label_metrics import evaluate_multi_label, encode_t
 from knodle.evaluation.other_class_metrics import classification_report_other_class
 from knodle.evaluation.plotting import draw_loss_accuracy_plot
 from knodle.trainer.config import TrainerConfig, BaseTrainerConfig
-from knodle.trainer.utils.checks import check_other_class_id
 from knodle.trainer.utils.utils import log_section, accuracy_of_probs
 from knodle.transformation.rule_reduction import reduce_rule_matches
 from knodle.transformation.torch_input import input_labels_to_tensordataset, dataset_to_numpy_input
@@ -91,8 +90,6 @@ class BaseTrainer(Trainer):
         if kwargs.get("trainer_config", None) is None:
             kwargs["trainer_config"] = BaseTrainerConfig()
         super().__init__(model, mapping_rules_labels_t, model_input_x, rule_matches_z, **kwargs)
-
-        check_other_class_id(self.trainer_config, self.mapping_rules_labels_t)
 
     def _load_train_params(
             self,
@@ -233,7 +230,10 @@ class BaseTrainer(Trainer):
             self, feature_label_dataloader: DataLoader, loss_calculation: str = False
     ) -> [np.ndarray, np.ndarray]:
 
-        self.model.to(self.trainer_config.device)
+        # for cleanlab : model is wrapped with Skorch -> device is set in model description
+        if not isinstance(self.model, skorch.NeuralNetClassifier):
+            self.model.to(self.trainer_config.device)
+
         self.model.eval()
         predictions_list, label_list = [], []
         dev_loss, dev_acc = 0.0, 0.0
@@ -267,6 +267,13 @@ class BaseTrainer(Trainer):
     def test(
             self, features_dataset: TensorDataset, labels: Union[TensorDataset, List], loss_calculation: bool = False
     ) -> Tuple[Dict, Union[float, None]]:
+        """
+        The function tests the trained model on the test set and returns the classification report and test loss (if required).
+        :param features_dataset: features_dataset: TensorDataset with test samples
+        :param labels: true labels
+        :param loss_calculation: boolean value; whether to return test loss or None
+        :return: classification report (either with respect to other class or not)
+        """
 
         if type(labels) is list:
             gold_labels = encode_to_binary(labels, self.trainer_config.output_classes)

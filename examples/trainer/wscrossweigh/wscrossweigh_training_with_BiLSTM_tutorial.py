@@ -66,7 +66,7 @@ def train_wscrossweigh(
     custom_wscrossweigh_config = WSCrossWeighConfig(
         output_classes=NUM_CLASSES,
         class_weights=CLASS_WEIGHTS,
-        filter_non_labelled=True,
+        unmatched_strategy="filter",
         if_set_seed=True,
         epochs=parameters.get("epochs"),
         batch_size=16,

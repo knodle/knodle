@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 from tqdm.auto import tqdm
 
@@ -52,7 +51,7 @@ files = [
 for file in tqdm(files):
     client.fget_object(
         bucket_name="knodle",
-        object_name=os.path.join("datasets/spouse/processed/", file),
+        object_name=os.path.join("datasets/spouse/processed", file),
         file_path=os.path.join(processed_data_dir, file),
     )
 
@@ -73,9 +72,9 @@ print(f"Train avg. matches per sample: {train_rule_matches_z.sum() / train_rule_
 model_name = "distilbert-base-uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-X_train = convert_text_to_transformer_input(tokenizer, df_train["sample"].tolist())
-X_dev = convert_text_to_transformer_input(tokenizer, df_dev["sample"].tolist())
-X_test = convert_text_to_transformer_input(tokenizer, df_test["sample"].tolist())
+X_train = convert_text_to_transformer_input(df_train["sample"].tolist(), tokenizer)
+X_dev = convert_text_to_transformer_input(df_dev["sample"].tolist(), tokenizer)
+X_test = convert_text_to_transformer_input(df_test["sample"].tolist(), tokenizer)
 
 y_dev = np_array_to_tensor_dataset(df_dev['label'].values)
 y_test = np_array_to_tensor_dataset(df_test['label'].values)
@@ -91,7 +90,7 @@ custom_model_config = AutoConfig.create_config(
     lr=1e-4,
     batch_size=16,
     epochs=2,
-    filter_non_labelled=True
+    unmatched_strategy="filter"
 )
 
 print(custom_model_config)

@@ -13,10 +13,8 @@ from knodle.trainer.auto_trainer import AutoTrainer
 from knodle.trainer.baseline.majority import MajorityVoteTrainer
 from knodle.trainer.wscrossweigh.config import WSCrossWeighConfig
 from knodle.trainer.wscrossweigh.wscrossweigh_weights_calculator import WSCrossWeighWeightsCalculator
-
-from knodle.transformation.filter import filter_empty_probabilities
-from knodle.transformation.majority import z_t_matrices_to_majority_vote_probs
 from knodle.transformation.torch_input import input_info_labels_to_tensordataset
+from knodle.transformation.majority import input_to_majority_vote_input
 
 torch.set_printoptions(edgeitems=100)
 logger = logging.getLogger(__name__)
@@ -83,14 +81,17 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
 
     def calculate_labels(self) -> np.ndarray:
         """ This function calculates label probabilities and filter out non labelled samples, when needed """
-        train_labels = z_t_matrices_to_majority_vote_probs(
-            self.rule_matches_z, self.mapping_rules_labels_t, self.trainer_config.other_class_id
-        )
 
-        if self.trainer_config.filter_non_labelled:
-            self.model_input_x, train_labels, self.rule_matches_z = filter_empty_probabilities(
-                self.model_input_x, train_labels, self.rule_matches_z
-            )
+        self.model_input_x, train_labels, self.rule_matches_z = input_to_majority_vote_input(
+            self.rule_matches_z, self.mapping_rules_labels_t, self.model_input_x,
+            probability_threshold=self.trainer_config.probability_threshold,
+            unmatched_strategy=self.trainer_config.unmatched_strategy,
+            ties_strategy=self.trainer_config.ties_strategy,
+            use_probabilistic_labels=self.trainer_config.use_probabilistic_labels,
+            other_class_id=self.trainer_config.other_class_id,
+            multi_label=self.trainer_config.multi_label,
+            multi_label_threshold=self.trainer_config.multi_label_threshold
+        )
 
         if train_labels.shape[1] != self.trainer_config.output_classes:
             raise ValueError(
@@ -130,7 +131,8 @@ class WSCrossWeighTrainer(MajorityVoteTrainer):
         weights_calculation_config.optimizer = self.trainer_config.cw_optimizer
         weights_calculation_config.lr = self.trainer_config.cw_lr
         weights_calculation_config.batch_size = self.trainer_config.cw_batch_size
-        weights_calculation_config.filter_non_labelled = self.trainer_config.cw_filter_non_labelled
+        weights_calculation_config.unmatched_strategy = self.trainer_config.cw_unmatched_strategy,
+        weights_calculation_config.ties_strategy = self.trainer_config.cw_ties_strategy,
         weights_calculation_config.other_class_id = self.trainer_config.cw_other_class_id
         weights_calculation_config.grad_clipping = self.trainer_config.cw_grad_clipping
         weights_calculation_config.seed = self.trainer_config.cw_seed

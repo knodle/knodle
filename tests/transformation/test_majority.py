@@ -1,153 +1,135 @@
-import random
-
+import numpy as np
 import pytest
 
-import numpy as np
-
-from knodle.transformation.majority import (
-    probabilities_to_majority_vote, z_t_matrices_to_majority_vote_probs, z_t_matrices_to_majority_vote_labels,
-    probabilities_to_binary_multi_labels
-)
+from knodle.transformation.majority import probabilities_to_majority_vote, handle_non_labeled, z_t_matrices_to_probs
 
 
-def test_probabilies_to_majority_vote_fixed():
-    # format: (probabilities, gold_result, settings)
-    probs_gold_result_settings = [
-        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": -1}),
-        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": True, "other_class_id": None}),
-        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": -1}),
-        (np.array([0.5, 0.2, 0.3]), 0, {"choose_random_label": False, "other_class_id": None}),
-
-        (np.array([0.5, 0.5, 0.0]), -1, {"choose_random_label": None, "other_class_id": -1}),
-        (np.array([0.0, 0.0, 0.0]), -1, {"choose_random_label": None, "other_class_id": -1})
-    ]
-
-    for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilities_to_majority_vote(probs, **settings)
-
-        assert isinstance(result, int)
-        assert result == gold_label
-
-
-def test_probabilies_to_majority_vote_random():
-    # format: (probabilities, gold_result, settings)
-    probs_gold_result_settings = [
-        (np.array([0.5, 0.5, 0.0]), [0, 1], {"choose_random_label": True, "other_class_id": None}),
-
-        (np.array([0.3, 0.3, 0, 2, 0.3]), [0, 1, 3], {"choose_random_label": True, "other_class_id": None}),
-
-        (np.array([0.0, 0.0, 0.0]), [-1], {"choose_random_label": False, "other_class_id": -1}),
-        (np.array([0.0, 0.0, 0.0]), [0, 1, 2], {"choose_random_label": True, "other_class_id": None})
-    ]
-
-    for probs, gold_label, settings in probs_gold_result_settings:
-        result = probabilities_to_majority_vote(probs, **settings)
-
-        assert isinstance(result, int)
-        assert result in gold_label
-
-
-def test_probabilies_to_majority_vote_errors():
-    probs, gold_label, settings = (
-        np.array([0.0, 0.0, 0.0]), [], {"choose_random_label": False, "other_class_id": None}
+def test_z_t_matrices_to_probs():
+    z = np.array(
+        [
+            [1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 1]
+        ]
+    )
+    t = np.array(
+        [
+            [1, 0],
+            [1, 0],
+            [0, 1],
+            [0, 1],
+            [0, 1],
+        ]
+    )
+    gold_probs = np.array(
+        [
+            [1, 0],
+            [0, 0],
+            [0.5, 0.5]
+        ]
     )
 
-    with pytest.raises(ValueError):
-        result = probabilities_to_majority_vote(probs, **settings)
-
-
-@pytest.fixture
-def prob_values():
-    z = np.zeros((4, 4))
-    t = np.zeros((4, 2))
-
-    z[0, 0] = 1
-    z[0, 2] = 1
-    z[1, 0] = 1
-    z[1, 1] = 1
-    z[1, 2] = 1
-    z[1, 3] = 1
-    z[2, 1] = 1
-
-    t[0, 0] = 1
-    t[1, 1] = 1
-    t[2, 1] = 1
-    t[3, 1] = 1
-
-    gold_probs = np.array([
-        [0.5, 0.5],
-        [0.25, 0.75],
-        [0, 1],
-        [0, 0]
-    ])
-
-    gold_labels = np.array([-1, 1, 1, -1])
-
-    return z, t, gold_probs, gold_labels
-
-
-def test_get_majority_vote_labels(prob_values):
-    z, t, _, gold_labels = prob_values
-
-    majority_labels = z_t_matrices_to_majority_vote_labels(z, t, choose_random_label=False, other_class_id=-1)
-    print(majority_labels)
-    assert np.array_equal(majority_labels, gold_labels)
-
-
-def test_get_majority_vote_probs(prob_values):
-    z, t, gold_probs, _ = prob_values
-
-    majority_probs = z_t_matrices_to_majority_vote_probs(z, t)
+    majority_probs = z_t_matrices_to_probs(z, t)
     assert np.array_equal(gold_probs, majority_probs)
 
 
-def test_get_majority_vote_probs_sigmoid(prob_values):
-    z, t, _, _ = prob_values
-
-    gold_probs = np.array([
-        [[0.73, 0.73], [0.73, 0.95], [0, 0.73], [0, 0]]
-    ])
-
-    majority_probs = z_t_matrices_to_majority_vote_probs(z, t, normalization="sigmoid")
-    assert np.allclose(gold_probs, majority_probs, rtol=1e-02)
+def test_probabilities_to_majority_vote_base():
+    probs = np.array([0.2, 0, 0, 0.6, 0, 0.2, 0, 0])
+    true_label = 3
+    label = probabilities_to_majority_vote(probs)
+    assert label == true_label
 
 
-def test_get_majority_vote_probs_error(prob_values):
-    z, t, gold_probs, _ = prob_values
-    with pytest.raises(
-            ValueError,
-            match="Unknown label probabilities normalization; currently softmax and sigmoid normalization are supported"
-    ):
-        _ = z_t_matrices_to_majority_vote_probs(z, t, normalization="relu")
+def test_probabilities_to_majority_vote_random():
+    probs = np.array([0.5, 0, 0, 0.5, 0, 0, 0.5, 0])
+    true_random_labels = [0, 3, 6]
+    label = probabilities_to_majority_vote(probs)
+    assert label in true_random_labels
 
 
-def test_probabilities_to_binary_multi_labels():
-
-    probs1 = np.array([[0.6, 0.8, 0]])
-    gold_probs1 = np.array([[1, 1, 0]])
-
-    probs2 = np.array([[0.5, 0.9, 0.8]])
-    gold_probs2 = np.array([[0, 1, 0]])
-
-    probs1 = probabilities_to_binary_multi_labels(probs1)
-    assert np.array_equal(probs1, gold_probs1)
-
-    probs2 = probabilities_to_binary_multi_labels(probs2, threshold=0.9)
-    assert np.array_equal(probs2, gold_probs2)
+def test_probabilities_to_majority_vote_other():
+    probs = np.array([0.5, 0, 0, 0.5, 0, 0, 0, 0])
+    true_label = 7
+    label = probabilities_to_majority_vote(probs, ties_strategy="other", other_class_id=7)
+    assert label == true_label
 
 
-def test_probabilities_to_binary_multi_labels_random():
-    random.seed(10)
-    probs = np.array([[0, 0, 0]])
-    gold_probs = np.array([[0, 0, 1]])
-    probs3 = probabilities_to_binary_multi_labels(probs, choose_random_label=True)
-    assert np.array_equal(probs3, gold_probs)
+def test_probabilities_to_majority_vote_error():
+    probs = np.array([0.5, 0, 0, 0.5, 0, 0, 0, 0])
+    with pytest.raises(ValueError, match='Specify how to resolve unclear majority votes.'):
+        probabilities_to_majority_vote(probs, ties_strategy=None)
 
 
-def test_probabilities_to_binary_multi_labels_other():
+def test_handle_non_labeled_error():
+    noisy_y_train = np.array(5)
+    with pytest.raises(ValueError, match='noisy_y_train needs to be a matrix of dimensions num_samples x num_classes'):
+        handle_non_labeled(None, noisy_y_train)
 
-    probs = np.array([[0, 0, 0]])
-    gold_probs = np.array([[1, 0, 0]])
 
-    probs3 = probabilities_to_binary_multi_labels(probs, choose_random_label=False, other_class_id=0)
-    assert np.array_equal(probs3, gold_probs)
+# def test_handle_non_labeled_filter(filter_input):
+#     input_dataset, noisy_y_train = filter_input
+#
+#     gold_ids = np.ones((2, 4))
+#     gold_ids[0, 0] = 0
+#     gold_mask = np.ones((2, 4))
+#     gold_mask[1, 1] = 0
+#     gold_probs = np.array([
+#         [0.5, 0.5],
+#         [0.3, 0.7]
+#     ])
+#
+#     new_input_dataset, new_probs = handle_non_labeled(input_dataset, noisy_y_train, rule_matches_z=None)
+#
+#     assert np.array_equal(new_input_dataset.tensors[0].detach().numpy(), gold_ids)
+#     assert np.array_equal(new_input_dataset.tensors[1].detach().numpy(), gold_mask)
+#     assert np.array_equal(new_probs, gold_probs)
+
+
+def test_handle_non_labeled_other():
+    noisy_y_train = np.array([[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 0]])
+    y_pred_gold = np.array([[1, 0, 0, 0, 0], [0, 0, 0, 1, 0], [1, 0, 0, 0, 0]])
+
+    _, y_pred, _ = handle_non_labeled(
+        input_data_x=None,
+        noisy_y_train=noisy_y_train,
+        rule_matches_z=None,
+        unmatched_strategy="other",
+        other_class_id=0
+    )
+
+    assert np.array_equal(y_pred_gold, y_pred)
+
+
+def test_handle_non_labeled_random():
+    noisy_y_train = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 1]])
+    y_pred_gold = [
+        np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]),
+        np.array([[0, 1, 0], [0, 1, 0], [0, 0, 1]]),
+        np.array([[0, 0, 1], [0, 1, 0], [0, 0, 1]])
+    ]
+
+    _, y_pred, _ = handle_non_labeled(
+        input_data_x=None,
+        noisy_y_train=noisy_y_train,
+        rule_matches_z=None,
+        unmatched_strategy="random",
+        other_class_id=0,
+    )
+
+    # assert np.any(y_pred in y_pred_gold)
+    assert np.any(np.all(y_pred == y_pred_gold, axis=1))
+
+
+def test_handle_non_labeled_preserve():
+    noisy_y_train = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 1]])
+
+    _, y_pred, _ = handle_non_labeled(
+        input_data_x=None,
+        noisy_y_train=noisy_y_train,
+        rule_matches_z=None,
+        unmatched_strategy="preserve",
+        other_class_id=0
+    )
+
+    # assert np.any(y_pred in y_pred_gold)
+    assert np.array_equal(noisy_y_train, y_pred)
