@@ -21,3 +21,6 @@ matplotlib
 # cleanlab
 skorch
 cleanlab
+
+# flyingsquid
+flyingsquid
